@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EFEAE2; font-family:'Instrument Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#A8341C; text-decoration:none; border-bottom:1px solid #E8B9A9; }
+  a:hover { color:#7d2413; border-bottom-color:#A8341C; }
+  @keyframes sh { 0%{opacity:.45} 50%{opacity:.9} 100%{opacity:.45} }
+</style>
+</helmet>
+
+<section style="padding:56px 56px 40px;display:flex;flex-direction:column;gap:32px">
+
+  <div id="2a" style="display:flex;flex-direction:column;gap:24px;width:828px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:#6F6862">Turn 2 · Hybrid</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-family:'Instrument Serif',serif;font-size:18px;padding:4px 12px;border:1px solid #1A1714;border-radius:999px;color:#1A1714">2a</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:34px;color:#1A1714">Calm list + eine Karte</span>
+      </div>
+      <div style="font-size:14px;line-height:1.55;color:#57504A;max-width:66ch;text-wrap:pretty">Basis ist <a href="#1a">1a</a>. Auf Heute steht genau eine Karte: die Änderungen aus <a href="#1b">1b</a>. Noten bleibt eine ruhige Liste mit Gruppen&shy;überschriften für LK und GK, rechts der Mini-Verlauf aus <a href="#1c">1c</a>. Fach-Detail wie 1a mit Gewichtungs&shy;kopf und aufklappbarer Rechnung.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:390px 390px;gap:24px 48px">
+
+      <!-- 2a A Heute -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Do, Klasse 9b</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:26px;overflow:hidden">
+            <div>
+              <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Heute</div>
+              <div style="font-size:14px;color:#6F6862;margin-top:6px">Donnerstag, 11. September · 9b</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E8B9A9;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#A8341C">Änderungen heute</span>
+                <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#A8341C">2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#1A1714"><span style="width:20px;text-align:center;color:#A8341C">→</span>3. Std Chemie · R 112 → <strong>R 204</strong></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#57504A"><span style="width:20px;text-align:center">✕</span><span style="text-decoration:line-through">4. Std Sport</span> entfällt</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Stundenplan</div>
+              <sc-for list="{{ lessons }}" as="l" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #E4DED5">
+                  <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#6F6862">{{ l.n }}</div>
+                  <div style="display:flex;flex-direction:column;gap:3px">
+                    <sc-if value="{{ l.isCancel }}"><div style="font-size:17px;color:#57504A;text-decoration:line-through">{{ l.subj }}</div></sc-if>
+                    <sc-if value="{{ l.isPlain }}"><div style="font-size:17px;color:#1A1714;font-weight:500">{{ l.subj }}</div></sc-if>
+                    <div style="font-size:13px;color:#6F6862">{{ l.sub }}</div>
+                  </div>
+                  <sc-if value="{{ l.isRoom }}"><span style="padding:4px 9px;border-radius:999px;background:#FBE9E3;border:1px solid #E8B9A9;color:#A8341C;font-size:11px;font-weight:600">→ Raum</span></sc-if>
+                  <sc-if value="{{ l.isCancel }}"><span style="padding:4px 9px;border-radius:999px;border:1px dashed #8A827A;color:#57504A;font-size:11px;font-weight:600">entfällt</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Neue Note</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px">
+                <div><div style="font-size:16px;color:#1A1714;font-weight:500">Englisch</div><div style="font-size:13px;color:#6F6862">Klassenarbeit</div></div>
+                <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #1A1714;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">2+</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Hausaufgaben</div>
+              <sc-for list="{{ hw }}" as="h" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:14px;min-height:46px">
+                  <span style="width:20px;height:20px;border:1px solid #8A827A;border-radius:6px;flex:none"></span>
+                  <div style="flex:1;font-size:16px;color:#1A1714">{{ h.subj }} · {{ h.task }}</div>
+                  <span style="font-size:12px;color:#6F6862">bis {{ h.due }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2a A dark -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Dark Mode</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#14120F;border:1px solid #2E2A24;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.16)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#9C948A"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:26px;overflow:hidden">
+            <div>
+              <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#F3F0EA">Heute</div>
+              <div style="font-size:14px;color:#9C948A;margin-top:6px">Donnerstag, 11. September · 9b</div>
+            </div>
+            <div style="background:#1D1A16;border:1px solid #5A3A2C;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#FFB098">Änderungen heute</span>
+                <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#FFB098">2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#F3F0EA"><span style="width:20px;text-align:center;color:#FFB098">→</span>3. Std Chemie · R 112 → <strong>R 204</strong></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#B3ABA1"><span style="width:20px;text-align:center">✕</span><span style="text-decoration:line-through">4. Std Sport</span> entfällt</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Stundenplan</div>
+              <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">2</div>
+                <div><div style="font-size:17px;color:#F3F0EA;font-weight:500">Mathe</div><div style="font-size:13px;color:#9C948A">R 108</div></div><span></span>
+              </div>
+              <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">3</div>
+                <div><div style="font-size:17px;color:#F3F0EA;font-weight:500">Chemie</div><div style="font-size:13px;color:#9C948A">R 112 → R 204</div></div>
+                <span style="padding:4px 9px;border-radius:999px;background:#33231C;border:1px solid #5A3A2C;color:#FFB098;font-size:11px;font-weight:600">→ Raum</span>
+              </div>
+              <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">4</div>
+                <div><div style="font-size:17px;color:#B3ABA1;text-decoration:line-through">Sport</div><div style="font-size:13px;color:#9C948A">Schulschluss</div></div>
+                <span style="padding:4px 9px;border-radius:999px;border:1px dashed #6B6259;color:#B3ABA1;font-size:11px;font-weight:600">entfällt</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Neue Note</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px">
+                <div><div style="font-size:16px;color:#F3F0EA;font-weight:500">Englisch</div><div style="font-size:13px;color:#9C948A">Klassenarbeit</div></div>
+                <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #F3F0EA;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#F3F0EA">2+</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Hausaufgaben</div>
+              <div style="display:flex;align-items:center;gap:14px;min-height:46px"><span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span><div style="flex:1;font-size:16px;color:#F3F0EA">Deutsch · S. 42</div><span style="font-size:12px;color:#9C948A">bis Montag</span></div>
+              <div style="display:flex;align-items:center;gap:14px;min-height:46px"><span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span><div style="flex:1;font-size:16px;color:#F3F0EA">Mathe · AB Brüche</div><span style="font-size:12px;color:#9C948A">bis Mittwoch</span></div>
+            </div>
+          </div>
+          <div style="display:flex;background:#1D1A16;border-top:1px solid #2E2A24;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#F3F0EA;border-radius:2px"></span><span style="font-size:12px;color:#F3F0EA;font-weight:600">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2a B1 -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">B1 · Noten — Sek I, 1. Halbjahr 2026/27</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:24px;overflow:hidden">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Noten</div>
+              <span style="align-self:flex-start;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:13px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">1. Halbjahr 2026/27 ⌄</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:20px;border-bottom:1px solid #E4DED5">
+              <div style="font-family:'Instrument Serif',serif;font-size:64px;line-height:.9;color:#1A1714">2,31</div>
+              <div style="font-size:13px;line-height:1.4;color:#6F6862">Gesamt&shy;durchschnitt<br>Noten 1–6</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0">
+              <sc-for list="{{ sek1trend }}" as="s" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:1fr 84px 58px;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid #E4DED5">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <div style="font-size:17px;color:#1A1714;font-weight:500">{{ s.name }}</div>
+                    <sc-if value="{{ s.est }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px;font-weight:500">{{ estLabel }}</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-size:13px;color:#6F6862">noch keine Noten</span></sc-if>
+                  </div>
+                  <sc-if value="{{ s.pts }}">
+                    <svg viewBox="0 0 84 30" width="84" height="30" style="overflow:visible">
+                      <line x1="0" y1="15" x2="84" y2="15" stroke="#EDE7DE"></line>
+                      <polyline points="{{ s.pts }}" fill="none" stroke="#57504A" stroke-width="1.5"></polyline>
+                    </svg>
+                  </sc-if>
+                  <sc-if value="{{ s.empty }}"><span style="font-size:11px;color:#6F6862">kein Verlauf</span></sc-if>
+                  <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:26px;color:#1A1714;text-align:right">{{ s.val }}</span></sc-if>
+                  <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:26px;color:#6F6862;text-align:right">–</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;line-height:1.5;color:#6F6862;text-wrap:pretty">Verlauf: links früh, rechts aktuell — oben ist immer besser. <strong style="color:#57504A;font-weight:600">geschätzt</strong> = eigene Hochrechnung, keine offizielle Note.</div>
+          </div>
+          <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2a B2 -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">B2 · Noten — Oberstufe, Jg. 11, 11/I</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:20px;overflow:hidden">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Noten</div>
+              <span style="align-self:flex-start;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:13px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">Jahrgang 11 · 11/I ⌄</span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding-bottom:18px;border-bottom:1px solid #E4DED5">
+              <div style="display:flex;align-items:baseline;gap:14px">
+                <div style="font-family:'Instrument Serif',serif;font-size:60px;line-height:.9;color:#1A1714">9,5<span style="font-size:30px"> P</span></div>
+                <div style="font-size:13px;line-height:1.4;color:#6F6862">Ø Punkte<br>Skala 0–15</div>
+              </div>
+              <span style="padding:5px 10px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:12px;font-weight:500">1 Unterkurs</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Leistungskurse</div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ lktrend }}" as="s" hint-placeholder-count="2">
+                  <div style="display:grid;grid-template-columns:1fr 76px 62px;align-items:center;gap:12px;min-height:62px;border-bottom:1px solid #E4DED5">
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:17px;color:#1A1714;font-weight:600">{{ s.name }}</div>
+                      <sc-if value="{{ s.tag }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px">{{ s.tag }}</span></sc-if>
+                    </div>
+                    <svg viewBox="0 0 76 30" width="76" height="30" style="overflow:visible">
+                      <line x1="0" y1="15" x2="76" y2="15" stroke="#EDE7DE"></line>
+                      <polyline points="{{ s.pts }}" fill="none" stroke="#57504A" stroke-width="1.5"></polyline>
+                    </svg>
+                    <span style="font-family:'Instrument Serif',serif;font-size:25px;color:#1A1714;text-align:right">{{ s.val }} P</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Grundkurse</div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ gktrend }}" as="s" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:1fr 76px 62px;align-items:center;gap:12px;min-height:62px;border-bottom:1px solid #E4DED5">
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:17px;color:#1A1714">{{ s.name }}</div>
+                      <sc-if value="{{ s.tag }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px">{{ s.tag }}</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:13px;color:#6F6862">noch keine Noten</span></sc-if>
+                    </div>
+                    <sc-if value="{{ s.pts }}">
+                      <svg viewBox="0 0 76 30" width="76" height="30" style="overflow:visible">
+                        <line x1="0" y1="15" x2="76" y2="15" stroke="#EDE7DE"></line>
+                        <polyline points="{{ s.pts }}" fill="none" stroke="#57504A" stroke-width="1.5"></polyline>
+                      </svg>
+                    </sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-size:11px;color:#6F6862">kein Verlauf</span></sc-if>
+                    <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:25px;color:#1A1714;text-align:right">{{ s.val }} P</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:25px;color:#6F6862;text-align:right">–</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2a C1 -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">C1 · Fach-Detail — Mathematik, Sek I</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:12px 24px 0;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+            <div style="font-size:14px;color:#57504A;min-height:44px;display:flex;align-items:center">‹ Noten</div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid #E4DED5">
+              <div><div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1;color:#1A1714">Mathematik</div><div style="font-size:13px;color:#6F6862;margin-top:6px">Arbeiten 50 % · Sonstige 50 %</div></div>
+              <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">1,8</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4DED5;border-radius:14px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span>
+                <span style="font-size:11px;color:#6F6862">oben = besser (1)</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:stretch">
+                <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862;padding:2px 0"><span>1</span><span>6</span></div>
+                <svg viewBox="0 0 260 60" width="100%" height="60" preserveAspectRatio="none" style="overflow:visible">
+                  <line x1="0" y1="1" x2="260" y2="1" stroke="#EDE7DE"></line><line x1="0" y1="30" x2="260" y2="30" stroke="#EDE7DE"></line><line x1="0" y1="59" x2="260" y2="59" stroke="#EDE7DE"></line>
+                  <polyline points="12,12 90,3.5 168,0 248,8.5" fill="none" stroke="#1A1714" stroke-width="2" stroke-linejoin="round"></polyline>
+                  <circle cx="12" cy="12" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="90" cy="3.5" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="168" cy="0" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="248" cy="8.5" r="3.5" fill="#1A1714"></circle>
+                </svg>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Klassenarbeiten</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+              <sc-for list="{{ c1ka }}" as="g" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border-bottom:1px solid #E4DED5">
+                  <div><div style="font-size:16px;color:#1A1714">{{ g.t }}</div><div style="font-size:12px;color:#6F6862">{{ g.d }}</div></div>
+                  <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Sonstige Leistungen</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+              <sc-for list="{{ c1sl }}" as="g" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border-bottom:1px solid #E4DED5">
+                  <div style="font-size:16px;color:#1A1714">{{ g.t }}</div>
+                  <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">⌄</span></div>
+              <div style="font-size:13px;line-height:1.55;color:#57504A;text-wrap:pretty">Ø Arbeiten 1,65 · Ø Sonstige 1,35, je 50 % → <strong>1,8</strong>.</div>
+            </div>
+          </div>
+          <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2a C2 -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#57504A">C2 · Fach-Detail — LK Mathematik, Oberstufe</div>
+        <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+          <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+          <div style="flex:1;padding:12px 24px 0;display:flex;flex-direction:column;gap:15px;overflow:hidden">
+            <div style="font-size:14px;color:#57504A;min-height:44px;display:flex;align-items:center">‹ Noten</div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid #E4DED5">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="padding:3px 8px;border-radius:6px;background:#1A1714;color:#F6F3EE;font-size:11px;font-weight:600;letter-spacing:.06em">LK</span><span style="font-size:12px;color:#6F6862">11/I</span></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1;color:#1A1714;margin-top:8px">Mathematik</div>
+                <div style="font-size:13px;color:#6F6862;margin-top:4px">Klausur 50 % · Sonstige 50 %</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">12<span style="font-size:26px"> P</span></div>
+                <sc-if value="{{ showNote }}"><div style="font-size:12px;color:#6F6862;margin-top:6px">entspricht etwa 2+</div></sc-if>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4DED5;border-radius:14px;padding:14px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span>
+                <span style="font-size:11px;color:#6F6862">oben = besser (15 P)</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:stretch">
+                <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862;padding:2px 0"><span>15</span><span>0</span></div>
+                <svg viewBox="0 0 260 60" width="100%" height="60" preserveAspectRatio="none" style="overflow:visible">
+                  <line x1="0" y1="1" x2="260" y2="1" stroke="#EDE7DE"></line><line x1="0" y1="30" x2="260" y2="30" stroke="#EDE7DE"></line><line x1="0" y1="59" x2="260" y2="59" stroke="#EDE7DE"></line>
+                  <polyline points="12,16 90,8 168,12 248,4" fill="none" stroke="#1A1714" stroke-width="2" stroke-linejoin="round"></polyline>
+                  <circle cx="12" cy="16" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="90" cy="8" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="168" cy="12" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="248" cy="4" r="3.5" fill="#1A1714"></circle>
+                </svg>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Klausur</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;border-bottom:1px solid #E4DED5">
+                <div style="font-size:16px;color:#1A1714">1. Klausur</div>
+                <span style="min-width:58px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">11 P</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Sonstige Leistungen</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+              <sc-for list="{{ c2sl }}" as="g" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;border-bottom:1px solid #E4DED5">
+                  <div style="font-size:16px;color:#1A1714">{{ g.t }}</div>
+                  <span style="min-width:58px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">⌄</span></div>
+              <div style="font-size:13px;line-height:1.55;color:#57504A;text-wrap:pretty">Ø Sonstige (13, 12, 14 P) = 13 P. Mit der Klausur: (11 + 13) ÷ 2 = <strong>12 P</strong>.</div>
+            </div>
+          </div>
+          <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+            <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+            <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="background:#fff;border:1px solid #E4DED5;border-radius:18px;padding:24px 28px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:16px;font-weight:600;color:#1A1714">Was sich gegenüber 1a geändert hat</div>
+      <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty">Die Karte auf Heute trägt jetzt die Zahl der Änderungen und beide Fälle im Klartext — der Rest des Tages bleibt Liste. In Noten steht der Mini-Verlauf zwischen Fachname und Zahl; er sagt nur „aufwärts oder abwärts“ und ist damit für beide Skalen gleich lesbar. Fach-Detail nennt die Gewichtung direkt im Kopf, damit die Prozentwerte in den Abschnitten nur noch Wiederholung sind.</div>
+    </div>
+  </div>
+
+</section>
+
+<section style="padding:16px 56px 96px;display:flex;flex-direction:column;gap:40px">
+
+  <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;max-width:1100px">
+    <div style="flex:1;min-width:420px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:#6F6862">Turn 1 · Schulblick (unofficial companion)</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:1.02;color:#1A1714">Drei Layoutrichtungen</div>
+      <div style="font-size:15px;line-height:1.55;color:#57504A;max-width:60ch;text-wrap:pretty">Gleiche Inhalte, drei Strukturen. Je Richtung: Heute, Noten Sek I, Noten Oberstufe, Fach-Detail Sek I, Fach-Detail Oberstufe — plus ein Dark-Mode-Screen. 390 px. Farbe nur für Status, nie für Notenhöhe.</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span style="padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:12px;color:#57504A">Instrument Sans / Instrument Serif</span>
+      <span style="padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:12px;color:#57504A">Ein Akzent: Ton · Lehm</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;padding:20px 22px;background:#fff;border:1px solid #E4DED5;border-radius:18px;align-items:center;max-width:1100px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862;width:100%">Stundenzustände — ohne Farbe unterscheidbar</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #E4DED5;border-radius:12px;font-size:13px;color:#1A1714"><span style="width:8px;height:8px;border-radius:2px;background:#A29A90"></span>Regulär</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #E8B9A9;border-radius:12px;background:#FBE9E3;font-size:13px;color:#A8341C;font-weight:600"><span>→</span>Raum geändert</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #E8B9A9;border-radius:12px;background:#FBE9E3;font-size:13px;color:#A8341C;font-weight:600"><span>±</span>Vertretung</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px dashed #8A827A;border-radius:12px;font-size:13px;color:#57504A"><span style="text-decoration:line-through">Sport</span>entfällt</div>
+  </div>
+
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start">
+
+    <!-- ══════════════ 1a  CALM LIST ══════════════ -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:20px;width:828px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-family:'Instrument Serif',serif;font-size:18px;padding:4px 12px;border:1px solid #1A1714;border-radius:999px;color:#1A1714">1a</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:34px;color:#1A1714">Calm list</span>
+        <span style="font-size:13px;color:#6F6862">Text zuerst, viel Luft, Bottom-Tabs</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:390px 390px;gap:24px 48px">
+
+        <!-- A: Heute -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Do, Klasse 9b</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:28px;overflow:hidden">
+              <div>
+                <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Heute</div>
+                <div style="font-size:14px;color:#6F6862;margin-top:6px">Donnerstag, 11. September · 9b</div>
+              </div>
+              <div style="background:#FBE9E3;border:1px solid #E8B9A9;border-radius:14px;padding:14px 16px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#A8341C">Änderung</div>
+                <div style="font-size:15px;line-height:1.45;color:#1A1714;margin-top:6px">3. Std Chemie: <strong>R 112 → R 204</strong></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Stundenplan</div>
+                <sc-for list="{{ lessons }}" as="l" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #E4DED5">
+                    <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#6F6862">{{ l.n }}</div>
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <sc-if value="{{ l.isCancel }}"><div style="font-size:17px;color:#57504A;text-decoration:line-through">{{ l.subj }}</div></sc-if>
+                      <sc-if value="{{ l.isPlain }}"><div style="font-size:17px;color:#1A1714;font-weight:500">{{ l.subj }}</div></sc-if>
+                      <div style="font-size:13px;color:#6F6862">{{ l.sub }}</div>
+                    </div>
+                    <sc-if value="{{ l.isRoom }}"><span style="padding:4px 9px;border-radius:999px;background:#FBE9E3;border:1px solid #E8B9A9;color:#A8341C;font-size:11px;font-weight:600">→ Raum</span></sc-if>
+                    <sc-if value="{{ l.isCancel }}"><span style="padding:4px 9px;border-radius:999px;border:1px dashed #8A827A;color:#57504A;font-size:11px;font-weight:600">entfällt</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Neue Note</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px">
+                  <div><div style="font-size:16px;color:#1A1714;font-weight:500">Englisch</div><div style="font-size:13px;color:#6F6862">Klassenarbeit</div></div>
+                  <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #1A1714;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">2+</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Hausaufgaben</div>
+                <sc-for list="{{ hw }}" as="h" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:14px;min-height:48px">
+                    <span style="width:20px;height:20px;border:1px solid #8A827A;border-radius:6px;flex:none"></span>
+                    <div style="flex:1"><div style="font-size:16px;color:#1A1714">{{ h.subj }} · {{ h.task }}</div></div>
+                    <span style="font-size:12px;color:#6F6862">bis {{ h.due }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:transparent"></span><span style="font-size:12px;color:#6F6862">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:transparent"></span><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:transparent"></span><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A dark -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Dark Mode</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#14120F;border:1px solid #2E2A24;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.16)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#9C948A"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:28px;overflow:hidden">
+              <div>
+                <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#F3F0EA">Heute</div>
+                <div style="font-size:14px;color:#9C948A;margin-top:6px">Donnerstag, 11. September · 9b</div>
+              </div>
+              <div style="background:#33231C;border:1px solid #5A3A2C;border-radius:14px;padding:14px 16px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#FFB098">Änderung</div>
+                <div style="font-size:15px;line-height:1.45;color:#F3F0EA;margin-top:6px">3. Std Chemie: <strong>R 112 → R 204</strong></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Stundenplan</div>
+                <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                  <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">2</div>
+                  <div><div style="font-size:17px;color:#F3F0EA;font-weight:500">Mathe</div><div style="font-size:13px;color:#9C948A">R 108</div></div>
+                  <span></span>
+                </div>
+                <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                  <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">3</div>
+                  <div><div style="font-size:17px;color:#F3F0EA;font-weight:500">Chemie</div><div style="font-size:13px;color:#9C948A">R 112 → R 204</div></div>
+                  <span style="padding:4px 9px;border-radius:999px;background:#33231C;border:1px solid #5A3A2C;color:#FFB098;font-size:11px;font-weight:600">→ Raum</span>
+                </div>
+                <div style="display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:14px;min-height:52px;border-bottom:1px solid #2E2A24">
+                  <div style="font-family:'Instrument Serif',serif;font-size:20px;color:#9C948A">4</div>
+                  <div><div style="font-size:17px;color:#B3ABA1;text-decoration:line-through">Sport</div><div style="font-size:13px;color:#9C948A">keine Aufsicht nötig</div></div>
+                  <span style="padding:4px 9px;border-radius:999px;border:1px dashed #6B6259;color:#B3ABA1;font-size:11px;font-weight:600">entfällt</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Neue Note</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px">
+                  <div><div style="font-size:16px;color:#F3F0EA;font-weight:500">Englisch</div><div style="font-size:13px;color:#9C948A">Klassenarbeit</div></div>
+                  <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #F3F0EA;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#F3F0EA">2+</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Hausaufgaben</div>
+                <div style="display:flex;align-items:center;gap:14px;min-height:48px"><span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span><div style="flex:1;font-size:16px;color:#F3F0EA">Deutsch · S. 42</div><span style="font-size:12px;color:#9C948A">bis Montag</span></div>
+                <div style="display:flex;align-items:center;gap:14px;min-height:48px"><span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span><div style="flex:1;font-size:16px;color:#F3F0EA">Mathe · AB Brüche</div><span style="font-size:12px;color:#9C948A">bis Mittwoch</span></div>
+              </div>
+            </div>
+            <div style="display:flex;background:#1D1A16;border-top:1px solid #2E2A24;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#F3F0EA;border-radius:2px"></span><span style="font-size:12px;color:#F3F0EA;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B1 Noten Sek I -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B1 · Noten — Sek I, 1. Halbjahr 2026/27</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:26px;overflow:hidden">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Noten</div>
+                <div style="display:flex;gap:8px;align-items:center"><span style="padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:13px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">1. Halbjahr 2026/27 ⌄</span></div>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:22px;border-bottom:1px solid #E4DED5">
+                <div style="font-family:'Instrument Serif',serif;font-size:64px;line-height:.9;color:#1A1714">2,31</div>
+                <div style="font-size:13px;line-height:1.4;color:#6F6862">Gesamt&shy;durchschnitt<br>Noten 1–6</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{ sek1 }}" as="s" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;border-bottom:1px solid #E4DED5">
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:17px;color:#1A1714;font-weight:500">{{ s.name }}</div>
+                      <sc-if value="{{ s.est }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px;font-weight:500">{{ estLabel }}</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:13px;color:#6F6862">noch keine Noten</span></sc-if>
+                    </div>
+                    <sc-if value="{{ s.val }}"><span style="min-width:56px;height:46px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:24px;color:#1A1714">{{ s.val }}</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="min-width:56px;height:46px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed #A29A90;border-radius:12px;font-family:'Instrument Serif',serif;font-size:24px;color:#8A827A">–</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;line-height:1.5;color:#6F6862;text-wrap:pretty">Ohne Markierung: nach der Formel der Schule berechnet. <strong style="color:#57504A;font-weight:600">geschätzt</strong>: eigene Hochrechnung, kann von der Zeugnisnote abweichen.</div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B2 Noten Oberstufe -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B2 · Noten — Oberstufe, Jg. 11, 11/I</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:24px;overflow:hidden">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#1A1714">Noten</div>
+                <div style="display:flex;gap:8px"><span style="padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #E4DED5;font-size:13px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">Jahrgang 11 · 11/I ⌄</span></div>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:14px;padding-bottom:18px;border-bottom:1px solid #E4DED5">
+                <div style="font-family:'Instrument Serif',serif;font-size:64px;line-height:.9;color:#1A1714">9,5<span style="font-size:32px"> P</span></div>
+                <div style="font-size:13px;line-height:1.4;color:#6F6862">Ø Punkte<br>Skala 0–15</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff">
+                <span style="font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">1</span>
+                <span style="font-size:14px;color:#57504A">Unterkurs (unter 5 P) im Halbjahr</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Leistungskurse</div>
+                <sc-for list="{{ lk }}" as="s" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding-left:14px;border-left:2px solid #1A1714">
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:17px;color:#1A1714;font-weight:600">{{ s.name }}</div>
+                      <sc-if value="{{ s.est }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px">{{ estLabel }}</span></sc-if>
+                    </div>
+                    <span style="min-width:62px;height:46px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:24px;color:#1A1714">{{ s.val }} P</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Grundkurse</div>
+                <sc-for list="{{ gk }}" as="s" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding-left:14px;border-left:1px dotted #8A827A">
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:17px;color:#1A1714">{{ s.name }}</div>
+                      <sc-if value="{{ s.unter }}"><span style="align-self:flex-start;padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:11px;font-weight:500">Unterkurs</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:13px;color:#6F6862">noch keine Noten</span></sc-if>
+                    </div>
+                    <sc-if value="{{ s.val }}"><span style="min-width:62px;height:46px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:24px;color:#1A1714">{{ s.val }} P</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="min-width:62px;height:46px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed #A29A90;border-radius:12px;font-family:'Instrument Serif',serif;font-size:24px;color:#8A827A">–</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C1 Fach Sek I -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C1 · Fach-Detail — Mathematik, Sek I</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 24px 0;display:flex;flex-direction:column;gap:22px;overflow:hidden">
+              <div style="font-size:14px;color:#57504A;min-height:44px;display:flex;align-items:center">‹ Noten</div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:20px;border-bottom:1px solid #E4DED5">
+                <div><div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1;color:#1A1714">Mathematik</div><div style="font-size:13px;color:#6F6862;margin-top:6px">Schulformel · 4 Noten</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">1,8</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:14px;padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span>
+                  <span style="font-size:11px;color:#6F6862">oben = besser (1)</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:stretch">
+                  <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862;padding:2px 0"><span>1</span><span>6</span></div>
+                  <svg viewBox="0 0 260 64" width="100%" height="64" preserveAspectRatio="none" style="overflow:visible">
+                    <line x1="0" y1="0.5" x2="260" y2="0.5" stroke="#EDE7DE"></line>
+                    <line x1="0" y1="32" x2="260" y2="32" stroke="#EDE7DE"></line>
+                    <line x1="0" y1="63.5" x2="260" y2="63.5" stroke="#EDE7DE"></line>
+                    <polyline points="12,12.8 90,3.8 168,0 248,9" fill="none" stroke="#1A1714" stroke-width="2" stroke-linejoin="round"></polyline>
+                    <circle cx="12" cy="12.8" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="90" cy="3.8" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="168" cy="0" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="248" cy="9" r="3.5" fill="#1A1714"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Klassenarbeiten</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+                <sc-for list="{{ c1ka }}" as="g" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;border-bottom:1px solid #E4DED5">
+                    <div><div style="font-size:16px;color:#1A1714">{{ g.t }}</div><div style="font-size:12px;color:#6F6862">{{ g.d }}</div></div>
+                    <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Sonstige Leistungen</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+                <sc-for list="{{ c1sl }}" as="g" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;border-bottom:1px solid #E4DED5">
+                    <div style="font-size:16px;color:#1A1714">{{ g.t }}</div>
+                    <span style="min-width:52px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="min-height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 2px;border-top:1px solid #E4DED5">
+                <span style="font-size:15px;color:#1A1714">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">›</span>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C2 Fach Oberstufe -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C2 · Fach-Detail — LK Mathematik, Oberstufe</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 24px 0;display:flex;flex-direction:column;gap:15px;overflow:hidden">
+              <div style="font-size:14px;color:#57504A;min-height:44px;display:flex;align-items:center">‹ Noten</div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid #E4DED5">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="padding:3px 8px;border-radius:6px;background:#1A1714;color:#F6F3EE;font-size:11px;font-weight:600;letter-spacing:.06em">LK</span><span style="font-size:12px;color:#6F6862">11/I</span></div>
+                  <div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1;color:#1A1714;margin-top:8px">Mathematik</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">12<span style="font-size:26px"> P</span></div>
+                  <sc-if value="{{ showNote }}"><div style="font-size:12px;color:#6F6862;margin-top:6px">entspricht etwa 2+</div></sc-if>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:14px;padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span>
+                  <span style="font-size:11px;color:#6F6862">oben = besser (15 P)</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:stretch">
+                  <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862;padding:2px 0"><span>15</span><span>0</span></div>
+                  <svg viewBox="0 0 260 64" width="100%" height="64" preserveAspectRatio="none" style="overflow:visible">
+                    <line x1="0" y1="0.5" x2="260" y2="0.5" stroke="#EDE7DE"></line>
+                    <line x1="0" y1="32" x2="260" y2="32" stroke="#EDE7DE"></line>
+                    <line x1="0" y1="63.5" x2="260" y2="63.5" stroke="#EDE7DE"></line>
+                    <polyline points="12,17 90,8.5 168,12.8 248,4.3" fill="none" stroke="#1A1714" stroke-width="2" stroke-linejoin="round"></polyline>
+                    <circle cx="12" cy="17" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="90" cy="8.5" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="168" cy="12.8" r="3.5" fill="#F6F3EE" stroke="#1A1714" stroke-width="2"></circle>
+                    <circle cx="248" cy="4.3" r="3.5" fill="#1A1714"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Klausur</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:56px;border-bottom:1px solid #E4DED5">
+                  <div style="font-size:16px;color:#1A1714">1. Klausur</div>
+                  <span style="min-width:58px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">11 P</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Sonstige Leistungen</span><span style="font-size:12px;color:#57504A">50 %</span></div>
+                <sc-for list="{{ c2sl }}" as="g" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border-bottom:1px solid #E4DED5">
+                    <div style="font-size:16px;color:#1A1714">{{ g.t }}</div>
+                    <span style="min-width:58px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;background:#fff;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="border-top:1px solid #E4DED5;padding-top:14px">
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">⌄</span></div>
+                <div style="font-size:13px;line-height:1.55;color:#57504A;text-wrap:pretty">Ø Sonstige (13, 12, 14 P) = 13 P. Mit der Klausur: (11 + 13) ÷ 2 = <strong>12 P</strong>.</div>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">Ladezustand · Skeleton (gilt für alle Richtungen)</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 24px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:16px 24px 0;display:flex;flex-direction:column;gap:26px;overflow:hidden">
+              <div style="width:150px;height:34px;border-radius:8px;background:#E4DED5;animation:sh 1.4s ease-in-out infinite"></div>
+              <div style="height:74px;border-radius:14px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .1s"></div>
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="width:96px;height:12px;border-radius:6px;background:#E4DED5;animation:sh 1.4s ease-in-out infinite .15s"></div>
+                <div style="display:grid;grid-template-columns:34px 1fr 56px;gap:14px;align-items:center"><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .2s"></div><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .2s"></div><div style="height:36px;border-radius:10px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .2s"></div></div>
+                <div style="display:grid;grid-template-columns:34px 1fr 56px;gap:14px;align-items:center"><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .3s"></div><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .3s"></div><div style="height:36px;border-radius:10px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .3s"></div></div>
+                <div style="display:grid;grid-template-columns:34px 1fr 56px;gap:14px;align-items:center"><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .4s"></div><div style="height:20px;border-radius:6px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .4s"></div><div style="height:36px;border-radius:10px;background:#E9E3DA;animation:sh 1.4s ease-in-out infinite .4s"></div></div>
+              </div>
+              <div style="font-size:13px;color:#6F6862;text-align:center;margin-top:8px">Daten werden geladen · zuletzt aktualisiert 7:12</div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#1A1714;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════ 1b  CARD DASHBOARD ══════════════ -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:20px;width:828px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-family:'Instrument Serif',serif;font-size:18px;padding:4px 12px;border:1px solid #1A1714;border-radius:999px;color:#1A1714">1b</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:34px;color:#1A1714">Card dashboard</span>
+        <span style="font-size:13px;color:#6F6862">Module, Dringendes oben</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:390px 390px;gap:24px 48px">
+
+        <!-- A Heute -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Do, Klasse 9b</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#EFEAE2;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 4px">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Donnerstag</div>
+                <div style="font-size:13px;color:#6F6862">11. Sep · 9b</div>
+              </div>
+              <div style="background:#FBE9E3;border:1px solid #E8B9A9;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#A8341C">Änderungen heute</span>
+                  <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#A8341C">2</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#1A1714"><span style="width:22px;text-align:center;color:#A8341C">→</span>3. Std Chemie · R 112 → <strong>R 204</strong></div>
+                <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#57504A"><span style="width:22px;text-align:center">✕</span><span style="text-decoration:line-through">4. Std Sport</span> entfällt</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862;margin-bottom:6px">Stunden</div>
+                <sc-for list="{{ lessons }}" as="l" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;min-height:42px">
+                    <span style="font-family:'Instrument Serif',serif;font-size:18px;color:#6F6862">{{ l.n }}</span>
+                    <div style="display:flex;flex-direction:column">
+                      <sc-if value="{{ l.isPlain }}"><span style="font-size:16px;color:#1A1714;font-weight:500">{{ l.subj }}</span></sc-if>
+                      <sc-if value="{{ l.isCancel }}"><span style="font-size:16px;color:#57504A;text-decoration:line-through">{{ l.subj }}</span></sc-if>
+                      <span style="font-size:12px;color:#6F6862">{{ l.sub }}</span>
+                    </div>
+                    <sc-if value="{{ l.isRoom }}"><span style="padding:4px 9px;border-radius:8px;background:#FBE9E3;border:1px solid #E8B9A9;color:#A8341C;font-size:11px;font-weight:600">→</span></sc-if>
+                    <sc-if value="{{ l.isCancel }}"><span style="padding:4px 9px;border-radius:8px;border:1px dashed #8A827A;color:#57504A;font-size:11px;font-weight:600">✕</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-height:82px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Neue Note</span>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="min-width:44px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #1A1714;border-radius:10px;font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">2+</span>
+                    <div style="font-size:13px;line-height:1.3;color:#57504A">Englisch<br>Klassenarbeit</div>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-height:82px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Ø Halbjahr</span>
+                  <div style="display:flex;align-items:baseline;gap:8px">
+                    <span style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">2,31</span>
+                    <span style="font-size:12px;color:#6F6862">Noten 1–6</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:2px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Hausaufgaben</span>
+                  <span style="font-size:12px;color:#6F6862">2 offen</span>
+                </div>
+                <sc-for list="{{ hw }}" as="h" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;min-height:44px">
+                    <span style="width:20px;height:20px;border:1px solid #8A827A;border-radius:6px;flex:none"></span>
+                    <span style="flex:1;font-size:15px;color:#1A1714">{{ h.subj }} · {{ h.task }}</span>
+                    <span style="font-size:12px;color:#6F6862">{{ h.due }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Mitteilung</span>
+                  <span style="font-size:12px;color:#6F6862">weiterlesen ›</span>
+                </div>
+                <div style="font-size:14px;line-height:1.4;color:#1A1714">Bücherrückgabe Klasse 9 bis Freitag im Sekretariat.</div>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B1 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B1 · Noten — Sek I, 1. Halbjahr 2026/27</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#EFEAE2;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Noten</div>
+                <span style="padding:8px 12px;border-radius:10px;background:#fff;border:1px solid #E4DED5;font-size:12px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">1. HJ 2026/27 ⌄</span>
+              </div>
+              <div style="background:#1A1714;border-radius:18px;padding:18px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A827A">Gesamtdurchschnitt</div><div style="font-size:12px;color:#B8AFA4;margin-top:6px">4 von 5 Fächern bewertet</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:46px;line-height:.9;color:#F6F3EE">2,31</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <sc-for list="{{ sek1 }}" as="s" hint-placeholder-count="5">
+                  <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;gap:10px">
+                    <div style="font-size:15px;color:#1A1714;font-weight:500;line-height:1.25">{{ s.name }}</div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                      <sc-if value="{{ s.est }}"><span style="padding:3px 8px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:10px;font-weight:500">{{ estLabel }}</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:12px;color:#6F6862">keine Noten</span></sc-if>
+                      <sc-if value="{{ s.off }}"><span style="font-size:10px;color:#6F6862">Schulformel</span></sc-if>
+                      <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:30px;line-height:.9;color:#1A1714">{{ s.val }}</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:30px;line-height:.9;color:#6F6862">–</span></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;line-height:1.5;color:#6F6862;padding:0 4px;text-wrap:pretty"><strong style="color:#57504A;font-weight:600">geschätzt</strong> = eigene Hochrechnung, keine offizielle Note der Schule.</div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B2 dark -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B2 · Noten — Oberstufe 11/I · Dark Mode</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#14120F;border:1px solid #2E2A24;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.16)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#9C948A"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#F3F0EA">Noten</div>
+                <span style="padding:8px 12px;border-radius:10px;background:#1D1A16;border:1px solid #2E2A24;font-size:12px;color:#F3F0EA;min-height:36px;display:inline-flex;align-items:center">Jg. 11 · 11/I ⌄</span>
+              </div>
+              <div style="background:#1D1A16;border:1px solid #2E2A24;border-radius:18px;padding:18px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Ø Punkte</div><div style="font-size:12px;color:#9C948A;margin-top:6px">4 von 5 Kursen bewertet</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:46px;line-height:.9;color:#F3F0EA">9,5<span style="font-size:24px"> P</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:#1D1A16;border:1px solid #2E2A24;border-radius:14px;padding:12px 14px">
+                <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#F3F0EA">1</span>
+                <span style="font-size:13px;color:#B3ABA1">Unterkurs (unter 5 P) · relevant für die Abitur&shy;zulassung</span>
+              </div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A;padding:4px 4px 0">Leistungskurse</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:#1D1A16;border:1px solid #6B6259;border-radius:16px;padding:14px;min-height:106px;display:flex;flex-direction:column;justify-content:space-between">
+                  <div><span style="padding:2px 6px;border-radius:5px;background:#F3F0EA;color:#14120F;font-size:10px;font-weight:700">LK</span><div style="font-size:15px;color:#F3F0EA;font-weight:500;margin-top:8px">Mathematik</div></div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between"><span style="font-size:10px;color:#9C948A">Schulformel</span><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#F3F0EA">12 P</span></div>
+                </div>
+                <div style="background:#1D1A16;border:1px solid #6B6259;border-radius:16px;padding:14px;min-height:106px;display:flex;flex-direction:column;justify-content:space-between">
+                  <div><span style="padding:2px 6px;border-radius:5px;background:#F3F0EA;color:#14120F;font-size:10px;font-weight:700">LK</span><div style="font-size:15px;color:#F3F0EA;font-weight:500;margin-top:8px">Englisch</div></div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between"><span style="padding:3px 7px;border-radius:999px;background:#262219;color:#B3ABA1;font-size:10px">geschätzt</span><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#F3F0EA">13 P</span></div>
+                </div>
+              </div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A;padding:4px 4px 0">Grundkurse</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:#1D1A16;border:1px solid #2E2A24;border-radius:16px;padding:14px;min-height:100px;display:flex;flex-direction:column;justify-content:space-between">
+                  <div style="font-size:15px;color:#F3F0EA">Deutsch</div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between"><span style="font-size:10px;color:#9C948A">GK</span><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#F3F0EA">9 P</span></div>
+                </div>
+                <div style="background:#1D1A16;border:1px solid #2E2A24;border-radius:16px;padding:14px;min-height:100px;display:flex;flex-direction:column;justify-content:space-between">
+                  <div style="font-size:15px;color:#F3F0EA">Chemie</div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between"><span style="padding:3px 7px;border-radius:999px;background:#262219;color:#B3ABA1;font-size:10px">Unterkurs</span><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#F3F0EA">4 P</span></div>
+                </div>
+                <div style="background:#1D1A16;border:1px dashed #3A352E;border-radius:16px;padding:14px;min-height:100px;display:flex;flex-direction:column;justify-content:space-between">
+                  <div style="font-size:15px;color:#B3ABA1">Geschichte</div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between"><span style="font-size:11px;color:#9C948A">keine Noten</span><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#9C948A">–</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;background:#1D1A16;border-top:1px solid #2E2A24;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#F3F0EA;border-radius:2px"></span><span style="font-size:12px;color:#F3F0EA;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B2 light -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B2 · Noten — Oberstufe 11/I</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#EFEAE2;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:12px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Noten</div>
+                <span style="padding:8px 12px;border-radius:10px;background:#fff;border:1px solid #E4DED5;font-size:12px;color:#1A1714;min-height:36px;display:inline-flex;align-items:center">Jg. 11 · 11/I ⌄</span>
+              </div>
+              <div style="background:#1A1714;border-radius:18px;padding:18px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A827A">Ø Punkte</div><div style="font-size:12px;color:#B8AFA4;margin-top:6px">4 von 5 Kursen bewertet</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:46px;line-height:.9;color:#F6F3EE">9,5<span style="font-size:24px"> P</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E4DED5;border-radius:14px;padding:12px 14px">
+                <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">1</span>
+                <span style="font-size:13px;color:#57504A">Unterkurs (unter 5 P) · relevant für die Abitur&shy;zulassung</span>
+              </div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862;padding:4px 4px 0">Leistungskurse</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <sc-for list="{{ lk }}" as="s" hint-placeholder-count="2">
+                  <div style="background:#fff;border:1px solid #8A827A;border-radius:16px;padding:14px;min-height:106px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div><span style="padding:2px 6px;border-radius:5px;background:#1A1714;color:#F6F3EE;font-size:10px;font-weight:700">LK</span><div style="font-size:15px;color:#1A1714;font-weight:500;margin-top:8px">{{ s.name }}</div></div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:6px">
+                      <sc-if value="{{ s.est }}"><span style="padding:3px 7px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:10px">{{ estLabel }}</span></sc-if>
+                      <sc-if value="{{ s.off }}"><span style="font-size:10px;color:#6F6862">Schulformel</span></sc-if>
+                      <span style="font-family:'Instrument Serif',serif;font-size:28px;color:#1A1714">{{ s.val }} P</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862;padding:4px 4px 0">Grundkurse</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <sc-for list="{{ gk }}" as="s" hint-placeholder-count="3">
+                  <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px;min-height:100px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div style="font-size:15px;color:#1A1714">{{ s.name }}</div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:6px">
+                      <sc-if value="{{ s.unter }}"><span style="padding:3px 7px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:10px">Unterkurs</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:11px;color:#6F6862">keine Noten</span></sc-if>
+                      <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#1A1714">{{ s.val }} P</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:28px;color:#6F6862">–</span></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C1 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C1 · Fach-Detail — Mathematik, Sek I</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#EFEAE2;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="min-height:44px;display:flex;align-items:center;font-size:14px;color:#57504A;padding:0 4px">‹ Noten</div>
+              <div style="background:#1A1714;border-radius:18px;padding:18px;display:flex;align-items:flex-end;justify-content:space-between">
+                <div><div style="font-family:'Instrument Serif',serif;font-size:26px;color:#F6F3EE">Mathematik</div><div style="font-size:12px;color:#B8AFA4;margin-top:6px">1. HJ 2026/27 · Schulformel</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:44px;line-height:.9;color:#F6F3EE">1,8</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span><span style="font-size:11px;color:#6F6862">oben = besser (1)</span></div>
+                <div style="display:flex;gap:10px">
+                  <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862"><span>1</span><span>6</span></div>
+                  <svg viewBox="0 0 260 70" width="100%" height="70" preserveAspectRatio="none" style="overflow:visible">
+                    <line x1="0" y1="1" x2="260" y2="1" stroke="#EDE7DE"></line><line x1="0" y1="35" x2="260" y2="35" stroke="#EDE7DE"></line><line x1="0" y1="69" x2="260" y2="69" stroke="#EDE7DE"></line>
+                    <polyline points="12,14 90,4 168,0 248,10" fill="none" stroke="#1A1714" stroke-width="2"></polyline>
+                    <circle cx="12" cy="14" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="90" cy="4" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="168" cy="0" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="248" cy="10" r="3.5" fill="#1A1714"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:#1A1714">Klassenarbeiten</span><span style="font-size:12px;color:#6F6862">50 %</span></div>
+                <sc-for list="{{ c1ka }}" as="g" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-top:1px solid #F0EBE3">
+                    <div><div style="font-size:15px;color:#1A1714">{{ g.t }}</div><div style="font-size:12px;color:#6F6862">{{ g.d }}</div></div>
+                    <span style="min-width:48px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:10px;font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:#1A1714">Sonstige Leistungen</span><span style="font-size:12px;color:#6F6862">50 %</span></div>
+                <sc-for list="{{ c1sl }}" as="g" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-top:1px solid #F0EBE3">
+                    <div style="font-size:15px;color:#1A1714">{{ g.t }}</div>
+                    <span style="min-width:48px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:10px;font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">⌄</span></div>
+                <div style="font-size:13px;line-height:1.55;color:#57504A;text-wrap:pretty">Ø Arbeiten 1,65 · Ø Sonstige 1,35, je 50 % → <strong>1,8</strong>.</div>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C2 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C2 · Fach-Detail — LK Mathematik, Oberstufe</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#EFEAE2;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 20px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+              <div style="min-height:44px;display:flex;align-items:center;font-size:14px;color:#57504A;padding:0 4px">‹ Noten</div>
+              <div style="background:#1A1714;border-radius:18px;padding:18px;display:flex;align-items:flex-end;justify-content:space-between">
+                <div>
+                  <span style="padding:2px 7px;border-radius:5px;background:#F6F3EE;color:#1A1714;font-size:10px;font-weight:700">LK</span>
+                  <div style="font-family:'Instrument Serif',serif;font-size:26px;color:#F6F3EE;margin-top:8px">Mathematik</div>
+                  <div style="font-size:12px;color:#B8AFA4;margin-top:4px">Kurshalbjahr 11/I</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Instrument Serif',serif;font-size:44px;line-height:.9;color:#F6F3EE">12<span style="font-size:22px"> P</span></div>
+                  <sc-if value="{{ showNote }}"><div style="font-size:11px;color:#B8AFA4;margin-top:6px">≈ Note 2+</div></sc-if>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Verlauf</span><span style="font-size:11px;color:#6F6862">oben = besser (15 P)</span></div>
+                <div style="display:flex;gap:10px">
+                  <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:#6F6862"><span>15</span><span>0</span></div>
+                  <svg viewBox="0 0 260 70" width="100%" height="70" preserveAspectRatio="none" style="overflow:visible">
+                    <line x1="0" y1="1" x2="260" y2="1" stroke="#EDE7DE"></line><line x1="0" y1="35" x2="260" y2="35" stroke="#EDE7DE"></line><line x1="0" y1="69" x2="260" y2="69" stroke="#EDE7DE"></line>
+                    <polyline points="12,18.7 90,9.3 168,14 248,4.7" fill="none" stroke="#1A1714" stroke-width="2"></polyline>
+                    <circle cx="12" cy="18.7" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="90" cy="9.3" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="168" cy="14" r="3.5" fill="#fff" stroke="#1A1714" stroke-width="2"></circle><circle cx="248" cy="4.7" r="3.5" fill="#1A1714"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:#1A1714">Klausur</span><span style="font-size:12px;color:#6F6862">50 %</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:50px;border-top:1px solid #F0EBE3">
+                  <div style="font-size:15px;color:#1A1714">1. Klausur</div>
+                  <span style="min-width:54px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:10px;font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">11 P</span>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:#1A1714">Sonstige Leistungen</span><span style="font-size:12px;color:#6F6862">50 %</span></div>
+                <sc-for list="{{ c2sl }}" as="g" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px;border-top:1px solid #F0EBE3">
+                    <div style="font-size:15px;color:#1A1714">{{ g.t }}</div>
+                    <span style="min-width:54px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:10px;font-family:'Instrument Serif',serif;font-size:20px;color:#1A1714">{{ g.g }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid #E4DED5;border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;min-height:52px">
+                <span style="font-size:15px;color:#1A1714">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">›</span>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════ 1c  TIMELINE ══════════════ -->
+    <div id="1c" style="display:flex;flex-direction:column;gap:20px;width:828px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-family:'Instrument Serif',serif;font-size:18px;padding:4px 12px;border:1px solid #1A1714;border-radius:999px;color:#1A1714">1c</span>
+        <span style="font-family:'Instrument Serif',serif;font-size:34px;color:#1A1714">Timeline</span>
+        <span style="font-size:13px;color:#6F6862">Tag als Achse, Noten hängen an der Stunde</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:390px 390px;gap:24px 48px">
+
+        <!-- A -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Do, Klasse 9b</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="padding:8px 22px 14px;border-bottom:1px solid #E4DED5">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Do 11. Sep</div>
+                <div style="font-size:12px;color:#6F6862">9b · 1 Änderung</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:12px">
+                <span style="padding:6px 10px;border-radius:8px;background:#1A1714;color:#F6F3EE;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Do</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #E4DED5;color:#57504A;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Fr</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #E4DED5;color:#57504A;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Mo</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #E4DED5;color:#57504A;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Di</span>
+              </div>
+            </div>
+            <div style="flex:1;padding:18px 22px 0;overflow:hidden">
+              <div style="display:grid;grid-template-columns:52px 1fr;gap:0">
+
+                <div style="font-size:12px;color:#6F6862;padding-top:2px">9:45</div>
+                <div style="border-left:1px solid #E4DED5;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px solid #8A827A"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <div style="font-size:18px;color:#1A1714;font-weight:500">Mathe</div>
+                    <div style="font-size:12px;color:#6F6862">2. Std · R 108</div>
+                  </div>
+                  <div style="margin-top:10px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #E4DED5;border-radius:12px;background:#fff;min-height:48px">
+                    <span style="width:20px;height:20px;border:1px solid #8A827A;border-radius:6px;flex:none"></span>
+                    <span style="flex:1;font-size:14px;color:#1A1714">HA: AB Brüche</span>
+                    <span style="font-size:12px;color:#6F6862">bis Mi</span>
+                  </div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:2px">10:40</div>
+                <div style="border-left:1px solid #E4DED5;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-6px;top:4px;width:11px;height:11px;border-radius:50%;background:#A8341C"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <div style="font-size:18px;color:#1A1714;font-weight:500">Chemie</div>
+                    <div style="font-size:12px;color:#6F6862">3. Std</div>
+                  </div>
+                  <div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:#FBE9E3;border:1px solid #E8B9A9;font-size:13px;color:#A8341C;font-weight:600">→ R 112 → R 204</div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:2px">11:45</div>
+                <div style="border-left:1px dashed #A29A90;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px dashed #8A827A"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <div style="font-size:18px;color:#57504A;text-decoration:line-through">Sport</div>
+                    <div style="font-size:12px;color:#6F6862">4. Std</div>
+                  </div>
+                  <div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px dashed #8A827A;font-size:13px;color:#57504A;font-weight:600">entfällt · Schulschluss</div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:2px">nach<br>der Schule</div>
+                <div style="padding:0 0 0 20px;position:relative;border-left:1px solid transparent">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px solid #8A827A"></span>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff">
+                      <div><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6F6862">Neue Note</div><div style="font-size:15px;color:#1A1714;margin-top:4px">Englisch · Klassenarbeit</div></div>
+                      <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #1A1714;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">2+</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff;min-height:48px">
+                      <span style="width:20px;height:20px;border:1px solid #8A827A;border-radius:6px;flex:none"></span>
+                      <span style="flex:1;font-size:14px;color:#1A1714">HA Deutsch: S. 42</span>
+                      <span style="font-size:12px;color:#6F6862">bis Mo</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A dark -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">A · Heute — Dark Mode</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#14120F;border:1px solid #2E2A24;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.16)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#9C948A"><span>9:41</span><span>Schulblick</span></div>
+            <div style="padding:8px 22px 14px;border-bottom:1px solid #2E2A24">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#F3F0EA">Do 11. Sep</div>
+                <div style="font-size:12px;color:#9C948A">9b · 1 Änderung</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:12px">
+                <span style="padding:6px 10px;border-radius:8px;background:#F3F0EA;color:#14120F;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Do</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#1D1A16;border:1px solid #2E2A24;color:#B3ABA1;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Fr</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#1D1A16;border:1px solid #2E2A24;color:#B3ABA1;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Mo</span>
+                <span style="padding:6px 10px;border-radius:8px;background:#1D1A16;border:1px solid #2E2A24;color:#B3ABA1;font-size:12px;min-height:32px;display:inline-flex;align-items:center">Di</span>
+              </div>
+            </div>
+            <div style="flex:1;padding:18px 22px 0;overflow:hidden">
+              <div style="display:grid;grid-template-columns:52px 1fr">
+                <div style="font-size:12px;color:#9C948A;padding-top:2px">9:45</div>
+                <div style="border-left:1px solid #2E2A24;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#14120F;border:2px solid #6B6259"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:18px;color:#F3F0EA;font-weight:500">Mathe</div><div style="font-size:12px;color:#9C948A">2. Std · R 108</div></div>
+                  <div style="margin-top:10px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #2E2A24;border-radius:12px;background:#1D1A16;min-height:48px">
+                    <span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span>
+                    <span style="flex:1;font-size:14px;color:#F3F0EA">HA: AB Brüche</span><span style="font-size:12px;color:#9C948A">bis Mi</span>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:#9C948A;padding-top:2px">10:40</div>
+                <div style="border-left:1px solid #2E2A24;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-6px;top:4px;width:11px;height:11px;border-radius:50%;background:#FFB098"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:18px;color:#F3F0EA;font-weight:500">Chemie</div><div style="font-size:12px;color:#9C948A">3. Std</div></div>
+                  <div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:#33231C;border:1px solid #5A3A2C;font-size:13px;color:#FFB098;font-weight:600">→ R 112 → R 204</div>
+                </div>
+                <div style="font-size:12px;color:#9C948A;padding-top:2px">11:45</div>
+                <div style="border-left:1px dashed #3A352E;padding:0 0 22px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#14120F;border:2px dashed #6B6259"></span>
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:18px;color:#B3ABA1;text-decoration:line-through">Sport</div><div style="font-size:12px;color:#9C948A">4. Std</div></div>
+                  <div style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px dashed #6B6259;font-size:13px;color:#B3ABA1;font-weight:600">entfällt · Schulschluss</div>
+                </div>
+                <div style="font-size:12px;color:#9C948A;padding-top:2px">nach<br>der Schule</div>
+                <div style="padding:0 0 0 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:5px;width:9px;height:9px;border-radius:50%;background:#14120F;border:2px solid #6B6259"></span>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #2E2A24;border-radius:12px;background:#1D1A16">
+                      <div><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9C948A">Neue Note</div><div style="font-size:15px;color:#F3F0EA;margin-top:4px">Englisch · Klassenarbeit</div></div>
+                      <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #F3F0EA;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#F3F0EA">2+</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #2E2A24;border-radius:12px;background:#1D1A16;min-height:48px">
+                      <span style="width:20px;height:20px;border:1px solid #6B6259;border-radius:6px;flex:none"></span>
+                      <span style="flex:1;font-size:14px;color:#F3F0EA">HA Deutsch: S. 42</span><span style="font-size:12px;color:#9C948A">bis Mo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;background:#1D1A16;border-top:1px solid #2E2A24;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#F3F0EA;border-radius:2px"></span><span style="font-size:12px;color:#F3F0EA;font-weight:600">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#9C948A">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B1 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B1 · Noten — Sek I, mit Verlauf je Fach</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 22px 0;display:flex;flex-direction:column;gap:20px;overflow:hidden">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Noten</div>
+                <span style="font-size:12px;color:#6F6862">1. HJ 2026/27 ⌄</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:12px">
+                <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">2,31</div>
+                <div style="font-size:12px;color:#6F6862;line-height:1.4">Gesamt Ø<br>Noten 1–6</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:0">
+                <sc-for list="{{ sek1trend }}" as="s" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:1fr 84px 54px;align-items:center;gap:12px;min-height:64px;border-top:1px solid #E4DED5">
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <div style="font-size:16px;color:#1A1714;font-weight:500">{{ s.name }}</div>
+                      <sc-if value="{{ s.est }}"><span style="align-self:flex-start;padding:2px 7px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:10px">{{ estLabel }}</span></sc-if>
+                      <sc-if value="{{ s.empty }}"><span style="font-size:12px;color:#6F6862">noch keine Noten</span></sc-if>
+                    </div>
+                    <sc-if value="{{ s.pts }}">
+                      <svg viewBox="0 0 84 30" width="84" height="30" style="overflow:visible">
+                        <line x1="0" y1="15" x2="84" y2="15" stroke="#EDE7DE"></line>
+                        <polyline points="{{ s.pts }}" fill="none" stroke="#57504A" stroke-width="1.5"></polyline>
+                      </svg>
+                    </sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-size:11px;color:#6F6862">kein Verlauf</span></sc-if>
+                    <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:26px;color:#1A1714;text-align:right">{{ s.val }}</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:26px;color:#6F6862;text-align:right">–</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;line-height:1.5;color:#6F6862;text-wrap:pretty">Verlauf: links früh, rechts aktuell. Höher = besser, unabhängig von der Skala. <strong style="color:#57504A;font-weight:600">geschätzt</strong> = eigene Hochrechnung.</div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B2 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">B2 · Noten — Oberstufe, Halbjahre als Achse</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 22px 0;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Noten</div>
+                <span style="font-size:12px;color:#6F6862">Jahrgang 11 ⌄</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <span style="padding:8px 12px;border-radius:8px;background:#1A1714;color:#F6F3EE;font-size:12px;min-height:36px;display:inline-flex;align-items:center;font-weight:600">11/I</span>
+                <span style="padding:8px 12px;border-radius:8px;background:#fff;border:1px solid #E4DED5;color:#6F6862;font-size:12px;min-height:36px;display:inline-flex;align-items:center">11/II</span>
+                <span style="padding:8px 12px;border-radius:8px;background:#fff;border:1px dashed #D9D2C8;color:#6F6862;font-size:12px;min-height:36px;display:inline-flex;align-items:center">12/I</span>
+                <span style="padding:8px 12px;border-radius:8px;background:#fff;border:1px dashed #D9D2C8;color:#6F6862;font-size:12px;min-height:36px;display:inline-flex;align-items:center">12/II</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:12px;justify-content:space-between">
+                <div style="display:flex;align-items:baseline;gap:12px">
+                  <div style="font-family:'Instrument Serif',serif;font-size:52px;line-height:.9;color:#1A1714">9,5<span style="font-size:26px"> P</span></div>
+                  <div style="font-size:12px;color:#6F6862;line-height:1.4">Ø Punkte<br>Skala 0–15</div>
+                </div>
+                <span style="padding:6px 10px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:12px;font-weight:500">1 Unterkurs</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:0">
+                <sc-for list="{{ obertrend }}" as="s" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:34px 1fr 76px 62px;align-items:center;gap:10px;min-height:64px;border-top:1px solid #E4DED5">
+                    <sc-if value="{{ s.isLk }}"><span style="padding:3px 6px;border-radius:5px;background:#1A1714;color:#F6F3EE;font-size:10px;font-weight:700;text-align:center">LK</span></sc-if>
+                    <sc-if value="{{ s.isGk }}"><span style="padding:3px 6px;border-radius:5px;border:1px solid #D9D2C8;color:#6F6862;font-size:10px;font-weight:600;text-align:center">GK</span></sc-if>
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <div style="font-size:16px;color:#1A1714;font-weight:500">{{ s.name }}</div>
+                      <sc-if value="{{ s.tag }}"><span style="align-self:flex-start;padding:2px 7px;border-radius:999px;background:#F0EBE3;color:#57504A;font-size:10px">{{ s.tag }}</span></sc-if>
+                    </div>
+                    <sc-if value="{{ s.pts }}">
+                      <svg viewBox="0 0 76 30" width="76" height="30" style="overflow:visible">
+                        <line x1="0" y1="15" x2="76" y2="15" stroke="#EDE7DE"></line>
+                        <polyline points="{{ s.pts }}" fill="none" stroke="#57504A" stroke-width="1.5"></polyline>
+                      </svg>
+                    </sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-size:11px;color:#6F6862">kein Verlauf</span></sc-if>
+                    <sc-if value="{{ s.val }}"><span style="font-family:'Instrument Serif',serif;font-size:24px;color:#1A1714;text-align:right">{{ s.val }} P</span></sc-if>
+                    <sc-if value="{{ s.empty }}"><span style="font-family:'Instrument Serif',serif;font-size:24px;color:#6F6862;text-align:right">–</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;line-height:1.5;color:#6F6862;text-wrap:pretty">Unterkurs = Kursergebnis unter 5 P. Zählt bei der Abiturzulassung, kein Anlass zur Panik.</div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C1 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C1 · Fach-Detail — Mathematik, chronologisch</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 22px 0;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+              <div style="min-height:44px;display:flex;align-items:center;font-size:14px;color:#57504A">‹ Noten</div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+                <div><div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714">Mathematik</div><div style="font-size:12px;color:#6F6862;margin-top:5px">Klasse 9b · Schulformel</div></div>
+                <div style="font-family:'Instrument Serif',serif;font-size:48px;line-height:.9;color:#1A1714">1,8</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6F6862"><span style="font-weight:600;letter-spacing:.08em;text-transform:uppercase">Verlauf im Halbjahr</span><span>oben = besser (1)</span></div>
+              <div style="display:grid;grid-template-columns:56px 1fr;position:relative">
+
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">12.09.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 18px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:16px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px solid #57504A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff">
+                    <div><div style="font-size:15px;color:#1A1714;font-weight:500">Terme</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Klassenarbeit · 50 %</div></div>
+                    <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">2</span>
+                  </div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">18.09.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 18px 20px;position:relative">
+                  <span style="position:absolute;left:-4px;top:17px;width:7px;height:7px;border-radius:50%;background:#8A827A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed #D9D2C8;border-radius:12px">
+                    <div><div style="font-size:15px;color:#1A1714">Test Brüche</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Sonstige Leistung · 50 %</div></div>
+                    <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">1</span>
+                  </div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">30.10.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 18px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:16px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px solid #57504A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff">
+                    <div><div style="font-size:15px;color:#1A1714;font-weight:500">Gleichungen</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Klassenarbeit · 50 %</div></div>
+                    <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">1-</span>
+                  </div>
+                </div>
+
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">laufend</div>
+                <div style="padding:8px 0 0 20px;position:relative">
+                  <span style="position:absolute;left:-4px;top:17px;width:7px;height:7px;border-radius:50%;background:#8A827A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed #D9D2C8;border-radius:12px">
+                    <div><div style="font-size:15px;color:#1A1714">Mündlich</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Sonstige Leistung · 50 %</div></div>
+                    <span style="min-width:48px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">2+</span>
+                  </div>
+                </div>
+
+              </div>
+              <div style="border-top:1px solid #E4DED5;padding-top:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">⌄</span></div>
+                <div style="font-size:13px;line-height:1.6;color:#57504A;text-wrap:pretty">Durchgezogene Linie = Klassenarbeit (50 %), gestrichelt = Sonstige Leistung (50 %). Ø Arbeiten 1,65 · Ø Sonstige 1,35 → gemittelt 1,8.</div>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C2 -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#57504A">C2 · Fach-Detail — LK Mathematik, chronologisch</div>
+          <div style="width:390px;height:844px;border-radius:36px;background:#F6F3EE;border:1px solid #E4DED5;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 34px rgba(26,23,20,.09)">
+            <div style="display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;color:#6F6862"><span>9:41</span><span>Schulblick</span></div>
+            <div style="flex:1;padding:8px 22px 0;display:flex;flex-direction:column;gap:16px;overflow:hidden">
+              <div style="min-height:44px;display:flex;align-items:center;font-size:14px;color:#57504A">‹ Noten</div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="padding:3px 7px;border-radius:5px;background:#1A1714;color:#F6F3EE;font-size:10px;font-weight:700">LK</span><span style="font-size:12px;color:#6F6862">11/I</span></div>
+                  <div style="font-family:'Instrument Serif',serif;font-size:30px;color:#1A1714;margin-top:7px">Mathematik</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Instrument Serif',serif;font-size:48px;line-height:.9;color:#1A1714">12<span style="font-size:24px"> P</span></div>
+                  <sc-if value="{{ showNote }}"><div style="font-size:11px;color:#6F6862;margin-top:5px">≈ Note 2+</div></sc-if>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6F6862"><span style="font-weight:600;letter-spacing:.08em;text-transform:uppercase">Verlauf im Kurshalbjahr</span><span>oben = besser (15 P)</span></div>
+              <div style="display:grid;grid-template-columns:56px 1fr">
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">Sept.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 16px 20px;position:relative">
+                  <span style="position:absolute;left:-4px;top:17px;width:7px;height:7px;border-radius:50%;background:#8A827A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed #D9D2C8;border-radius:12px">
+                    <div><div style="font-size:15px;color:#1A1714">Test Analysis</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Sonstige Leistung · 50 %</div></div>
+                    <span style="min-width:54px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">13 P</span>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">Okt.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 16px 20px;position:relative">
+                  <span style="position:absolute;left:-5px;top:16px;width:9px;height:9px;border-radius:50%;background:#F6F3EE;border:2px solid #57504A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #E4DED5;border-radius:12px;background:#fff">
+                    <div><div style="font-size:15px;color:#1A1714;font-weight:500">1. Klausur</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Klausur · 50 %</div></div>
+                    <span style="min-width:54px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">11 P</span>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">Nov.</div>
+                <div style="border-left:1px solid #E4DED5;padding:8px 0 16px 20px;position:relative">
+                  <span style="position:absolute;left:-4px;top:17px;width:7px;height:7px;border-radius:50%;background:#8A827A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed #D9D2C8;border-radius:12px">
+                    <div><div style="font-size:15px;color:#1A1714">Referat</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Sonstige Leistung · 50 %</div></div>
+                    <span style="min-width:54px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">14 P</span>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:#6F6862;padding-top:14px">laufend</div>
+                <div style="padding:8px 0 0 20px;position:relative">
+                  <span style="position:absolute;left:-4px;top:17px;width:7px;height:7px;border-radius:50%;background:#8A827A"></span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px dashed #D9D2C8;border-radius:12px">
+                    <div><div style="font-size:15px;color:#1A1714">Mündlich</div><div style="font-size:12px;color:#6F6862;margin-top:2px">Sonstige Leistung · 50 %</div></div>
+                    <span style="min-width:54px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D9D2C8;border-radius:12px;font-family:'Instrument Serif',serif;font-size:22px;color:#1A1714">12 P</span>
+                  </div>
+                </div>
+              </div>
+              <div style="border-top:1px solid #E4DED5;padding-top:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font-size:15px;color:#1A1714;font-weight:500">So wird gerechnet</span><span style="font-size:16px;color:#6F6862">›</span></div>
+              </div>
+            </div>
+            <div style="display:flex;background:#fff;border-top:1px solid #E4DED5;padding:6px 8px 20px">
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Heute</span></div>
+              <div style="flex:1;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span style="width:18px;height:2px;background:#1A1714;border-radius:2px"></span><span style="font-size:12px;color:#1A1714;font-weight:600">Noten</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Stundenplan</span></div>
+              <div style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:12px;color:#6F6862">Mehr</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ COMPARISON ══════════════ -->
+  <div style="background:#fff;border:1px solid #E4DED5;border-radius:22px;padding:36px 40px;max-width:1180px;display:flex;flex-direction:column;gap:28px">
+    <div style="font-family:'Instrument Serif',serif;font-size:34px;color:#1A1714">Vergleich</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:32px">
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:15px;padding:2px 10px;border:1px solid #1A1714;border-radius:999px">1a</span><span style="font-size:19px;font-weight:600;color:#1A1714">Calm list</span></div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Stark:</strong> ruhigster Screen, Noten stehen ohne Deko da, Skalenwechsel kostet nur eine Zeile Kontext. Ein Fach mit 15 Noten ist einfach eine längere Liste — nichts bricht.</div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Bricht:</strong> bei 8 Stunden liegt die neue Note unter dem Fold, Dringendes verliert gegen die Ruhe. Lange Mitteilungen brauchen einen eigenen Screen, inline gibt es dafür keinen Platz.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:15px;padding:2px 10px;border:1px solid #1A1714;border-radius:999px">1b</span><span style="font-size:19px;font-weight:600;color:#1A1714">Card dashboard</span></div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Stark:</strong> Änderungen zuerst, in zwei Sekunden erfasst. 8 Stunden passen in eine Karte, lange Mitteilungen kürzen sauber auf drei Zeilen. LK/GK lassen sich als Gruppen mit unterschiedlich starkem Rahmen trennen.</div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Bricht:</strong> 15 Noten in Karten heißt viel Scrollen mit wenig Information pro Bildschirm. Das 2-Spalten-Raster drängt Richtung Dashboard-Optik — mit 12 Kursen wirkt es schnell wie eine Verwaltungsoberfläche.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:15px;padding:2px 10px;border:1px solid #1A1714;border-radius:999px">1c</span><span style="font-size:19px;font-weight:600;color:#1A1714">Timeline</span></div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Stark:</strong> Hausaufgabe steht bei der Stunde, in der sie gestellt wurde — der stärkste Kontext von allen. Im Fach-Detail ersetzt die Chronologie das Diagramm fast: Klausur und Sonstige Leistung sind durch Rahmen und Punktgröße unterscheidbar, nicht durch Farbe.</div>
+        <div style="font-size:14px;line-height:1.6;color:#57504A;text-wrap:pretty"><strong style="color:#1A1714">Bricht:</strong> 8 Stunden = sehr langer Screen, die Achse frisst 56 px Breite dauerhaft. Noten-Übersichten sind zeitlich nicht sortierbar, deshalb bleibt B1/B2 hier eine Liste mit Mini-Verlauf — die Richtung trägt nur den halben Screenumfang. Die Achse selbst sagt nichts über Sek I oder Oberstufe.</div>
+      </div>
+
+    </div>
+
+    <div style="border-top:1px solid #E4DED5;padding-top:26px;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:19px;font-weight:600;color:#1A1714">Vorschlag für eine hybride Richtung</div>
+      <div style="font-size:15px;line-height:1.65;color:#57504A;max-width:78ch;text-wrap:pretty">Heute aus 1b übernehmen, aber nur die Änderungs-Karte als Karte: darunter die Timeline aus 1c für den Tagesverlauf, damit Hausaufgaben an ihrer Stunde hängen. Noten aus 1a — ruhige Liste, große Zahl, Gruppen&shy;überschriften für LK und GK statt Karten, ergänzt um den Mini-Verlauf aus 1c am rechten Rand. Fach-Detail aus 1c chronologisch, mit dem Gewichtungs&shy;kopf und dem aufklappbaren „So wird gerechnet“ aus 1a. Skala, Chips („geschätzt“, „Unterkurs“) und Zustands&shy;marker bleiben in allen Fällen dieselben Bausteine.</div>
+    </div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;estimateMark&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;geschätzt&quot;,&quot;Schätzung&quot;,&quot;≈ geschätzt&quot;,&quot;nicht offiziell&quot;],&quot;default&quot;:&quot;geschätzt&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Notenanzeige&quot;},&quot;showNoteEquivalent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Notenanzeige&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const estLabel = this.props.estimateMark ?? "geschätzt";
+    return {
+      estLabel,
+      showNote: this.props.showNoteEquivalent ?? true,
+      lessons: [
+        { n: "2", subj: "Mathe", sub: "R 108", isPlain: true },
+        { n: "3", subj: "Chemie", sub: "R 112 → R 204", isRoom: true },
+        { n: "4", subj: "Sport", sub: "Schulschluss", isCancel: true }
+      ],
+      hw: [
+        { subj: "Deutsch", task: "S. 42", due: "Montag" },
+        { subj: "Mathe", task: "AB Brüche", due: "Mittwoch" }
+      ],
+      sek1: [
+        { name: "Mathematik", val: "1,8", off: true },
+        { name: "Deutsch", val: "2,4", est: true },
+        { name: "Englisch", val: "2,0", off: true },
+        { name: "Chemie", val: "2,9", est: true },
+        { name: "Geschichte", empty: true }
+      ],
+      sek1trend: [
+        { name: "Mathematik", val: "1,8", off: true, pts: "2,20 28,8 56,4 82,12" },
+        { name: "Deutsch", val: "2,4", est: true, pts: "2,10 28,18 56,14 82,20" },
+        { name: "Englisch", val: "2,0", off: true, pts: "2,22 28,14 56,16 82,10" },
+        { name: "Chemie", val: "2,9", est: true, pts: "2,14 28,20 56,22 82,26" },
+        { name: "Geschichte", empty: true }
+      ],
+      obertrend: [
+        { name: "Mathematik", val: "12", isLk: true, pts: "2,18 26,10 50,14 74,6" },
+        { name: "Englisch", val: "13", isLk: true, tag: estLabel, pts: "2,16 26,12 50,8 74,5" },
+        { name: "Deutsch", val: "9", isGk: true, pts: "2,14 26,18 50,12 74,14" },
+        { name: "Chemie", val: "4", isGk: true, tag: "Unterkurs", pts: "2,20 26,24 50,22 74,26" },
+        { name: "Geschichte", isGk: true, empty: true }
+      ],
+      lktrend: [
+        { name: "Mathematik", val: "12", pts: "2,18 26,10 50,14 74,6" },
+        { name: "Englisch", val: "13", tag: estLabel, pts: "2,16 26,12 50,8 74,5" }
+      ],
+      gktrend: [
+        { name: "Deutsch", val: "9", pts: "2,14 26,18 50,12 74,14" },
+        { name: "Chemie", val: "4", tag: "Unterkurs", pts: "2,20 26,24 50,22 74,26" },
+        { name: "Geschichte", empty: true }
+      ],
+      lk: [
+        { name: "Mathematik", val: "12", off: true },
+        { name: "Englisch", val: "13", est: true }
+      ],
+      gk: [
+        { name: "Deutsch", val: "9", off: true },
+        { name: "Chemie", val: "4", unter: true },
+        { name: "Geschichte", empty: true }
+      ],
+      c1ka: [
+        { d: "12.09.", t: "Terme", g: "2" },
+        { d: "30.10.", t: "Gleichungen", g: "1-" }
+      ],
+      c1sl: [
+        { t: "Test Brüche", g: "1" },
+        { t: "Mündlich", g: "2+" }
+      ],
+      c2sl: [
+        { t: "Test Analysis", g: "13 P" },
+        { t: "Mündlich", g: "12 P" },
+        { t: "Referat", g: "14 P" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
