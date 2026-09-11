@@ -1,14 +1,14 @@
 // Plain-Node sanity tests for js/domain/grades.js (no test framework, no
 // build step — matches the rest of this project).
 import assert from "node:assert/strict";
-import { toTrendPoints, SCALE_BOUNDS } from "../js/domain/trend.js";
+import { toTrendPoints, SCALE_BOUNDS } from "../public/js/domain/trend.js";
 import {
   parseGrade,
   isUnterkurs,
   pointsToGradeLabel,
   evaluateCalculationRule,
   subjectAverage,
-} from "../js/domain/grades.js";
+} from "../public/js/domain/grades.js";
 
 let passed = 0;
 function test(name, fn) {

@@ -126,7 +126,7 @@ Announcement = { id, title, body, createdAt, read }
 - A small fetch-based query cache (stale-while-revalidate, in-memory) instead of TanStack Query; persisted to IndexedDB per student for offline/"neu seit".
 - No Zod — plain runtime checks + JSDoc typedefs for editor support.
 - A hand-written `manifest.json` + `sw.js` for PWA install and app-shell caching.
-- **Hosting:** a static host that can set HTTP headers (needed for a real CSP): Cloudflare Pages or Netlify via `_headers`. GitHub Pages can't set headers; a `<meta>` CSP is a weaker fallback.
+- **Hosting:** Cloudflare Pages. The deployable app lives in `public/` (everything else — `docs/`, `scripts/`, `fixtures/` — stays out of the published output); point Pages' build output directory at `public/`, no build command. `public/_headers` sets the CSP (see its own comments for the `style-src 'unsafe-inline'` tradeoff the inline-style-attribute approach requires).
 
 **Fallback if `/oauth/token` lacks CORS:** a Cloudflare Worker (~30 lines) that forwards only the token exchange and adds CORS headers. It stores nothing and never sees API data. Everything else stays client-only.
 

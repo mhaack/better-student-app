@@ -3,7 +3,7 @@ import { ensureContext } from "../state/session.js";
 import { getHeuteData } from "../data/heute.js";
 import { escapeHtml } from "../util/dom.js";
 import { weekdayOrDate } from "../util/format.js";
-import { renderSkeleton, renderErrorState } from "../components/states.js";
+import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
@@ -122,5 +122,6 @@ export async function renderHeute(container) {
     `;
   } catch (err) {
     container.querySelector("#heute-body").innerHTML = renderErrorState(escapeHtml(err.message));
+    bindErrorState(container);
   }
 }

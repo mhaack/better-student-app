@@ -11,8 +11,13 @@ export function renderErrorState(message) {
     <div class="empty-state">
       <div style="font-family:var(--font-serif);font-size:22px;color:var(--text-primary)">Das hat nicht geklappt</div>
       <div>${message}</div>
-      <button class="button-primary" style="margin-top:8px;padding:0 20px" onclick="location.reload()">Neu laden</button>
+      <button class="button-primary" style="margin-top:8px;padding:0 20px" data-reload>Neu laden</button>
     </div>`;
+}
+
+/** Call once after inserting renderErrorState's HTML — CSP blocks inline onclick. */
+export function bindErrorState(container) {
+  container.querySelector("[data-reload]")?.addEventListener("click", () => location.reload());
 }
 
 export function renderEmptyState(message) {

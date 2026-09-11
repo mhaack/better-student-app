@@ -4,7 +4,9 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
-const ROOT = process.cwd();
+// Mirrors the Cloudflare Pages output directory, so local dev matches
+// what actually gets deployed.
+const ROOT = join(process.cwd(), "public");
 const PORT = Number(process.env.PORT ?? 8080);
 
 const MIME_TYPES = {

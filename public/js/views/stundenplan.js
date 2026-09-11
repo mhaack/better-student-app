@@ -1,7 +1,7 @@
 import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
-import { renderSkeleton, renderErrorState } from "../components/states.js";
+import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 function cellContent(lesson) {
   if (!lesson) return "";
@@ -109,5 +109,6 @@ export async function renderStundenplan(container) {
     `;
   } catch (err) {
     container.querySelector("#sp-body").innerHTML = renderErrorState(escapeHtml(err.message));
+    bindErrorState(container);
   }
 }

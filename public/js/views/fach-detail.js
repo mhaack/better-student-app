@@ -4,7 +4,7 @@ import { getFachDetailData } from "../data/fach-detail.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, weekdayOrDate } from "../util/format.js";
-import { renderSkeleton, renderErrorState } from "../components/states.js";
+import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 function gradeEntryRow(grade, isPoints) {
   const title = grade.collection.name || grade.collection.type;
@@ -143,5 +143,6 @@ export async function renderFachDetail(container, { subjectId }) {
     });
   } catch (err) {
     container.querySelector("#fach-body").innerHTML = renderErrorState(escapeHtml(err.message));
+    bindErrorState(container);
   }
 }

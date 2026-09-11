@@ -4,7 +4,7 @@ import { getNotenData } from "../data/noten.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, formatOverallAverage } from "../util/format.js";
 import { MINI_TREND_WIDTH } from "../domain/trend.js";
-import { renderSkeleton, renderErrorState } from "../components/states.js";
+import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 function trendCell(subject, scale) {
   const width = MINI_TREND_WIDTH[scale];
@@ -84,6 +84,7 @@ export async function renderNoten(container) {
     await loadAndRender(container, studentId, context, context.interval?.id);
   } catch (err) {
     container.querySelector("#noten-body").innerHTML = renderErrorState(escapeHtml(err.message));
+    bindErrorState(container);
   }
 }
 
