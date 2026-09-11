@@ -50,7 +50,7 @@ function newGradeSection(grade) {
   if (!grade) return "";
   return `
     <div class="section" style="gap:12px">
-      <div class="eyebrow">Neue Note</div>
+      <div class="eyebrow">Letzte Note</div>
       <div class="card-row" style="min-height:48px">
         <div>
           <div style="font-size:16px;color:var(--text-primary);font-weight:500">${escapeHtml(grade.subjectName ?? "")}</div>
@@ -73,10 +73,9 @@ function notesSection(items) {
     .map(
       (n) => `
       <div class="hw-row">
-        <button class="hw-check" aria-checked="false" aria-label="Erledigt"></button>
         <div class="hw-text">
-          <div>${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
-          ${n.typeName ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(n.typeName)}</div>` : ""}
+          <div class="hw-title">${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
+          ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
         </div>
         <span class="hw-due">${escapeHtml(weekdayOrDate(n.date))}</span>
       </div>`
@@ -98,8 +97,6 @@ export async function renderHeute(container) {
       </div>
       <div id="heute-body" class="view-body">${renderSkeleton()}</div>
     </div>`;
-
-  bindHomeworkCheckboxes(container);
 
   try {
     const studentId = getSelectedStudentId();
@@ -123,17 +120,7 @@ export async function renderHeute(container) {
       ${newGradeSection(data.newestGrade)}
       ${notesSection(data.notes)}
     `;
-    bindHomeworkCheckboxes(container);
   } catch (err) {
     container.querySelector("#heute-body").innerHTML = renderErrorState(escapeHtml(err.message));
   }
-}
-
-function bindHomeworkCheckboxes(container) {
-  container.querySelectorAll(".hw-check").forEach((box) => {
-    box.addEventListener("click", () => {
-      const checked = box.getAttribute("aria-checked") === "true";
-      box.setAttribute("aria-checked", String(!checked));
-    });
-  });
 }

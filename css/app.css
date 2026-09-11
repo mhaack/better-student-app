@@ -195,7 +195,7 @@ button {
   color: var(--text-muted);
 }
 
-/* Homework */
+/* Anstehend list */
 .hw-row {
   display: flex;
   align-items: center;
@@ -203,30 +203,34 @@ button {
   min-height: 46px;
 }
 
-.hw-check {
-  width: 20px;
-  height: 20px;
-  border: 1px solid var(--text-disabled);
-  border-radius: 6px;
-  flex: none;
-  background: transparent;
-  padding: 0;
-}
-
-.hw-check[aria-checked="true"] {
-  background: var(--text-primary);
-  border-color: var(--text-primary);
-}
-
 .hw-text {
   flex: 1;
+  /* Without this a flex item refuses to shrink below its content, and the
+     clamp below never takes effect. */
+  min-width: 0;
   font-size: 16px;
   color: var(--text-primary);
 }
 
-.hw-due {
+/* Klassenbuch entries can run to a paragraph; two lines, then ellipsis. */
+.hw-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.hw-type {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.hw-due {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* Grade capsule */
