@@ -490,20 +490,9 @@ button {
   color: var(--text-muted);
 }
 
-.nav-item-indicator {
-  width: 18px;
-  height: 2px;
-  border-radius: 2px;
-  background: transparent;
-}
-
 .nav-item[aria-current="page"] {
   color: var(--text-primary);
   font-weight: 600;
-}
-
-.nav-item[aria-current="page"] .nav-item-indicator {
-  background: var(--nav-indicator);
 }
 
 /* Skeleton loading */

@@ -1,18 +1,21 @@
+import { ICONS } from "./icons.js";
+
 const TABS = [
-  { path: "/heute", label: "Heute" },
-  { path: "/noten", label: "Noten" },
-  { path: "/stundenplan", label: "Stundenplan" },
-  { path: "/mehr", label: "Mehr" },
+  { path: "/heute", label: "Heute", icon: ICONS.house },
+  { path: "/noten", label: "Noten", icon: ICONS.graduationCap },
+  { path: "/stundenplan", label: "Stundenplan", icon: ICONS.calendarDays },
+  { path: "/mehr", label: "Mehr", icon: ICONS.ellipsis },
 ];
 
 export function renderBottomNav(activeBasePath) {
   const items = TABS.map((tab) => {
     const isActive = tab.path === activeBasePath;
-    // Only the active tab carries the indicator bar; inactive labels sit
-    // centred in the tab, as in direction 2a.
+    // The icon+label pair switches color for the active tab (see
+    // .nav-item[aria-current="page"] in app.css) — that's the only active
+    // marker now, so no separate indicator element is needed.
     return `
       <a class="nav-item" href="#${tab.path}" ${isActive ? 'aria-current="page"' : ""}>
-        ${isActive ? '<span class="nav-item-indicator"></span>' : ""}
+        ${tab.icon}
         <span>${tab.label}</span>
       </a>`;
   }).join("");
