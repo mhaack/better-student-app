@@ -53,7 +53,9 @@ export async function fetchGrades(studentId, options) {
         "filter[student]": studentId,
         ...(yearId ? { "filter[year]": yearId } : {}),
         ...(intervalId ? { "filter[interval]": intervalId } : {}),
-        include: "collection,subject,teacher",
+        // Confirmed against the live API: grade has no direct `subject` include,
+        // only nested under its collection (see js/api/mappers.js header).
+        include: "collection.subject,teacher",
       },
     });
     return list.map((raw) => mapGrade(raw, scale));

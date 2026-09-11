@@ -1,6 +1,4 @@
-import { apiFetchAll } from "../api/client.js";
-import { fetchFinalgrades, fetchFinalgradeDetail } from "./repository.js";
-import { mapGrade } from "../api/mappers.js";
+import { fetchFinalgrades, fetchFinalgradeDetail, fetchGrades } from "./repository.js";
 import { subjectAverage } from "../domain/grades.js";
 import { toTrendPoints } from "../domain/trend.js";
 
@@ -46,20 +44,16 @@ function describeFormula(average, primaryGrades, secondaryGrades, weighting) {
 export async function getFachDetailData(studentId, subjectId, options) {
   const { yearId, intervalId, scale } = options;
 
-  const [rawGrades, finalgradeSummaries] = await Promise.all([
-    apiFetchAll("grades", {
-      params: {
-        "filter[student]": studentId,
-        "filter[subject]": subjectId,
-        ...(yearId ? { "filter[year]": yearId } : {}),
-        ...(intervalId ? { "filter[interval]": intervalId } : {}),
-        include: "collection,subject,teacher",
-      },
-    }),
+  // Fetch the student's full grade list (shared cache with noten.js — same
+  // key) and filter to this subject client-side, rather than trusting an
+  // unverified `filter[subject]` on /api/grades (only the include allowlist
+  // has been confirmed against the live API so far, see js/api/mappers.js).
+  const [allGrades, finalgradeSummaries] = await Promise.all([
+    fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
   ]);
 
-  const grades = rawGrades.map((raw) => mapGrade(raw, scale));
+  const grades = allGrades.filter((g) => g.subjectId === subjectId);
   const finalgrade = finalgradeSummaries.find(
     (fg) =>
       (fg.subject_id ?? fg.subjectId) === subjectId &&

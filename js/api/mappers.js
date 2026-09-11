@@ -1,17 +1,26 @@
 // Raw beste.schule API JSON -> the normalized domain shapes from docs/plan.md §3.
 //
-// ASSUMPTIONS TO VERIFY once docs/api-notes.md exists (task: "Run discovery
-// against live API once token is added"). These field names are the most
-// plausible reading of docs/plan.md §1/§2 (Laravel resource conventions,
-// German domain terms) but are NOT yet confirmed against a real response:
+// CONFIRMED against the live API (2026-09, via a real 400 response — the API
+// uses spatie/laravel-query-builder, which lists allowed includes/filters in
+// its error body):
+//   - `grade` has NO direct `subject` relation. The allowed includes on
+//     /api/grades are: student, teacher, collection, collection.subject,
+//     histories, readBy (each with *Count/*Exists variants). Subject only
+//     exists nested under the grade's collection: collection.subject.
+//     Always request `include=collection.subject` (not bare `subject`) and
+//     read subjectId off `raw.collection.subject`, not `raw.subject`.
+//
+// STILL UNVERIFIED (adjust once confirmed against a real response):
 //   - person fields: firstname/lastname (not first_name/last_name)
-//   - grade: { id, value, given_at, subject_id, collection_id, collection: {...} }
-//   - collection: { id, type, name, weighting, interval_id }
+//   - grade: { id, value, given_at, collection: {...} } (subject now confirmed nested)
+//   - collection: { id, type, name, weighting, interval_id, subject: {...} }
 //   - subject: { id, name, short_name, course_type ('LK'|'GK'), teacher }
 //   - lesson (timetable): { day_of_week or date, period/lesson, start, end, subject, room }
 //   - substitution: { date, lesson/period, subject, room_from, room_to, teacher_from,
 //     teacher_to, type ('cancelled'|'room_change'|'substitution'), note }
 //   - homework/journal note: { id, date, subject, type, text/content, due_date }
+//   - whether `filter[subject]` is a valid filter on /api/grades at all (the
+//     400 we saw was about includes, not filters — filter[subject] is UNTESTED)
 // Adjust the `pick`/mapping calls below once docs/api-notes.md pins these down —
 // keep the mapping logic (grouping, merging, sorting) as-is where possible.
 
@@ -82,6 +91,7 @@ export function mapGradeCollection(raw) {
     name: raw.name,
     weighting: Number(pick(raw, "weighting", "weight") ?? 1),
     intervalId: pick(raw, "interval_id"),
+    subjectId: pick(raw, "subject_id") ?? raw.subject?.id,
   };
 }
 
@@ -92,11 +102,13 @@ export function mapGradeCollection(raw) {
 export function mapGrade(raw, scale) {
   const collectionRaw = raw.collection ?? {};
   const rawValue = String(pick(raw, "value", "grade") ?? "");
+  const collection = mapGradeCollection(collectionRaw);
   return {
     id: raw.id,
     ...parseGrade(rawValue, scale),
-    subjectId: pick(raw, "subject_id") ?? raw.subject?.id,
-    collection: mapGradeCollection(collectionRaw),
+    // Confirmed: a grade has no direct subject relation, only via collection.subject.
+    subjectId: collection.subjectId,
+    collection,
     givenAt: pick(raw, "given_at", "date", "created_at"),
     teacher: raw.teacher?.name,
   };
