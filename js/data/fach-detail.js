@@ -1,6 +1,6 @@
 import { fetchGrades, fetchFinalgrades } from "./repository.js";
 import { subjectAverage } from "../domain/grades.js";
-import { toTrendPoints } from "../domain/trend.js";
+import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 
 /**
  * Collection types are free text configured per school ("Sonstige",
@@ -84,10 +84,16 @@ export async function getFachDetailData(studentId, subjectId, options) {
     weightingSummary: groups.map((g) => `${g.type} ${g.weightingPct} %`).join(" · "),
     trendPoints:
       chronological.length > 1
-        ? toTrendPoints(
-            chronological.map((g) => g.numeric),
-            { width: 260, height: 60, betterIsHigher: scale === "points_0_15" }
-          )
+        ? toTrendPoints(chronological.map((g) => g.numeric), {
+            width: 260,
+            height: 60,
+            betterIsHigher: scale === "points_0_15",
+            // This chart has an axis (15…0 / 1…6), so it plots against the
+            // full scale rather than against the spread of these grades.
+            ...SCALE_BOUNDS[scale],
+            padding: 4,
+            insetX: 12,
+          })
         : null,
     trendValues: chronological.map((g) => g.numeric),
     teacher: finalgrade?.teacher ? [finalgrade.teacher.forename, finalgrade.teacher.name].filter(Boolean).join(" ") : undefined,

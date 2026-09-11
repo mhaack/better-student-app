@@ -112,7 +112,13 @@ export async function getHeuteData(studentId, scale) {
 
   const changes = lessons
     .filter((l) => l.status !== "regular")
-    .map((l) => ({ status: l.status, text: changeText(l) }));
+    .map((l) => ({
+      status: l.status,
+      // The design strikes through just the lesson itself and leaves
+      // "entfällt" upright, so the two parts stay separate.
+      label: `${l.period}. Std ${l.subject}`,
+      text: changeText(l),
+    }));
 
   const sortedGrades = [...grades].sort((a, b) => new Date(b.givenAt) - new Date(a.givenAt));
   const newest = sortedGrades[0];

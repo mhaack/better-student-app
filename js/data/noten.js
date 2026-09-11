@@ -1,6 +1,6 @@
 import { fetchGrades, fetchFinalgrades } from "./repository.js";
 import { subjectAverage } from "../domain/grades.js";
-import { toTrendPoints } from "../domain/trend.js";
+import { toTrendPoints, MINI_TREND_WIDTH } from "../domain/trend.js";
 
 const TREND_POINTS_COUNT = 4;
 
@@ -44,7 +44,9 @@ export async function getNotenData(studentId, options) {
         chronological.length > 1
           ? toTrendPoints(
               chronological.map((g) => g.numeric),
-              { width: 84, height: 30, betterIsHigher: scale === "points_0_15" }
+              // Axis-less by design: the mini trend shows direction only, so
+              // it normalises to this subject's own range.
+              { width: MINI_TREND_WIDTH[scale], height: 30, betterIsHigher: scale === "points_0_15", insetX: 2 }
             )
           : null,
       empty: average.value === null,

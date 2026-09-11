@@ -27,13 +27,14 @@ function lessonRow(lesson) {
 function changesCard(changes) {
   if (changes.length === 0) return "";
   const rows = changes
-    .map(
-      (c) => `
-      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-primary)">
-        <span style="width:20px;text-align:center;color:${c.status === "cancelled" ? "var(--text-muted)" : "var(--accent)"}">${c.status === "cancelled" ? "✕" : "→"}</span>
-        ${escapeHtml(c.text)}
-      </div>`
-    )
+    .map((c) => {
+      const cancelled = c.status === "cancelled";
+      return `
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:${cancelled ? "var(--text-secondary)" : "var(--text-primary)"}">
+        <span style="width:20px;text-align:center;${cancelled ? "" : "color:var(--accent)"}">${cancelled ? "✕" : "→"}</span>
+        ${cancelled ? `<span style="text-decoration:line-through">${escapeHtml(c.label)}</span> entfällt` : escapeHtml(c.text)}
+      </div>`;
+    })
     .join("");
   return `
     <div class="card card--accent" style="display:flex;flex-direction:column;gap:8px">
@@ -48,7 +49,7 @@ function changesCard(changes) {
 function newGradeSection(grade) {
   if (!grade) return "";
   return `
-    <div class="section">
+    <div class="section" style="gap:12px">
       <div class="eyebrow">Neue Note</div>
       <div class="card-row" style="min-height:48px">
         <div>
@@ -82,7 +83,7 @@ function notesSection(items) {
     )
     .join("");
   return `
-    <div class="section">
+    <div class="section" style="gap:10px">
       <div class="eyebrow">Anstehend</div>
       ${rows}
     </div>`;
@@ -95,7 +96,7 @@ export async function renderHeute(container) {
         <h1 class="view-title">Heute</h1>
         <div class="view-subtitle" id="heute-subtitle">…</div>
       </div>
-      <div id="heute-body">${renderSkeleton()}</div>
+      <div id="heute-body" class="view-body">${renderSkeleton()}</div>
     </div>`;
 
   bindHomeworkCheckboxes(container);

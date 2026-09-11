@@ -3,13 +3,15 @@ import { ensureContext } from "../state/session.js";
 import { getNotenData } from "../data/noten.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, formatOverallAverage } from "../util/format.js";
+import { MINI_TREND_WIDTH } from "../domain/trend.js";
 import { renderSkeleton, renderErrorState } from "../components/states.js";
 
-function trendCell(subject) {
+function trendCell(subject, scale) {
+  const width = MINI_TREND_WIDTH[scale];
   if (subject.trendPoints) {
     return `
-      <svg class="trend-line" viewBox="0 0 84 30" width="84" height="30">
-        <line x1="0" y1="15" x2="84" y2="15" style="stroke:var(--border)" />
+      <svg class="trend-line" viewBox="0 0 ${width} 30" width="${width}" height="30">
+        <line x1="0" y1="15" x2="${width}" y2="15" style="stroke:var(--chart-grid)" />
         <polyline points="${subject.trendPoints}" fill="none" style="stroke:var(--text-secondary)" stroke-width="1.5" />
       </svg>`;
   }
@@ -18,18 +20,26 @@ function trendCell(subject) {
 
 function subjectRow(subject, scale) {
   const isEmpty = subject.empty;
+  const isPoints = scale === "points_0_15";
   const valueText = isEmpty
     ? "–"
-    : `${formatAverage(subject.average.value, scale)}${scale === "points_0_15" ? " P" : ""}`;
+    : `${formatAverage(subject.average.value, scale)}${isPoints ? " P" : ""}`;
+  const rowClasses = [
+    "subject-row",
+    isPoints ? "subject-row--points" : "",
+    isPoints && subject.courseType === "LK" ? "subject-row--lk" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return `
-    <a class="subject-row" href="#/noten/${subject.subjectId}" style="text-decoration:none;color:inherit">
+    <a class="${rowClasses}" href="#/noten/${subject.subjectId}" style="text-decoration:none;color:inherit">
       <div style="display:flex;flex-direction:column;gap:4px">
         <div class="subject-name">${escapeHtml(subject.name)}</div>
         ${subject.average.source === "estimated" ? '<span class="chip">geschätzt</span>' : ""}
         ${subject.average.unterkurs ? '<span class="chip">Unterkurs</span>' : ""}
         ${isEmpty ? '<span class="subject-empty-note">noch keine Noten</span>' : ""}
       </div>
-      ${trendCell(subject)}
+      ${trendCell(subject, scale)}
       <span class="subject-value${isEmpty ? " subject-value--empty" : ""}">${valueText}</span>
     </a>`;
 }
@@ -50,14 +60,21 @@ export async function renderNoten(container) {
     <div class="view">
       <div class="section" style="gap:12px">
         <h1 class="view-title">Noten</h1>
-        <select id="interval-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none"></select>
+        <div style="position:relative;align-self:flex-start">
+          <select id="interval-picker" class="interval-picker" style="padding-right:32px"></select>
+          <span aria-hidden="true" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-primary);font-size:12px">⌄</span>
+        </div>
       </div>
-      <div id="noten-body">${renderSkeleton(8)}</div>
+      <div id="noten-body" class="view-body">${renderSkeleton(8)}</div>
     </div>`;
 
   try {
     const studentId = getSelectedStudentId();
     const context = await ensureContext();
+    // The Oberstufe list carries more rows, so the design tightens the
+    // vertical rhythm a little (2a: 20px vs 24px).
+    container.querySelector(".view").style.gap =
+      context.scale === "points_0_15" ? "20px" : "24px";
     populateIntervalPicker(container, context);
 
     container.querySelector("#interval-picker").addEventListener("change", async (e) => {
@@ -100,7 +117,7 @@ async function loadAndRender(container, studentId, context, intervalId) {
     : `<div style="display:flex;flex-direction:column">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
 
   body.innerHTML = `
-    <div class="average-header" style="justify-content:${isPoints ? "space-between" : "flex-start"}">
+    <div class="average-header${isPoints ? " average-header--points" : ""}" style="justify-content:${isPoints ? "space-between" : "flex-start"}">
       <div style="display:flex;align-items:baseline;gap:14px">
         <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${isPoints ? '<span style="font-size:30px"> P</span>' : ""}</div>
         <div class="average-label">${scaleLabel}</div>

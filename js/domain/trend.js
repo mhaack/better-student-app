@@ -8,12 +8,29 @@
 // baking scale assumptions into chart code.
 
 /**
+ * Width of the mini trend line in the Noten list: the Oberstufe list is
+ * denser than the Noten 1-6 one (design 2a, B1 vs B2). Shared so the SVG the
+ * view draws and the points the data layer computes can't drift apart.
+ */
+export const MINI_TREND_WIDTH = { grade_1_6: 84, points_0_15: 76 };
+
+/** The absolute bounds of each grading scale, for axis-bearing charts. */
+export const SCALE_BOUNDS = {
+  grade_1_6: { min: 1, max: 6 },
+  points_0_15: { min: 0, max: 15 },
+};
+
+/**
+ * Pass `min`/`max` to plot against the absolute scale (0-15 or 1-6). Leave
+ * them out only where the chart shows direction alone and carries no axis —
+ * otherwise the axis labels would describe a range the line doesn't use.
+ *
  * @param {number[]} values chronological, oldest first
- * @param {{ width: number, height: number, betterIsHigher: boolean, min?: number, max?: number, padding?: number }} options
+ * @param {{ width: number, height: number, betterIsHigher: boolean, min?: number, max?: number, padding?: number, insetX?: number }} options
  * @returns {string} SVG polyline "points" attribute value
  */
 export function toTrendPoints(values, options) {
-  const { width, height, betterIsHigher, padding = height * 0.15 } = options;
+  const { width, height, betterIsHigher, padding = height * 0.15, insetX = 0 } = options;
   if (values.length === 0) return "";
 
   const min = options.min ?? Math.min(...values);
@@ -21,11 +38,12 @@ export function toTrendPoints(values, options) {
   const range = max - min || 1;
 
   const usableHeight = height - padding * 2;
-  const stepX = values.length > 1 ? width / (values.length - 1) : 0;
+  const usableWidth = width - insetX * 2;
+  const stepX = values.length > 1 ? usableWidth / (values.length - 1) : 0;
 
   return values
     .map((value, index) => {
-      const x = values.length > 1 ? index * stepX : width / 2;
+      const x = values.length > 1 ? insetX + index * stepX : width / 2;
       const normalized = (value - min) / range; // 0..1, 1 = max raw value
       const betterness = betterIsHigher ? normalized : 1 - normalized; // 1 = best
       const y = padding + (1 - betterness) * usableHeight;

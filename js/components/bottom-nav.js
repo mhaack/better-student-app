@@ -8,9 +8,11 @@ const TABS = [
 export function renderBottomNav(activeBasePath) {
   const items = TABS.map((tab) => {
     const isActive = tab.path === activeBasePath;
+    // Only the active tab carries the indicator bar; inactive labels sit
+    // centred in the tab, as in direction 2a.
     return `
       <a class="nav-item" href="#${tab.path}" ${isActive ? 'aria-current="page"' : ""}>
-        <span class="nav-item-indicator"></span>
+        ${isActive ? '<span class="nav-item-indicator"></span>' : ""}
         <span>${tab.label}</span>
       </a>`;
   }).join("");
