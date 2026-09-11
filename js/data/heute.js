@@ -5,6 +5,7 @@ import {
   fetchJournalNotes,
   isoDate,
 } from "./repository.js";
+import { lessonsForDate } from "./timetable.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
@@ -14,63 +15,6 @@ const BACKWARD_LOOKING_NOTE_TYPES = new Set(["STU"]);
 
 function germanWeekdayDate(date) {
   return new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(date);
-}
-
-/** API weekday is 1 = Monday … 7 = Sunday; JS getDay() is 0 = Sunday. */
-function apiWeekday(date) {
-  return date.getDay() === 0 ? 7 : date.getDay();
-}
-
-function isoWeek(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return {
-    week: Math.ceil(((d - yearStart) / 86_400_000 + 1) / 7),
-    year: d.getUTCFullYear(),
-  };
-}
-
-/**
- * Timetables alternate between A and B weeks; the timetable's own `weeks`
- * calendar says which ISO week is which.
- */
-function weekTypeFor(timetable, date) {
-  const { week, year } = isoWeek(date);
-  const entry = (timetable.weeks ?? []).find((w) => w.nr === week && String(w.year) === String(year));
-  return entry?.types?.[0] ?? null;
-}
-
-function timetableLessonsFor(timetable, date) {
-  const weekday = apiWeekday(date);
-  const weekType = weekTypeFor(timetable, date);
-  return (timetable.lessons ?? []).filter((lesson) => {
-    if (lesson.weekday !== weekday) return false;
-    if (!weekType || !lesson.weeks?.length) return true;
-    return lesson.weeks.includes(weekType);
-  });
-}
-
-/**
- * The day plan marks a lesson only as changed/cancelled, so compare it with
- * the base timetable to tell a room change from a stand-in teacher — the
- * design needs those distinguishable without relying on colour.
- */
-function refineChangedLessons(planLessons, timetable, date) {
-  const baseByPeriod = new Map(timetableLessonsFor(timetable, date).map((l) => [l.period, l]));
-
-  return planLessons.map((lesson) => {
-    if (lesson.status !== "changed") return lesson;
-
-    const base = baseByPeriod.get(lesson.period);
-    const roomChanged = base?.room && lesson.room && base.room !== lesson.room;
-    const teacherChanged = base?.teacher && lesson.teacher && base.teacher !== lesson.teacher;
-
-    if (teacherChanged) return { ...lesson, status: "substitution", previousTeacher: base.teacher };
-    if (roomChanged) return { ...lesson, status: "room_change", previousRoom: base.room };
-    return { ...lesson, status: "substitution" };
-  });
 }
 
 function changeText(lesson) {
@@ -103,12 +47,8 @@ export async function getHeuteData(studentId, scale) {
     fetchJournalNotes(studentId, todayIso, notesUntilIso),
   ]);
 
-  const plan = dayPlans.find((day) => day.date === todayIso) ?? null;
-  const lessons = plan
-    ? refineChangedLessons(plan.lessons, timetable, today)
-    : timetableLessonsFor(timetable, today)
-        .map((l) => ({ ...l, status: "regular", notes: [] }))
-        .sort((a, b) => a.period - b.period);
+  const lessons = lessonsForDate(today, dayPlans, timetable);
+  const dayNotes = dayPlans.find((day) => day.date === todayIso)?.notes ?? [];
 
   const changes = lessons
     .filter((l) => l.status !== "regular")
@@ -133,7 +73,7 @@ export async function getHeuteData(studentId, scale) {
 
   return {
     dateLabel: germanWeekdayDate(today),
-    dayNotes: plan?.notes ?? [],
+    dayNotes,
     lessons,
     changes,
     newestGrade: withinWindow ? newest : null,

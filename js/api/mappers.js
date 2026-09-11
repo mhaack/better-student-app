@@ -45,6 +45,12 @@ export function roomNames(rooms) {
   return names.length ? names.join(", ") : undefined;
 }
 
+/** Staff also carry a local_id ("KRC", "KLH") — too narrow a column for full names. */
+export function teacherShortNames(people) {
+  const names = (people ?? []).map((p) => p?.local_id).filter(Boolean);
+  return names.length ? names.join(", ") : undefined;
+}
+
 export function mapStudent(raw) {
   const klasse = (raw.meta_groups ?? []).find((g) => g.meta === 1) ?? raw.meta_groups?.[0];
   return {
@@ -179,6 +185,7 @@ export function mapPlanLesson(raw) {
     subjectId: raw.subject?.id,
     room: roomNames(raw.rooms),
     teacher: peopleNames(raw.teachers),
+    teacherShort: teacherShortNames(raw.teachers),
     notes: (raw.notes ?? []).filter(Boolean),
   };
 }
@@ -191,8 +198,10 @@ export function mapTimetableLesson(raw) {
     weeks: raw.weeks ?? [],
     subjectId: raw.subject?.id,
     subject: raw.subject?.name,
+    subjectShort: raw.subject?.local_id,
     room: roomNames(raw.rooms),
     teacher: peopleNames(raw.teachers),
+    teacherShort: teacherShortNames(raw.teachers),
     from: raw.time?.from,
     to: raw.time?.to,
   };

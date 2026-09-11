@@ -596,3 +596,97 @@ button {
 @media (max-width: 400px) {
   .view { padding-left: 16px; padding-right: 16px; }
 }
+
+/* Stundenplan 5-day grid */
+.sp-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-grid-row {
+  display: grid;
+  grid-template-columns: 22px repeat(5, 1fr);
+  gap: 4px;
+  align-items: stretch;
+}
+
+/* The grid item itself (not .sp-cell inside it) is what CSS Grid sizes by
+   max-content by default; without min-width:0 here, a long note forces the
+   whole 1fr track wider no matter what .sp-cell's own overflow rule says. */
+.sp-grid-cell {
+  min-width: 0;
+}
+
+.sp-day-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sp-day-label--today {
+  color: var(--text-primary);
+}
+
+.sp-day-date {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.sp-period {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-disabled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 5px;
+  min-height: 58px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.sp-cell--changed {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.sp-cell--changed .sp-cell-title,
+.sp-cell--changed .sp-cell-meta {
+  color: var(--accent);
+}
+
+.sp-cell--cancelled {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--text-disabled);
+}
+
+.sp-cell--cancelled .sp-cell-title,
+.sp-cell--cancelled .sp-cell-meta {
+  color: var(--text-secondary);
+}
+
+.sp-cell-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-cell-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
