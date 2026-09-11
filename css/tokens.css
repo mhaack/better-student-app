@@ -1,0 +1,87 @@
+/* Design tokens extracted from project/Schulblick Layoutrichtungen.dc.html, direction 2a (hybrid). */
+:root {
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+
+  --bg: #F6F3EE;
+  --surface: #FFFFFF;
+  --border: #E4DED5;
+  --border-strong: #D9D2C8;
+
+  --text-primary: #1A1714;
+  --text-secondary: #57504A;
+  --text-muted: #6F6862;
+  --text-disabled: #8A827A;
+
+  --accent: #A8341C;
+  --accent-bg: #FBE9E3;
+  --accent-border: #E8B9A9;
+  --accent-hover: #7d2413;
+
+  --chip-bg: #F0EBE3;
+  --chip-text: #57504A;
+
+  --lk-badge-bg: #1A1714;
+  --lk-badge-text: #F6F3EE;
+
+  --nav-indicator: #1A1714;
+
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  --touch-target: 44px;
+}
+
+:root[data-theme="dark"] {
+  --bg: #14120F;
+  --surface: #1D1A16;
+  --border: #2E2A24;
+  --border-strong: #3A352E;
+
+  --text-primary: #F3F0EA;
+  --text-secondary: #B3ABA1;
+  --text-muted: #9C948A;
+  --text-disabled: #6B6259;
+
+  --accent: #FFB098;
+  --accent-bg: #33231C;
+  --accent-border: #5A3A2C;
+  --accent-hover: #FFC9B7;
+
+  --chip-bg: #2A241D;
+  --chip-text: #B8AFA4;
+
+  --lk-badge-bg: #F3F0EA;
+  --lk-badge-text: #14120F;
+
+  --nav-indicator: #F3F0EA;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14120F;
+    --surface: #1D1A16;
+    --border: #2E2A24;
+    --border-strong: #3A352E;
+
+    --text-primary: #F3F0EA;
+    --text-secondary: #B3ABA1;
+    --text-muted: #9C948A;
+    --text-disabled: #6B6259;
+
+    --accent: #FFB098;
+    --accent-bg: #33231C;
+    --accent-border: #5A3A2C;
+    --accent-hover: #FFC9B7;
+
+    --chip-bg: #2A241D;
+    --chip-text: #B8AFA4;
+
+    --lk-badge-bg: #F3F0EA;
+    --lk-badge-text: #14120F;
+
+    --nav-indicator: #F3F0EA;
+  }
+}

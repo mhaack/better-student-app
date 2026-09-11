@@ -1,0 +1,15 @@
+{
+  "name": "Schulblick",
+  "short_name": "Schulblick",
+  "description": "Inoffizielle App für beste.schule: Noten, Vertretungen und Hausaufgaben.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F3EE",
+  "theme_color": "#F6F3EE",
+  "lang": "de",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
