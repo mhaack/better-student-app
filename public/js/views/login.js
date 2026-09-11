@@ -27,7 +27,7 @@ export function renderLogin(container) {
       <div class="login-help">
         So bekommst du einen Zugriffsschlüssel: auf beste.schule unter
         <strong>Benutzerkonto → API → Personal Access Token erstellen</strong>.
-        Schulblick ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        Bestere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>
   `;

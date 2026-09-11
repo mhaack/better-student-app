@@ -1,6 +1,6 @@
 # beste.schule Student App — Implementation Plan (v2, client-only)
 
-Working title: **Schulblick**
+Name: **Bestere Schule** (working title during design was "Schulblick")
 Goal: a static, client-only PWA where a student logs in with their beste.schule account and sees grades, timetable, substitutions, homework, absences and announcements. No backend: the browser talks directly to `beste.schule/api`.
 
 **Project decisions (this build):**

@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="28" fill="#1A1714"/>
-  <text x="50%" y="58%" text-anchor="middle" font-family="Georgia, serif" font-size="60" fill="#F6F3EE">S</text>
+  <!-- Lucide "graduation-cap" (https://lucide.dev/icons/graduation-cap, ISC licence),
+       native 24x24 viewBox scaled 3x and centered in the 128x128 canvas. -->
+  <g transform="translate(28,28) scale(3)" fill="none" stroke="#F6F3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+    <path d="M22 10v6"/>
+    <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+  </g>
 </svg>

@@ -44,7 +44,7 @@ export async function renderMehr(container) {
       </div>
       <button id="logout-button" class="button-primary" style="background:transparent;color:var(--accent);border:1px solid var(--accent-border)">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
-        Schulblick ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        Bestere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>`;
 
