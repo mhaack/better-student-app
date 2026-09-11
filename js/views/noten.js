@@ -18,7 +18,9 @@ function trendCell(subject) {
 
 function subjectRow(subject, scale) {
   const isEmpty = subject.empty;
-  const valueText = isEmpty ? "–" : `${formatAverage(subject.average.value, scale)}${scale === "points_0_15" ? " P" : ""}`;
+  const valueText = isEmpty
+    ? "–"
+    : `${formatAverage(subject.average.value, scale)}${scale === "points_0_15" ? " P" : ""}`;
   return `
     <a class="subject-row" href="#/noten/${subject.subjectId}" style="text-decoration:none;color:inherit">
       <div style="display:flex;flex-direction:column;gap:4px">
@@ -59,10 +61,10 @@ export async function renderNoten(container) {
     populateIntervalPicker(container, context);
 
     container.querySelector("#interval-picker").addEventListener("change", async (e) => {
-      await loadAndRender(container, studentId, context.scale, Number(e.target.value));
+      await loadAndRender(container, studentId, context, Number(e.target.value));
     });
 
-    await loadAndRender(container, studentId, context.scale, context.interval?.id);
+    await loadAndRender(container, studentId, context, context.interval?.id);
   } catch (err) {
     container.querySelector("#noten-body").innerHTML = renderErrorState(escapeHtml(err.message));
   }
@@ -70,31 +72,42 @@ export async function renderNoten(container) {
 
 function populateIntervalPicker(container, context) {
   const picker = container.querySelector("#interval-picker");
+  const yearName = context.year?.name ? ` · ${context.year.name}` : "";
   picker.innerHTML = context.intervals
-    .map((i) => `<option value="${i.id}" ${i.id === context.interval?.id ? "selected" : ""}>${escapeHtml(i.name)}</option>`)
+    .map(
+      (i) =>
+        `<option value="${i.id}" ${i.id === context.interval?.id ? "selected" : ""}>${escapeHtml(i.name)}${escapeHtml(yearName)}</option>`
+    )
     .join("");
 }
 
-async function loadAndRender(container, studentId, scale, intervalId) {
+async function loadAndRender(container, studentId, context, intervalId) {
+  const { scale } = context;
   const body = container.querySelector("#noten-body");
   body.innerHTML = renderSkeleton(8);
 
-  const data = await getNotenData(studentId, { intervalId, scale });
-  const scaleLabel = scale === "points_0_15" ? "Ø Punkte<br>Skala 0–15" : "Gesamtdurchschnitt<br>Noten 1–6";
+  const data = await getNotenData(studentId, {
+    yearId: context.year?.id,
+    intervalId,
+    scale,
+    courses: context.courses,
+  });
+
+  const isPoints = scale === "points_0_15";
+  const scaleLabel = isPoints ? "Ø Punkte<br>Skala 0–15" : "Gesamtdurchschnitt<br>Noten 1–6";
+  const list = isPoints && data.hasCourseTypes
+    ? subjectGroup("Leistungskurse", data.lk, scale) + subjectGroup("Grundkurse", data.gk, scale)
+    : `<div style="display:flex;flex-direction:column">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
 
   body.innerHTML = `
-    <div class="average-header" style="justify-content:${scale === "points_0_15" ? "space-between" : "flex-start"}">
+    <div class="average-header" style="justify-content:${isPoints ? "space-between" : "flex-start"}">
       <div style="display:flex;align-items:baseline;gap:14px">
-        <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${scale === "points_0_15" ? '<span style="font-size:30px"> P</span>' : ""}</div>
+        <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${isPoints ? '<span style="font-size:30px"> P</span>' : ""}</div>
         <div class="average-label">${scaleLabel}</div>
       </div>
-      ${scale === "points_0_15" ? `<span class="unterkurs-counter">${data.unterkursCount} Unterkurs${data.unterkursCount === 1 ? "" : "e"}</span>` : ""}
+      ${isPoints ? `<span class="unterkurs-counter">${data.unterkursCount} Unterkurs${data.unterkursCount === 1 ? "" : "e"}</span>` : ""}
     </div>
-    ${
-      scale === "points_0_15"
-        ? subjectGroup("Leistungskurse", data.lk, scale) + subjectGroup("Grundkurse", data.gk, scale)
-        : `<div style="display:flex;flex-direction:column">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`
-    }
+    ${list}
     <div style="font-size:12px;line-height:1.5;color:var(--text-muted)">
       Verlauf: links früh, rechts aktuell — oben ist immer besser.
       <strong style="color:var(--text-secondary);font-weight:600">geschätzt</strong> = eigene Hochrechnung, keine offizielle Note.

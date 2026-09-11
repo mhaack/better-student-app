@@ -1,14 +1,20 @@
-// Thin, cached wrappers around apiFetch for the routes in docs/plan.md §2.
-// Aggregation for specific screens lives in heute.js / noten.js / fach-detail.js.
+// Cached wrappers around the beste.schule routes this app uses.
+// Screen-level aggregation lives in heute.js / noten.js / fach-detail.js.
+//
+// Every query param here has been probed against the live API (2026-09) —
+// filter[student], filter[year], filter[interval], filter[subject] and
+// filter[range] all validate; `include` values are the ones the API's
+// allowlist actually accepts.
 import { apiFetch, apiFetchAll } from "../api/client.js";
 import { cached } from "./cache.js";
 import {
   mapStudent,
   mapYear,
-  mapInterval,
-  mapSubject,
+  mapGroup,
   mapGrade,
-  mapHomework,
+  mapPlanLesson,
+  mapTimetableLesson,
+  mapJournalNotes,
   mapAnnouncement,
 } from "../api/mappers.js";
 
@@ -20,6 +26,13 @@ export async function fetchStudents() {
   });
 }
 
+export async function fetchSchool() {
+  return cached("school", () => apiFetch("school").then((r) => r?.data ?? null), {
+    staleMs: 60 * 60_000,
+  });
+}
+
+/** Years come with their intervals nested, so there's no separate intervals call. */
 export async function fetchYears() {
   return cached("years", async () => {
     const list = await apiFetchAll("years");
@@ -27,17 +40,16 @@ export async function fetchYears() {
   });
 }
 
-export async function fetchIntervals(yearId) {
-  return cached(`intervals:${yearId}`, async () => {
-    const list = await apiFetchAll("intervals", { params: { "filter[year]": yearId } });
-    return list.map(mapInterval);
-  });
-}
-
-export async function fetchSubjects(studentId) {
-  return cached(`subjects:${studentId}`, async () => {
-    const list = await apiFetchAll("subjects", { params: { "filter[student]": studentId } });
-    return list.map(mapSubject);
+/**
+ * The student's course groups — this is how we learn which subjects they
+ * actually take. /api/subjects returns every subject the school offers.
+ */
+export async function fetchGroups(studentId) {
+  return cached(`groups:${studentId}`, async () => {
+    const list = await apiFetchAll("groups", {
+      params: { "filter[student]": studentId, include: "subjects" },
+    });
+    return list.map(mapGroup);
   });
 }
 
@@ -47,14 +59,13 @@ export async function fetchSubjects(studentId) {
  */
 export async function fetchGrades(studentId, options) {
   const { yearId, intervalId, scale } = options;
-  return cached(`grades:${studentId}:${yearId ?? ""}:${intervalId ?? ""}`, async () => {
+  return cached(`grades:${studentId}:${yearId ?? ""}:${intervalId ?? ""}:${scale}`, async () => {
     const list = await apiFetchAll("grades", {
       params: {
         "filter[student]": studentId,
         ...(yearId ? { "filter[year]": yearId } : {}),
         ...(intervalId ? { "filter[interval]": intervalId } : {}),
-        // Confirmed against the live API: grade has no direct `subject` include,
-        // only nested under its collection (see js/api/mappers.js header).
+        // `subject` is not an allowed include here; it hangs off the collection.
         include: "collection.subject,teacher",
       },
     });
@@ -62,53 +73,78 @@ export async function fetchGrades(studentId, options) {
   });
 }
 
+/**
+ * Endnoten. For schools that let the system compute them these carry a value
+ * or a calculation_rule; where the teacher decides (calculation_for:
+ * "teacher") they carry neither, and subject averages stay our own estimate.
+ * The detail route returns the same fields as the list, so there's no
+ * per-id follow-up call.
+ */
 export async function fetchFinalgrades(studentId, { yearId } = {}) {
-  return cached(`finalgrades:${studentId}:${yearId ?? ""}`, async () => {
-    return apiFetchAll("finalgrades", {
+  return cached(`finalgrades:${studentId}:${yearId ?? ""}`, async () =>
+    apiFetchAll("finalgrades", {
       params: {
         "filter[student]": studentId,
         ...(yearId ? { "filter[year]": yearId } : {}),
       },
-    });
-  });
+    })
+  );
 }
 
-export async function fetchFinalgradeDetail(id) {
-  return cached(`finalgrade:${id}`, () => apiFetch(`finalgrades/${id}`).then((r) => r?.data ?? null));
+/**
+ * The published day plan: every lesson of the day with its status
+ * ("initial" / "planned" / "canceled"), not just the changes.
+ */
+export async function fetchDayPlans(fromIso, toIso) {
+  return cached(
+    `dayplans:${fromIso}:${toIso}`,
+    async () => {
+      const days = await apiFetchAll("substitution-plans/days", {
+        params: {
+          "filter[range]": `${fromIso},${toIso}`,
+          include: "lessons,subject,teachers,rooms,notes",
+        },
+      });
+      return days.map((day) => ({
+        date: day.date,
+        notes: (day.notes ?? []).filter(Boolean),
+        lessons: (day.lessons ?? []).map(mapPlanLesson).sort((a, b) => a.period - b.period),
+      }));
+    },
+    { staleMs: 60_000 }
+  );
 }
 
 export async function fetchCurrentTimetable() {
   return cached(
     "timetable:current",
-    () => apiFetch("time-tables/current", { params: { include: "lessons.times" } }),
-    { staleMs: 5 * 60_000 }
+    async () => {
+      const res = await apiFetch("time-tables/current", { params: { include: "lessons.times" } });
+      const data = res?.data ?? {};
+      return {
+        validFrom: data.valid_from,
+        validTo: data.valid_to,
+        // Maps ISO calendar weeks to A/B week types for alternating lessons.
+        weeks: data.weeks ?? [],
+        noSchoolDates: data.no_school_dates ?? [],
+        lessons: (data.lessons ?? []).map(mapTimetableLesson),
+      };
+    },
+    { staleMs: 60 * 60_000 }
   );
 }
 
-export async function fetchSubstitutions(fromIso, toIso) {
-  return cached(
-    `substitutions:${fromIso}:${toIso}`,
-    () =>
-      apiFetchAll("substitution-plans/lessons", {
-        params: {
-          "filter[range]": `${fromIso},${toIso}`,
-          include: "lessons,subject,teachers,rooms,notes",
-        },
-      }),
-    { staleMs: 60_000 }
-  );
-}
-
-export async function fetchHomework(studentId, fromIso, toIso) {
-  return cached(`homework:${studentId}:${fromIso}:${toIso}`, async () => {
-    const list = await apiFetchAll("journal/lessons", {
+/** Klassenbuch entries — announced tests, homework, lesson topics. */
+export async function fetchJournalNotes(studentId, fromIso, toIso) {
+  return cached(`journal:${studentId}:${fromIso}:${toIso}`, async () => {
+    const lessons = await apiFetchAll("journal/lessons", {
       params: {
         "filter[student]": studentId,
         "filter[range]": `${fromIso},${toIso}`,
         include: "notes.type",
       },
     });
-    return list.map(mapHomework);
+    return lessons.flatMap(mapJournalNotes);
   });
 }
 
@@ -120,5 +156,6 @@ export async function fetchAnnouncements() {
 }
 
 export function isoDate(date) {
-  return date.toISOString().slice(0, 10);
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
 }

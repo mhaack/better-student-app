@@ -1,10 +1,11 @@
 import { getStudents, getSelectedStudentId, setSelectedStudentId, clearSession } from "../state/auth-store.js";
 import { resetContext } from "../state/session.js";
 import { clearCache } from "../data/cache.js";
+import { fetchSchool } from "../data/repository.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
 
-export function renderMehr(container) {
+export async function renderMehr(container) {
   const students = getStudents();
   const selectedId = getSelectedStudentId();
 
@@ -33,7 +34,7 @@ export function renderMehr(container) {
         current
           ? `<div class="card">
                <div style="font-size:16px;font-weight:500;color:var(--text-primary)">${escapeHtml(current.firstName)} ${escapeHtml(current.lastName)}</div>
-               <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${escapeHtml(current.schoolName ?? "")}</div>
+               <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="mehr-school">${escapeHtml(current.className ?? "")}</div>
              </div>`
           : ""
       }
@@ -53,6 +54,17 @@ export function renderMehr(container) {
     clearCache();
     navigate("/heute");
   });
+
+  fetchSchool()
+    .then((school) => {
+      const target = container.querySelector("#mehr-school");
+      if (!target || !school?.name) return;
+      const klasse = current?.className ? `${current.className} · ` : "";
+      target.textContent = `${klasse}${school.name}`;
+    })
+    .catch(() => {
+      // The school name is decoration; the class from the student record is enough.
+    });
 
   container.querySelector("#logout-button").addEventListener("click", () => {
     clearSession();

@@ -29,14 +29,23 @@ Goal: a static, client-only PWA where a student logs in with their beste.schule 
 | Naming | group = Klasse, interval = Halbjahr, level = Jahrgang, guardian = Elternteil, subject = Fach, finalgrade = Endnote, journal = Klassenbuch, year = Schuljahr |
 
 ### Still open (resolve in Phase 0)
-1. **CORS on `/oauth/token`.** Laravel's default CORS config only covers `api/*`, so `/oauth/*` may not send CORS headers even though `/api` does. This decides whether OAuth works without any server.
-2. **Public OAuth clients + PKCE.** The docs say a secret is given only "gegebenenfalls", which suggests secret-less public clients exist (Laravel Passport supports PKCE for those). Confirm by creating a client.
-3. CORS on write routes used by students (announcement/notification mark-read, POST/PUT).
+
+**Phase 0 is done — see `docs/api-notes.md` for what the live API actually
+returns.** Resolved there: the "me" route and user↔student link, grade value
+formats and collection types, how Oberstufe/Kurshalbjahre are represented
+(interval `type`), and how LK/GK is (not) exposed. Still open:
+
+1. **CORS on `/oauth/token`.** Laravel's default CORS config only covers
+   `api/*`, so `/oauth/*` may not send CORS headers even though `/api` does.
+   This decides whether OAuth works without any server.
+2. **Public OAuth clients + PKCE.** The docs say a secret is given only
+   "gegebenenfalls", which suggests secret-less public clients exist. Confirm
+   by creating a client.
+3. CORS on write routes used by students (announcement/notification
+   mark-read, POST/PUT).
 4. Access-token lifetime, refresh tokens, rate limits.
-5. The "me" route (`/api/me` vs `/api/user`) and how user ↔ student is linked.
-6. Grade value formats: Sek I (`"2+"`, `"1-"`, `"1,5"`) and Oberstufe points; collection `type` codes (KA, So, Klausur …).
-7. How Oberstufe is represented: LK/GK marker (subject, group, or custom field?), Kurshalbjahre as intervals?
-8. Terms of use for third-party clients: ask schulverwalter.online before going public.
+5. Terms of use for third-party clients: ask schulverwalter.online before
+   going public.
 
 ---
 

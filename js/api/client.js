@@ -9,6 +9,7 @@ import { getToken, clearSession } from "../state/auth-store.js";
 const BASE_URL = "https://beste.schule/api";
 const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 3;
+const MAX_PAGES = 50;
 
 export class ApiError extends Error {
   constructor(message, status, body) {
@@ -125,10 +126,9 @@ async function safeJson(res) {
  */
 export async function apiFetchAll(path, options = {}) {
   const perPage = options.params?.per_page ?? 250;
-  let page = 1;
   const all = [];
 
-  while (true) {
+  for (let page = 1; page <= MAX_PAGES; page++) {
     const response = await apiFetch(path, {
       ...options,
       params: { ...options.params, per_page: perPage, page },
@@ -136,9 +136,12 @@ export async function apiFetchAll(path, options = {}) {
     const data = Array.isArray(response?.data) ? response.data : [];
     all.push(...data);
 
-    const meta = response?.meta;
-    if (!meta || !meta.last_page || meta.current_page >= meta.last_page) break;
-    page += 1;
+    // Terminate on the page we asked for, not on the one the response claims
+    // to be: a server that echoes a stale current_page (or ignores `page`
+    // entirely) would otherwise loop forever, leaving the screen stuck on its
+    // skeleton with no error to show.
+    const lastPage = response?.meta?.last_page;
+    if (!lastPage || page >= lastPage) break;
   }
 
   return all;

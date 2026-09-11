@@ -1,39 +1,52 @@
-import { fetchFinalgrades, fetchFinalgradeDetail, fetchGrades } from "./repository.js";
+import { fetchGrades, fetchFinalgrades } from "./repository.js";
 import { subjectAverage } from "../domain/grades.js";
 import { toTrendPoints } from "../domain/trend.js";
 
-// Which collection.type values count as the "big" graded work (Klassenarbeit /
-// Klausur) vs. "Sonstige Leistungen" — matches the grouping in the design
-// (project/Schulblick Layoutrichtungen.dc.html, 2a C1/C2). Verify the real
-// type codes in docs/api-notes.md once Phase 0 discovery has run.
-const PRIMARY_TYPES = new Set(["ka", "klausur"]);
+/**
+ * Collection types are free text configured per school ("Sonstige",
+ * "Klausur", "Klassenarbeit", …), so the detail screen groups by whatever
+ * types actually occur rather than forcing the design's two fixed buckets.
+ */
+function groupByType(grades) {
+  const byType = new Map();
+  for (const grade of grades) {
+    const type = grade.collection.type;
+    if (!byType.has(type)) byType.set(type, []);
+    byType.get(type).push(grade);
+  }
 
-function isPrimaryType(type) {
-  return PRIMARY_TYPES.has(String(type ?? "").toLowerCase());
+  const totalWeight = grades.reduce((sum, g) => sum + (g.collection.weighting || 1), 0) || 1;
+
+  return [...byType.entries()]
+    .map(([type, list]) => ({
+      type,
+      grades: list.sort((a, b) => new Date(b.givenAt) - new Date(a.givenAt)),
+      weightingPct: Math.round(
+        (list.reduce((sum, g) => sum + (g.collection.weighting || 1), 0) / totalWeight) * 100
+      ),
+      average: mean(list),
+    }))
+    .sort((a, b) => b.weightingPct - a.weightingPct);
 }
 
-function weightingPercent(grades) {
-  const total = grades.reduce((sum, g) => sum + (g.collection.weighting || 1), 0) || 1;
-  const primary = grades.filter((g) => isPrimaryType(g.collection.type)).reduce((sum, g) => sum + (g.collection.weighting || 1), 0);
-  const pct = Math.round((primary / total) * 100);
-  return { primaryPct: pct, secondaryPct: 100 - pct };
+function mean(grades) {
+  const values = grades.map((g) => g.numeric).filter((n) => n !== null);
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-function describeFormula(average, primaryGrades, secondaryGrades, weighting) {
-  if (average.source === "api_value") return "Wert von der Schule berechnet und direkt übernommen.";
+function formatNumber(value) {
+  return value === null ? "–" : value.toLocaleString("de-DE", { maximumFractionDigits: 2 });
+}
+
+function describeFormula(average, groups, scale) {
+  if (average.source === "unavailable") return "Noch keine Noten in diesem Halbjahr.";
+  if (average.source === "api_value") return "Von der Schule berechnet und direkt übernommen.";
   if (average.source === "api_formula") return `Formel der Schule: ${average.formula}`;
-  if (average.source === "unavailable") return "Noch keine Noten vorhanden.";
 
-  const avg = (list) => {
-    const nums = list.map((g) => g.numeric).filter((n) => n !== null);
-    if (!nums.length) return null;
-    return nums.reduce((a, b) => a + b, 0) / nums.length;
-  };
-  const primaryAvg = avg(primaryGrades);
-  const secondaryAvg = avg(secondaryGrades);
-  const fmt = (n) => (n === null ? "–" : n.toLocaleString("de-DE", { maximumFractionDigits: 2 }));
-
-  return `Ø Arbeiten ${fmt(primaryAvg)} · Ø Sonstige ${fmt(secondaryAvg)}, ${weighting.primaryPct} % / ${weighting.secondaryPct} % → ${fmt(average.value)} (geschätzt).`;
+  const unit = scale === "points_0_15" ? " P" : "";
+  const parts = groups.map((g) => `Ø ${g.type} ${formatNumber(g.average)}${unit} (${g.weightingPct} %)`);
+  return `${parts.join(" · ")} → ${formatNumber(average.value)}${unit}. Eigene Hochrechnung, keine offizielle Note.`;
 }
 
 /**
@@ -44,50 +57,40 @@ function describeFormula(average, primaryGrades, secondaryGrades, weighting) {
 export async function getFachDetailData(studentId, subjectId, options) {
   const { yearId, intervalId, scale } = options;
 
-  // Fetch the student's full grade list (shared cache with noten.js — same
-  // key) and filter to this subject client-side, rather than trusting an
-  // unverified `filter[subject]` on /api/grades (only the include allowlist
-  // has been confirmed against the live API so far, see js/api/mappers.js).
-  const [allGrades, finalgradeSummaries] = await Promise.all([
+  // Shares the cache key with the Noten screen, so opening a subject costs
+  // no extra request.
+  const [allGrades, finalgrades] = await Promise.all([
     fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
   ]);
 
   const grades = allGrades.filter((g) => g.subjectId === subjectId);
-  const finalgrade = finalgradeSummaries.find(
-    (fg) =>
-      (fg.subject_id ?? fg.subjectId) === subjectId &&
-      (!intervalId || fg.interval_id === intervalId || fg.intervalId === intervalId)
-  );
-  const detail = finalgrade ? await fetchFinalgradeDetail(finalgrade.id) : null;
+  const finalgrade =
+    finalgrades.find(
+      (fg) => fg.subject_id === subjectId && (!intervalId || fg.interval_id === intervalId)
+    ) ?? null;
 
-  const average = subjectAverage(grades, detail, scale);
-
-  const primaryGrades = grades.filter((g) => isPrimaryType(g.collection.type));
-  const secondaryGrades = grades.filter((g) => !isPrimaryType(g.collection.type));
-  const weighting = weightingPercent(grades);
+  const average = subjectAverage(grades, finalgrade, scale);
+  const groups = groupByType(grades);
 
   const chronological = [...grades]
     .filter((g) => g.numeric !== null)
     .sort((a, b) => new Date(a.givenAt) - new Date(b.givenAt));
 
-  const trendPoints =
-    chronological.length > 1
-      ? toTrendPoints(
-          chronological.map((g) => g.numeric),
-          { width: 260, height: 60, betterIsHigher: scale === "points_0_15" }
-        )
-      : null;
-
   return {
     scale,
     average,
-    primaryGroupLabel: scale === "points_0_15" ? "Klausur" : "Klassenarbeiten",
-    primaryGrades,
-    secondaryGrades,
-    weighting,
-    trendPoints,
+    groups,
+    weightingSummary: groups.map((g) => `${g.type} ${g.weightingPct} %`).join(" · "),
+    trendPoints:
+      chronological.length > 1
+        ? toTrendPoints(
+            chronological.map((g) => g.numeric),
+            { width: 260, height: 60, betterIsHigher: scale === "points_0_15" }
+          )
+        : null,
     trendValues: chronological.map((g) => g.numeric),
-    formulaText: describeFormula(average, primaryGrades, secondaryGrades, weighting),
+    teacher: finalgrade?.teacher ? [finalgrade.teacher.forename, finalgrade.teacher.name].filter(Boolean).join(" ") : undefined,
+    formulaText: describeFormula(average, groups, scale),
   };
 }

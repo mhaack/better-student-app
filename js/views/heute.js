@@ -53,28 +53,37 @@ function newGradeSection(grade) {
       <div class="card-row" style="min-height:48px">
         <div>
           <div style="font-size:16px;color:var(--text-primary);font-weight:500">${escapeHtml(grade.subjectName ?? "")}</div>
-          <div style="font-size:13px;color:var(--text-muted)">${escapeHtml(grade.collection?.type ?? "")}</div>
+          <div style="font-size:13px;color:var(--text-muted)">${escapeHtml(grade.collection?.name || grade.collection?.type || "")}</div>
         </div>
         <span class="grade-capsule grade-capsule--new">${escapeHtml(grade.raw)}</span>
       </div>
     </div>`;
 }
 
-function homeworkSection(items) {
+/**
+ * Klassenbuch entries due in the next two weeks. The design called this
+ * "Hausaufgaben", but the API models homework, announced tests and lesson
+ * topics as one note type per school — so the heading stays generic and each
+ * row names its own type ("Leistungskontrolle", "Hausaufgabe", …).
+ */
+function notesSection(items) {
   if (items.length === 0) return "";
   const rows = items
     .map(
-      (h) => `
+      (n) => `
       <div class="hw-row">
         <button class="hw-check" aria-checked="false" aria-label="Erledigt"></button>
-        <div class="hw-text">${escapeHtml(h.subject)} · ${escapeHtml(h.text)}</div>
-        <span class="hw-due">bis ${escapeHtml(weekdayOrDate(h.due))}</span>
+        <div class="hw-text">
+          <div>${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
+          ${n.typeName ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(n.typeName)}</div>` : ""}
+        </div>
+        <span class="hw-due">${escapeHtml(weekdayOrDate(n.date))}</span>
       </div>`
     )
     .join("");
   return `
     <div class="section">
-      <div class="eyebrow">Hausaufgaben</div>
+      <div class="eyebrow">Anstehend</div>
       ${rows}
     </div>`;
 }
@@ -98,8 +107,8 @@ export async function renderHeute(container) {
     const { scale } = await ensureContext();
     const data = await getHeuteData(studentId, scale);
 
-    const groupName = student?.groups?.[0]?.name ?? "";
-    container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${groupName ? " · " + groupName : ""}`;
+    const klasse = student?.className ?? "";
+    container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? " · " + klasse : ""}`;
 
     const body = container.querySelector("#heute-body");
     body.innerHTML = `
@@ -111,7 +120,7 @@ export async function renderHeute(container) {
         </div>
       </div>
       ${newGradeSection(data.newestGrade)}
-      ${homeworkSection(data.homework)}
+      ${notesSection(data.notes)}
     `;
     bindHomeworkCheckboxes(container);
   } catch (err) {

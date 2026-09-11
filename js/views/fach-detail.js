@@ -1,24 +1,35 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getFachDetailData } from "../data/fach-detail.js";
-import { fetchSubjects } from "../data/repository.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, weekdayOrDate } from "../util/format.js";
 import { renderSkeleton, renderErrorState } from "../components/states.js";
 
-function gradeEntryRow(grade, showDate) {
+function gradeEntryRow(grade) {
+  const title = grade.collection.name || grade.collection.type;
   return `
     <div class="grade-entry-row">
       <div>
-        <div style="font-size:16px;color:var(--text-primary)">${escapeHtml(grade.collection.name || grade.collection.type)}</div>
-        ${showDate ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(weekdayOrDate(grade.givenAt))}</div>` : ""}
+        <div style="font-size:16px;color:var(--text-primary)">${escapeHtml(title)}</div>
+        ${grade.givenAt ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(weekdayOrDate(grade.givenAt))}</div>` : ""}
       </div>
       <span class="grade-capsule">${escapeHtml(grade.raw)}</span>
     </div>`;
 }
 
-function trendChart(values, trendPoints, scale) {
+function gradeGroup(group) {
+  return `
+    <div class="grade-group">
+      <div class="grade-group-header">
+        <span class="eyebrow">${escapeHtml(group.type)}</span>
+        <span style="font-size:12px;color:var(--text-secondary)">${group.weightingPct} %</span>
+      </div>
+      ${group.grades.map(gradeEntryRow).join("")}
+    </div>`;
+}
+
+function trendChart(trendPoints, scale) {
   if (!trendPoints) return "";
   const [top, bottom] = scale === "points_0_15" ? ["15", "0"] : ["1", "6"];
   const betterLabel = scale === "points_0_15" ? "oben = besser (15 P)" : "oben = besser (1)";
@@ -53,16 +64,18 @@ export async function renderFachDetail(container, { subjectId }) {
     const studentId = getSelectedStudentId();
     const context = await ensureContext();
     const subjectIdNum = Number(subjectId);
+    const course = context.courses.find((c) => c.subjectId === subjectIdNum);
+    const { scale } = context;
 
-    const [subjects, data] = await Promise.all([
-      fetchSubjects(studentId),
-      getFachDetailData(studentId, subjectIdNum, { intervalId: context.interval?.id, scale: context.scale }),
-    ]);
-    const subject = subjects.find((s) => s.id === subjectIdNum);
-    const scale = context.scale;
+    const data = await getFachDetailData(studentId, subjectIdNum, {
+      yearId: context.year?.id,
+      intervalId: context.interval?.id,
+      scale,
+    });
 
+    const isPoints = scale === "points_0_15";
     const noteEquivalent =
-      scale === "points_0_15" && data.average.value !== null
+      isPoints && data.average.value !== null
         ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px">entspricht etwa ${escapeHtml(pointsToGradeLabel(data.average.value))}</div>`
         : "";
 
@@ -70,39 +83,29 @@ export async function renderFachDetail(container, { subjectId }) {
       <div class="subject-header">
         <div>
           ${
-            subject?.courseType
+            isPoints && course?.courseType
               ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                   <span class="badge-lk">${escapeHtml(subject.courseType)}</span>
+                   <span class="badge-lk">${escapeHtml(course.courseType)}</span>
                    <span style="font-size:12px;color:var(--text-muted)">${escapeHtml(context.interval?.name ?? "")}</span>
                  </div>`
               : ""
           }
-          <div class="subject-header-title">${escapeHtml(subject?.name ?? "")}</div>
-          <div class="subject-header-weighting">${escapeHtml(data.primaryGroupLabel)} ${data.weighting.primaryPct} % · Sonstige ${data.weighting.secondaryPct} %</div>
+          <div class="subject-header-title">${escapeHtml(course?.name ?? "")}</div>
+          <div class="subject-header-weighting">${escapeHtml(data.weightingSummary || "Noch keine Gewichtung")}</div>
         </div>
         <div style="text-align:right">
-          <div class="subject-header-value">${formatAverage(data.average.value, scale)}${scale === "points_0_15" ? '<span style="font-size:26px"> P</span>' : ""}</div>
+          <div class="subject-header-value">${formatAverage(data.average.value, scale)}${isPoints && data.average.value !== null ? '<span style="font-size:26px"> P</span>' : ""}</div>
           ${noteEquivalent}
         </div>
       </div>
 
-      ${trendChart(data.trendValues, data.trendPoints, scale)}
+      ${trendChart(data.trendPoints, scale)}
 
-      <div class="grade-group">
-        <div class="grade-group-header">
-          <span class="eyebrow">${escapeHtml(data.primaryGroupLabel)}</span>
-          <span style="font-size:12px;color:var(--text-secondary)">${data.weighting.primaryPct} %</span>
-        </div>
-        ${data.primaryGrades.length ? data.primaryGrades.map((g) => gradeEntryRow(g, true)).join("") : '<div class="subject-empty-note">noch keine Noten</div>'}
-      </div>
-
-      <div class="grade-group">
-        <div class="grade-group-header">
-          <span class="eyebrow">Sonstige Leistungen</span>
-          <span style="font-size:12px;color:var(--text-secondary)">${data.weighting.secondaryPct} %</span>
-        </div>
-        ${data.secondaryGrades.length ? data.secondaryGrades.map((g) => gradeEntryRow(g, false)).join("") : '<div class="subject-empty-note">noch keine Noten</div>'}
-      </div>
+      ${
+        data.groups.length
+          ? data.groups.map(gradeGroup).join("")
+          : '<div class="empty-state">In diesem Halbjahr gibt es noch keine Noten in diesem Fach.</div>'
+      }
 
       <div>
         <button id="formula-toggle" class="formula-toggle" aria-expanded="false">
