@@ -1,25 +1,63 @@
-# CODING AGENTS: READ THIS FIRST
+# Bestere Schule
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+An unofficial, client-only PWA for [beste.schule](https://beste.schule): grades, timetable,
+substitutions and homework in one calm mobile-first view. No backend — the
+browser talks directly to `beste.schule/api` with your own Personal Access
+Token, and nothing is ever sent anywhere else.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Not affiliated with beste.schule.
 
-## What you should do — IMPORTANT
+## Screens
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+- **Heute** — today's lessons merged with substitutions, the newest grade, homework due soon.
+- **Noten** — overall average and per-subject averages, handling both German grading scales:
+  Sek I (Noten 1–6) and Oberstufe (Punkte 0–15, with LK/GK grouping and an Unterkurs count).
+- **Fach-Detail** — a subject's grades by weighting, a trend chart, and an expandable
+  "So wird gerechnet" explanation of the average.
+- **Stundenplan** — the weekly timetable grid.
+- **Mehr** — profile, student switcher (for guardian accounts with multiple children), logout.
 
-**Read `project/Schulblick Layoutrichtungen.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## Stack
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+Plain HTML/CSS/JS, ES modules, no build step, no framework. `public/` is the
+entire deployable app — served as-is by any static host.
 
-## About the design files
+## Running it locally
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+```
+npm run serve
+```
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+Opens a zero-dependency static server at `http://localhost:8080` serving
+`public/`. Log in with a beste.schule Personal Access Token: on beste.schule,
+go to **Benutzerkonto → API → Personal Access Token erstellen**.
 
-## Bundle contents
+## Scripts
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Drei Ansätze für Stundenplan-Interface` project files (HTML prototypes, assets, components)
+| Command | What it does |
+|---|---|
+| `npm run serve` | Serves `public/` locally for development |
+| `npm test` | Runs the grade-parsing/averaging/trend-chart unit tests (`scripts/test-grades.mjs`) |
+| `npm run discover` | Hits every known API route with a token from `.env` (`BESTE_SCHULE_TOKEN`) and saves raw responses to `fixtures/raw/` |
+| `npm run cors-check` | Checks which routes send CORS headers for a foreign origin |
+| `npm run anonymize` | Copies `fixtures/raw/` → `fixtures/` with names and free text replaced by fakes, safe to commit |
+
+## Deployment
+
+Deploys as a static site to [Cloudflare Pages](https://pages.cloudflare.com/)
+(build output directory: `public/`). `public/_headers` sets a strict
+Content-Security-Policy — `connect-src` only allows `beste.schule`, so an XSS
+bug can't exfiltrate a token or grades anywhere else.
+
+## Docs
+
+- [`docs/plan.md`](docs/plan.md) — architecture, data model, and the phased
+  build plan this project follows.
+- [`docs/api-notes.md`](docs/api-notes.md) — verified notes on the beste.schule
+  API (routes, filters, includes, quirks), recorded against the live API.
+
+## Privacy
+
+Grades and the access token live only in your browser (memory, session/local
+storage, and an in-memory request cache) — never on a server, since there is
+no server. No analytics, no third-party scripts.
