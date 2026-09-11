@@ -17,7 +17,14 @@ body {
 #app {
   width: 100%;
   max-width: 480px;
-  min-height: 100vh;
+  /* A real height cap (not min-height) is what makes the nav stay put: it
+     lets #view-container's min-height:0 shrink .view below its content size,
+     so .view's own overflow-y:auto becomes the only scrolling region and the
+     nav — sitting after it in the flex column — never leaves the viewport.
+     dvh accounts for mobile browser chrome; vh is the fallback for browsers
+     without dvh support. */
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -468,8 +475,7 @@ button {
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 6px 8px calc(20px + env(safe-area-inset-bottom, 0px));
-  position: sticky;
-  bottom: 0;
+  flex: none;
 }
 
 .nav-item {
