@@ -474,7 +474,10 @@ button {
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding: 6px 8px calc(20px + env(safe-area-inset-bottom, 0px));
+  /* Bottom padding is just enough to clear the iPhone home-indicator via
+     safe-area-inset-bottom; on devices without one this is a slim 8px, not
+     the old fixed 20px that made the bar tall even where no inset applies. */
+  padding: 4px 8px calc(8px + env(safe-area-inset-bottom, 0px));
   flex: none;
 }
 
