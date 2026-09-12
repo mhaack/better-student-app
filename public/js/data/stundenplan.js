@@ -12,13 +12,25 @@ function mondayOf(date) {
 }
 
 /**
+ * Calendar-based day addition (via setDate, not raw millisecond math) so
+ * this stays correct across a DST transition — Germany's clocks moving back
+ * an hour means a given day can be 23 or 25 hours long, which
+ * `date.getTime() + n * 86_400_000` doesn't account for.
+ */
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+/**
  * Always Mo-Fr — this week while today is a school day, next week once the
  * weekend starts, so the grid never shows a week that's already over.
  */
 export function resolveWeekStart(today) {
   const monday = mondayOf(today);
   const weekday = apiWeekday(today);
-  return weekday >= 6 ? new Date(monday.getTime() + 7 * 86_400_000) : monday;
+  return weekday >= 6 ? addDays(monday, 7) : monday;
 }
 
 const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });
@@ -28,11 +40,15 @@ const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", mont
  * occurs on any of the five days, each cell either a lesson (with status) or
  * empty. Weeks are fetched as a whole because a single substitution-plan
  * call for the range is cheaper than five separate day calls.
+ *
+ * `weekOffset` moves forward in whole weeks from `resolveWeekStart`'s
+ * default (this week, or next week once it's the weekend) — the caller is
+ * responsible for clamping it to the navigable range.
  */
-export async function getStundenplanData() {
+export async function getStundenplanData(weekOffset = 0) {
   const today = new Date();
-  const weekStart = resolveWeekStart(today);
-  const dates = Array.from({ length: 5 }, (_, i) => new Date(weekStart.getTime() + i * 86_400_000));
+  const weekStart = addDays(resolveWeekStart(today), weekOffset * 7);
+  const dates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i));
 
   const fromIso = isoDate(dates[0]);
   const toIso = isoDate(dates[4]);
@@ -60,10 +76,16 @@ export async function getStundenplanData() {
 
   const changeCount = days.reduce((sum, d) => sum + d.lessons.filter((l) => l.status !== "regular").length, 0);
 
+  // How many whole weeks the shown week is ahead of the actual current
+  // calendar week — 0 even when resolveWeekStart already auto-jumped to next
+  // week over the weekend, so the view can phrase both that and manual
+  // forward navigation the same way.
+  const weeksFromNow = Math.round((weekStart.getTime() - mondayOf(today).getTime()) / (7 * 86_400_000));
+
   return {
     days,
     grid,
     changeCount,
-    isNextWeek: weekStart.getTime() !== mondayOf(today).getTime(),
+    weeksFromNow,
   };
 }
