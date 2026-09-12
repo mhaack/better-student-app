@@ -2,8 +2,15 @@ import { getStudents, getSelectedStudentId, setSelectedStudentId, clearSession }
 import { resetContext } from "../state/session.js";
 import { clearCache } from "../data/cache.js";
 import { fetchSchool } from "../data/repository.js";
+import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
+
+const THEME_OPTIONS = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Hell" },
+  { value: "dark", label: "Dunkel" },
+];
 
 export async function renderMehr(container) {
   const students = getStudents();
@@ -39,14 +46,26 @@ export async function renderMehr(container) {
           : ""
       }
       ${switcher}
+      <div class="section">
+        <div class="eyebrow">Darstellung</div>
+        <select id="theme-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
+          ${THEME_OPTIONS.map(
+            (o) => `<option value="${o.value}" ${o.value === getThemePreference() ? "selected" : ""}>${o.label}</option>`
+          ).join("")}
+        </select>
+      </div>
       <div class="empty-state" style="padding-top:24px">
-        Hausaufgabenübersicht, Fehlzeiten, Mitteilungen und Einstellungen kommen in einer späteren Version.
+        Hausaufgabenübersicht, Fehlzeiten und Mitteilungen kommen in einer späteren Version.
       </div>
       <button id="logout-button" class="button-primary" style="background:transparent;color:var(--accent);border:1px solid var(--accent-border)">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
         Bestere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>`;
+
+  container.querySelector("#theme-picker").addEventListener("change", (e) => {
+    setThemePreference(e.target.value);
+  });
 
   container.querySelector("#student-switcher")?.addEventListener("change", (e) => {
     setSelectedStudentId(Number(e.target.value));

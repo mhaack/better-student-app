@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bestere Schule</title>
 <meta name="description" content="Inoffizielle Bestere-Schule-App für beste.schule: Noten, Stundenplan, Vertretungen und Hausaufgaben.">
-<meta name="theme-color" content="#F6F3EE">
+<meta name="theme-color" id="theme-color-meta" content="#F6F3EE">
+<!-- Sets [data-theme] and the meta tag above before first paint, so a saved
+     dark-mode preference never flashes light first. Must stay a render-blocking
+     classic script (no type="module"/defer/async) and must come after the
+     meta tag above (see public/theme-init.js). -->
+<script src="/theme-init.js"></script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
