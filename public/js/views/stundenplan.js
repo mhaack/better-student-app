@@ -152,8 +152,15 @@ export async function renderStundenplan(container) {
 async function loadAndRender(container, studentId, student, weekOffset) {
   const body = container.querySelector("#sp-body");
   body.innerHTML = renderSkeleton(6);
-  container.querySelector("#sp-prev").disabled = weekOffset === 0;
-  container.querySelector("#sp-next").disabled = weekOffset === MAX_WEEK_OFFSET;
+
+  const prevBtn = container.querySelector("#sp-prev");
+  const nextBtn = container.querySelector("#sp-next");
+  // visibility (not display) so the subtitle doesn't shift when an arrow
+  // disappears at either end of the navigable range.
+  prevBtn.disabled = weekOffset === 0;
+  prevBtn.style.visibility = weekOffset === 0 ? "hidden" : "visible";
+  nextBtn.disabled = weekOffset === MAX_WEEK_OFFSET;
+  nextBtn.style.visibility = weekOffset === MAX_WEEK_OFFSET ? "hidden" : "visible";
 
   try {
     const data = await getStundenplanData(weekOffset);

@@ -612,11 +612,6 @@ button {
   color: var(--text-secondary);
 }
 
-.sp-week-nav-btn[disabled] {
-  color: var(--text-disabled);
-  cursor: default;
-}
-
 /* Stundenplan 5-day grid */
 .sp-grid {
   display: flex;
@@ -626,7 +621,7 @@ button {
 
 .sp-grid-row {
   display: grid;
-  grid-template-columns: 22px repeat(5, 1fr);
+  grid-template-columns: 16px repeat(5, 1fr);
   gap: 4px;
   align-items: stretch;
 }
