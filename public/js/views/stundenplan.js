@@ -73,20 +73,90 @@ function gridRow(row) {
   return `<div class="sp-grid-row"><div class="sp-period">${row.period}</div>${cells}</div>`;
 }
 
+// Swipe forward up to 3 weeks past the default (today's/next week) — 4
+// navigable weeks in total.
+const MAX_WEEK_OFFSET = 3;
+const SWIPE_THRESHOLD_PX = 50;
+
+function weekLabelFor(weeksFromNow) {
+  if (weeksFromNow === 0) return "in dieser Woche";
+  if (weeksFromNow === 1) return "in der kommenden Woche";
+  return `in ${weeksFromNow} Wochen`;
+}
+
 export async function renderStundenplan(container) {
   container.innerHTML = `
     <div class="view">
       <div>
         <h1 class="view-title">Stundenplan</h1>
-        <div class="view-subtitle" id="sp-subtitle">…</div>
+        <div class="sp-week-nav">
+          <button type="button" class="sp-week-nav-btn" id="sp-prev" aria-label="Vorherige Woche">‹</button>
+          <div class="view-subtitle" id="sp-subtitle">…</div>
+          <button type="button" class="sp-week-nav-btn" id="sp-next" aria-label="Nächste Woche">›</button>
+        </div>
       </div>
       <div id="sp-body" class="view-body">${renderSkeleton(6)}</div>
     </div>`;
 
+  const studentId = getSelectedStudentId();
+  const student = getStudents().find((s) => s.id === studentId);
+
+  // Resets to 0 on every fresh mount — the screen always opens on the
+  // current week, never a previous session's navigation.
+  let weekOffset = 0;
+
+  const prevBtn = container.querySelector("#sp-prev");
+  const nextBtn = container.querySelector("#sp-next");
+
+  function goToWeek(offset) {
+    const clamped = Math.max(0, Math.min(MAX_WEEK_OFFSET, offset));
+    if (clamped === weekOffset) return;
+    weekOffset = clamped;
+    loadAndRender(container, studentId, student, weekOffset);
+  }
+
+  prevBtn.addEventListener("click", () => goToWeek(weekOffset - 1));
+  nextBtn.addEventListener("click", () => goToWeek(weekOffset + 1));
+
+  // Swipe left → next week, swipe right → previous week. Listeners are
+  // attached once to the body node, which survives across re-renders
+  // (only its innerHTML is replaced), so this doesn't need to be redone
+  // per load.
+  const body = container.querySelector("#sp-body");
+  let touchStartX = null;
+  let touchStartY = null;
+  body.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    },
+    { passive: true }
+  );
+  body.addEventListener(
+    "touchend",
+    (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      touchStartX = null;
+      if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy)) return;
+      goToWeek(dx < 0 ? weekOffset + 1 : weekOffset - 1);
+    },
+    { passive: true }
+  );
+
+  await loadAndRender(container, studentId, student, weekOffset);
+}
+
+async function loadAndRender(container, studentId, student, weekOffset) {
+  const body = container.querySelector("#sp-body");
+  body.innerHTML = renderSkeleton(6);
+  container.querySelector("#sp-prev").disabled = weekOffset === 0;
+  container.querySelector("#sp-next").disabled = weekOffset === MAX_WEEK_OFFSET;
+
   try {
-    const studentId = getSelectedStudentId();
-    const student = getStudents().find((s) => s.id === studentId);
-    const data = await getStundenplanData();
+    const data = await getStundenplanData(weekOffset);
 
     const first = data.days[0];
     const last = data.days[data.days.length - 1];
@@ -94,13 +164,13 @@ export async function renderStundenplan(container) {
     container.querySelector("#sp-subtitle").textContent =
       `${first.label} ${first.dateLabel} – ${last.label} ${last.dateLabel}${klasse}`;
 
-    const weekLabel = data.isNextWeek ? "in der kommenden Woche" : "in dieser Woche";
+    const weekLabel = weekLabelFor(data.weeksFromNow);
     const changesLine =
       data.changeCount > 0
         ? `<span style="color:var(--accent);font-weight:600">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span> · ${weekLabel}`
         : `Keine Änderungen ${weekLabel}`;
 
-    container.querySelector("#sp-body").innerHTML = `
+    body.innerHTML = `
       <div class="sp-grid">
         ${headerRow(data.days)}
         ${data.grid.map(gridRow).join("")}
@@ -108,7 +178,7 @@ export async function renderStundenplan(container) {
       <div style="font-size:12px;color:var(--text-muted)">${changesLine}</div>
     `;
   } catch (err) {
-    container.querySelector("#sp-body").innerHTML = renderErrorState(escapeHtml(err.message));
+    body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);
   }
 }

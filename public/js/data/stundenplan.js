@@ -28,10 +28,14 @@ const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", mont
  * occurs on any of the five days, each cell either a lesson (with status) or
  * empty. Weeks are fetched as a whole because a single substitution-plan
  * call for the range is cheaper than five separate day calls.
+ *
+ * `weekOffset` moves forward in whole weeks from `resolveWeekStart`'s
+ * default (this week, or next week once it's the weekend) — the caller is
+ * responsible for clamping it to the navigable range.
  */
-export async function getStundenplanData() {
+export async function getStundenplanData(weekOffset = 0) {
   const today = new Date();
-  const weekStart = resolveWeekStart(today);
+  const weekStart = new Date(resolveWeekStart(today).getTime() + weekOffset * 7 * 86_400_000);
   const dates = Array.from({ length: 5 }, (_, i) => new Date(weekStart.getTime() + i * 86_400_000));
 
   const fromIso = isoDate(dates[0]);
@@ -60,10 +64,16 @@ export async function getStundenplanData() {
 
   const changeCount = days.reduce((sum, d) => sum + d.lessons.filter((l) => l.status !== "regular").length, 0);
 
+  // How many whole weeks the shown week is ahead of the actual current
+  // calendar week — 0 even when resolveWeekStart already auto-jumped to next
+  // week over the weekend, so the view can phrase both that and manual
+  // forward navigation the same way.
+  const weeksFromNow = Math.round((weekStart.getTime() - mondayOf(today).getTime()) / (7 * 86_400_000));
+
   return {
     days,
     grid,
     changeCount,
-    isNextWeek: weekStart.getTime() !== mondayOf(today).getTime(),
+    weeksFromNow,
   };
 }

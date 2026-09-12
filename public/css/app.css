@@ -595,6 +595,28 @@ button {
   .view { padding-left: 16px; padding-right: 16px; }
 }
 
+/* Stundenplan week navigation — arrow buttons for desktop/a11y, flanking
+   the date-range subtitle that swipe (touchstart/touchend on #sp-body,
+   see views/stundenplan.js) also drives. */
+.sp-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sp-week-nav-btn {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  margin: 0 -10px;
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.sp-week-nav-btn[disabled] {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
 /* Stundenplan 5-day grid */
 .sp-grid {
   display: flex;
