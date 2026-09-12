@@ -657,7 +657,12 @@ button {
   justify-content: center;
 }
 
+/* Changed cells render as a <button> (tap opens the detail sheet); regular
+   cells stay a plain <div>. text-align:left overrides the button UA default
+   so a <button>.sp-cell looks identical to a <div>.sp-cell. */
 .sp-cell {
+  display: block;
+  text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -704,4 +709,72 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Stundenplan lesson-detail sheet, opened by tapping a changed cell. */
+.sp-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sp-detail-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 20px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.sp-detail-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  margin: 2px 0 0;
+  color: var(--text-primary);
+}
+
+.sp-detail-close {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  margin: -10px -10px 0 0;
+  font-size: 16px;
+  color: var(--text-secondary);
+  flex: none;
+}
+
+.sp-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--text-primary);
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sp-detail-label {
+  color: var(--text-muted);
+}
+
+.sp-detail-note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-top: 10px;
 }
