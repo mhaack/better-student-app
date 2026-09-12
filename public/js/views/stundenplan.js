@@ -141,7 +141,7 @@ function openLessonDetail(container, day, lesson) {
       <div class="sp-detail-header">
         <div>
           <div class="eyebrow" style="color:var(--accent)">${escapeHtml(eyebrow)}</div>
-          <h2 id="sp-detail-title" class="sp-detail-title">${escapeHtml(lesson.subject ?? lesson.subjectShort ?? "")}</h2>
+          <h2 id="sp-detail-title" class="sp-detail-title" style="${lesson.status === "cancelled" ? "text-decoration:line-through" : ""}">${escapeHtml(lesson.subject ?? lesson.subjectShort ?? "")}</h2>
           <div class="view-subtitle">${escapeHtml(day.label)}, ${escapeHtml(day.dateLabel)} · ${lesson.period}. Stunde</div>
         </div>
         <button type="button" class="sp-detail-close" aria-label="Schließen">✕</button>
