@@ -12,13 +12,25 @@ function mondayOf(date) {
 }
 
 /**
+ * Calendar-based day addition (via setDate, not raw millisecond math) so
+ * this stays correct across a DST transition — Germany's clocks moving back
+ * an hour means a given day can be 23 or 25 hours long, which
+ * `date.getTime() + n * 86_400_000` doesn't account for.
+ */
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+/**
  * Always Mo-Fr — this week while today is a school day, next week once the
  * weekend starts, so the grid never shows a week that's already over.
  */
 export function resolveWeekStart(today) {
   const monday = mondayOf(today);
   const weekday = apiWeekday(today);
-  return weekday >= 6 ? new Date(monday.getTime() + 7 * 86_400_000) : monday;
+  return weekday >= 6 ? addDays(monday, 7) : monday;
 }
 
 const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });
@@ -35,8 +47,8 @@ const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", mont
  */
 export async function getStundenplanData(weekOffset = 0) {
   const today = new Date();
-  const weekStart = new Date(resolveWeekStart(today).getTime() + weekOffset * 7 * 86_400_000);
-  const dates = Array.from({ length: 5 }, (_, i) => new Date(weekStart.getTime() + i * 86_400_000));
+  const weekStart = addDays(resolveWeekStart(today), weekOffset * 7);
+  const dates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i));
 
   const fromIso = isoDate(dates[0]);
   const toIso = isoDate(dates[4]);

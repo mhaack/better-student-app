@@ -118,10 +118,7 @@ function gridRow(row) {
 }
 
 function closeLessonDetail(container) {
-  // Goes through the sheet's own close() (stashed on the element) rather
-  // than just removing it, so the document-level Escape listener it
-  // registered always gets torn down too.
-  container.querySelector("#sp-detail-backdrop")?._close();
+  container.querySelector("#sp-detail-backdrop")?.remove();
 }
 
 function openLessonDetail(container, day, lesson) {
@@ -156,19 +153,28 @@ function openLessonDetail(container, day, lesson) {
     </div>`;
   container.appendChild(backdrop);
 
-  function close() {
-    backdrop.remove();
-    document.removeEventListener("keydown", onKeydown);
-  }
   function onKeydown(e) {
-    if (e.key === "Escape") close();
+    if (e.key === "Escape") backdrop.remove();
   }
-  backdrop._close = close;
-  backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) close();
-  });
-  backdrop.querySelector(".sp-detail-close").addEventListener("click", close);
   document.addEventListener("keydown", onKeydown);
+
+  // Tears the Escape listener down whenever the backdrop leaves the DOM —
+  // via its own close button/backdrop click/Escape, or via closeLessonDetail
+  // navigating weeks, or (the leak this fixes) the whole view being
+  // replaced by a route change, which resets #view-container's innerHTML
+  // without ever calling any of the above. Covering every removal path
+  // through one observer is simpler than threading cleanup through each.
+  const observer = new MutationObserver(() => {
+    if (backdrop.isConnected) return;
+    document.removeEventListener("keydown", onKeydown);
+    observer.disconnect();
+  });
+  observer.observe(container, { childList: true });
+
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) backdrop.remove();
+  });
+  backdrop.querySelector(".sp-detail-close").addEventListener("click", () => backdrop.remove());
 }
 
 // Swipe forward up to 3 weeks past the default (today's/next week) — 4
@@ -206,6 +212,10 @@ export async function renderStundenplan(container) {
   // delegate below can look up a cell's full lesson data without stuffing
   // it into data attributes.
   let currentDays = [];
+  // Bumped on every load; loadAndRender drops its result if a newer one has
+  // since started, so a slow response to an earlier week can't overwrite a
+  // faster one to a later week that was requested after it.
+  const loadState = { seq: 0 };
 
   const prevBtn = container.querySelector("#sp-prev");
   const nextBtn = container.querySelector("#sp-next");
@@ -215,8 +225,8 @@ export async function renderStundenplan(container) {
     if (clamped === weekOffset) return;
     weekOffset = clamped;
     closeLessonDetail(container);
-    loadAndRender(container, studentId, student, weekOffset).then((days) => {
-      currentDays = days;
+    loadAndRender(container, studentId, student, weekOffset, loadState).then((days) => {
+      if (days) currentDays = days;
     });
   }
 
@@ -261,10 +271,17 @@ export async function renderStundenplan(container) {
     if (day && lesson) openLessonDetail(container, day, lesson);
   });
 
-  currentDays = await loadAndRender(container, studentId, student, weekOffset);
+  currentDays = (await loadAndRender(container, studentId, student, weekOffset, loadState)) ?? [];
 }
 
-async function loadAndRender(container, studentId, student, weekOffset) {
+/**
+ * Returns the loaded days, or null if a newer call (a later week request)
+ * started before this one's fetch resolved — the caller should then leave
+ * whatever that newer call already rendered alone instead of overwriting it
+ * with this stale result.
+ */
+async function loadAndRender(container, studentId, student, weekOffset, loadState) {
+  const seq = ++loadState.seq;
   const body = container.querySelector("#sp-body");
   body.innerHTML = renderSkeleton(6);
 
@@ -279,6 +296,7 @@ async function loadAndRender(container, studentId, student, weekOffset) {
 
   try {
     const data = await getStundenplanData(weekOffset);
+    if (loadState.seq !== seq) return null;
 
     const first = data.days[0];
     const last = data.days[data.days.length - 1];
@@ -301,6 +319,7 @@ async function loadAndRender(container, studentId, student, weekOffset) {
     `;
     return data.days;
   } catch (err) {
+    if (loadState.seq !== seq) return null;
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);
     return [];
