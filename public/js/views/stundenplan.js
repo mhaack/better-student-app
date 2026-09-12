@@ -41,43 +41,48 @@ function cellContent(lesson, dayIndex) {
 
   let classes = "sp-cell";
   let title;
-  let meta;
   let titleStyle = "";
+  // Room and teacher get their own line each; only their content changes
+  // per status (a substitution shows the teacher swap instead of the plain
+  // current teacher, cancelled has no room to anchor a teacher line to).
+  let roomLine = lesson.room ?? "";
+  let teacherLine = lesson.teacherShort ?? "";
 
   if (lesson.status === "cancelled") {
     classes += " sp-cell--cancelled";
     titleStyle = "text-decoration:line-through";
     title = lesson.subjectShort ?? "";
-    meta = "entfällt";
+    roomLine = "entfällt";
+    teacherLine = "";
   } else if (lesson.status === "room_change") {
     classes += " sp-cell--changed";
     title = `→ ${lesson.subjectShort ?? ""}`;
-    meta = lesson.room ?? "";
   } else if (lesson.status === "substitution") {
     classes += " sp-cell--changed";
     title = `± ${lesson.subjectShort ?? ""}`;
-    // The teacher swap is the point of this cell; fall back to the room if
-    // either side's short code is missing.
-    meta =
+    // The teacher swap is the point of this cell; fall back to the plain
+    // current short code if either side's is missing.
+    teacherLine =
       lesson.previousTeacherShort && lesson.teacherShort
         ? `${lesson.previousTeacherShort} → ${lesson.teacherShort}`
-        : lesson.room ?? "";
+        : lesson.teacherShort ?? "";
   } else if (lesson.status === "changed") {
     // The school published an amended plan for this period, but neither the
     // room nor the teacher on record actually differs (usually a note like
     // "Aufgaben von Frau X im Raum bearbeiten") — flag it without claiming
-    // a specific substitution or room change that didn't happen.
+    // a specific substitution or room change that didn't happen. The note,
+    // when there is one, is more useful here than the unchanged room.
     classes += " sp-cell--changed";
     title = lesson.subjectShort ?? "";
-    meta = lesson.notes?.[0] ?? lesson.room ?? "";
+    if (lesson.notes?.[0]) roomLine = lesson.notes[0];
   } else {
     title = lesson.subjectShort ?? "";
-    meta = lesson.room ?? "";
   }
 
   const inner = `
     <div class="sp-cell-title" style="${titleStyle}">${escapeHtml(title)}</div>
-    <div class="sp-cell-meta">${escapeHtml(meta)}</div>`;
+    <div class="sp-cell-meta">${escapeHtml(roomLine)}</div>
+    ${teacherLine ? `<div class="sp-cell-meta">${escapeHtml(teacherLine)}</div>` : ""}`;
 
   if (lesson.status === "regular") {
     return `<div class="${classes}">${inner}</div>`;
