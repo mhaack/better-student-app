@@ -3,7 +3,7 @@
   // talks to beste.schule/api directly (see docs/plan.md §4). Cloudflare's
   // build runs `wrangler versions upload`, which needs this file to know
   // what to deploy.
-  "name": "bestere-schule",
+  "name": "bessere-schule",
   "compatibility_date": "2026-09-12",
   "assets": {
     "directory": "./public"

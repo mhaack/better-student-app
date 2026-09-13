@@ -1,4 +1,4 @@
-# Bestere Schule
+# Bessere Schule
 
 An unofficial, client-only PWA for [beste.schule](https://beste.schule): grades, timetable,
 substitutions and homework in one calm mobile-first view. No backend — the
