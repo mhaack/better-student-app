@@ -89,12 +89,17 @@ function cellContent(lesson, dayIndex) {
   }
 
   // Only changed periods open the detail sheet — a regular lesson has
-  // nothing more to say than what's already in the cell.
+  // nothing more to say than what's already in the cell. A <div
+  // role="button"> instead of a real <button>: WebKit gives every <button>
+  // an internal shadow-DOM content wrapper with its own vertical centering
+  // that `appearance: none` cannot reach, which pulled a cancelled cell's
+  // 2-line content down to the middle of its (taller) grid row on real
+  // Safari. A plain div has no such wrapper.
   const label = `${lesson.subject ?? lesson.subjectShort ?? ""}, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
   return `
-    <button type="button" class="${classes}" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
+    <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
       ${inner}
-    </button>`;
+    </div>`;
 }
 
 function headerRow(days) {
@@ -263,12 +268,23 @@ export async function renderStundenplan(container) {
 
   // One delegated listener survives every #sp-body re-render, same as the
   // swipe listeners above.
-  body.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-period]");
-    if (!btn) return;
-    const day = currentDays[Number(btn.dataset.dayIndex)];
-    const lesson = day?.lessons.find((l) => l.period === Number(btn.dataset.period));
+  function openCellDetail(cellEl) {
+    const day = currentDays[Number(cellEl.dataset.dayIndex)];
+    const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
     if (day && lesson) openLessonDetail(container, day, lesson);
+  }
+  body.addEventListener("click", (e) => {
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (cell) openCellDetail(cell);
+  });
+  // The cells are <div role="button">, not real <button>s (see cellContent's
+  // comment), so Enter/Space activation needs to be wired up by hand.
+  body.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (!cell) return;
+    e.preventDefault();
+    openCellDetail(cell);
   });
 
   currentDays = (await loadAndRender(container, studentId, student, weekOffset, loadState)) ?? [];
