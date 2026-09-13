@@ -43,11 +43,7 @@ button {
   border: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* Without this, mobile Safari keeps its native control rendering, which
-     vertically centers a button's content -- invisible for a single-line
-     button, but it pulls a short multi-line one (e.g. a cancelled
-     Stundenplan cell, which has one line less than its siblings) away from
-     the top alignment every other cell in the row has. */
+  /* Strips native control chrome/appearance (Safari especially). */
   appearance: none;
   -webkit-appearance: none;
 }

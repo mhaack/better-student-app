@@ -88,13 +88,9 @@ function cellContent(lesson, dayIndex) {
     return `<div class="${classes}">${inner}</div>`;
   }
 
-  // Only changed periods open the detail sheet — a regular lesson has
-  // nothing more to say than what's already in the cell. A <div
-  // role="button"> instead of a real <button>: WebKit gives every <button>
-  // an internal shadow-DOM content wrapper with its own vertical centering
-  // that `appearance: none` cannot reach, which pulled a cancelled cell's
-  // 2-line content down to the middle of its (taller) grid row on real
-  // Safari. A plain div has no such wrapper.
+  // Non-regular cells open the detail sheet. A div, not a real <button> —
+  // WebKit's native button content wrapper ignores appearance:none and
+  // vertically centers short content.
   const label = `${lesson.subject ?? lesson.subjectShort ?? ""}, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
   return `
     <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
@@ -277,17 +273,24 @@ export async function renderStundenplan(container) {
     const cell = e.target.closest('[role="button"][data-period]');
     if (cell) openCellDetail(cell);
   });
-  // The cells are <div role="button">, not real <button>s (see cellContent's
-  // comment), so Enter/Space activation needs to be wired up by hand.
+  // Cells are divs, not real buttons, so Enter/Space activation needs wiring
+  // by hand — Enter on keydown (ignoring OS key-repeat), Space on keyup, same
+  // as a native button.
   body.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     const cell = e.target.closest('[role="button"][data-period]');
     if (!cell) return;
     e.preventDefault();
-    openCellDetail(cell);
+    if (e.key === "Enter" && !e.repeat) openCellDetail(cell);
+  });
+  body.addEventListener("keyup", (e) => {
+    if (e.key !== " ") return;
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (cell) openCellDetail(cell);
   });
 
-  currentDays = (await loadAndRender(container, studentId, student, weekOffset, loadState)) ?? [];
+  const days = await loadAndRender(container, studentId, student, weekOffset, loadState);
+  if (days) currentDays = days;
 }
 
 /**
