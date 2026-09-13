@@ -1,11 +1,22 @@
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
 const SHORT_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit" });
 
-/** "Montag" if within the next 6 days, otherwise "12.09." */
+function daysFromToday(date) {
+  return Math.round((date - startOfToday()) / 86_400_000);
+}
+
+/** Whole days from today to `iso` (negative if in the past), or null if `iso` is falsy. */
+export function daysUntil(iso) {
+  return iso ? daysFromToday(new Date(iso)) : null;
+}
+
+/** "Heute"/"Morgen" for the next two days, "Montag" through day 6, otherwise "12.09." */
 export function weekdayOrDate(iso) {
   if (!iso) return "";
   const date = new Date(iso);
-  const days = Math.round((date - startOfToday()) / 86_400_000);
+  const days = daysFromToday(date);
+  if (days === 0) return "Heute";
+  if (days === 1) return "Morgen";
   if (days >= 0 && days < 7) return WEEKDAY_FORMAT.format(date);
   return SHORT_DATE_FORMAT.format(date);
 }

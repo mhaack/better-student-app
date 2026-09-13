@@ -43,6 +43,9 @@ button {
   border: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* Strips native control chrome/appearance (Safari especially). */
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .view {
@@ -657,9 +660,8 @@ button {
   justify-content: center;
 }
 
-/* Changed cells render as a <button> (tap opens the detail sheet); regular
-   cells stay a plain <div>. text-align:left overrides the button UA default
-   so a <button>.sp-cell looks identical to a <div>.sp-cell. */
+/* Changed cells render as a <div role="button"> (tap opens the detail
+   sheet); regular cells stay a plain, non-interactive <div>. */
 .sp-cell {
   display: block;
   text-align: left;
@@ -670,6 +672,11 @@ button {
   min-height: 58px;
   width: 100%;
   overflow: hidden;
+}
+
+.sp-cell[role="button"] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sp-cell--changed {

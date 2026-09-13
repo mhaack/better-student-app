@@ -88,13 +88,14 @@ function cellContent(lesson, dayIndex) {
     return `<div class="${classes}">${inner}</div>`;
   }
 
-  // Only changed periods open the detail sheet — a regular lesson has
-  // nothing more to say than what's already in the cell.
+  // Non-regular cells open the detail sheet. A div, not a real <button> —
+  // WebKit's native button content wrapper ignores appearance:none and
+  // vertically centers short content.
   const label = `${lesson.subject ?? lesson.subjectShort ?? ""}, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
   return `
-    <button type="button" class="${classes}" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
+    <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
       ${inner}
-    </button>`;
+    </div>`;
 }
 
 function headerRow(days) {
@@ -263,15 +264,33 @@ export async function renderStundenplan(container) {
 
   // One delegated listener survives every #sp-body re-render, same as the
   // swipe listeners above.
-  body.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-period]");
-    if (!btn) return;
-    const day = currentDays[Number(btn.dataset.dayIndex)];
-    const lesson = day?.lessons.find((l) => l.period === Number(btn.dataset.period));
+  function openCellDetail(cellEl) {
+    const day = currentDays[Number(cellEl.dataset.dayIndex)];
+    const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
     if (day && lesson) openLessonDetail(container, day, lesson);
+  }
+  body.addEventListener("click", (e) => {
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (cell) openCellDetail(cell);
+  });
+  // Cells are divs, not real buttons, so Enter/Space activation needs wiring
+  // by hand — Enter on keydown (ignoring OS key-repeat), Space on keyup, same
+  // as a native button.
+  body.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (!cell) return;
+    e.preventDefault();
+    if (e.key === "Enter" && !e.repeat) openCellDetail(cell);
+  });
+  body.addEventListener("keyup", (e) => {
+    if (e.key !== " ") return;
+    const cell = e.target.closest('[role="button"][data-period]');
+    if (cell) openCellDetail(cell);
   });
 
-  currentDays = (await loadAndRender(container, studentId, student, weekOffset, loadState)) ?? [];
+  const days = await loadAndRender(container, studentId, student, weekOffset, loadState);
+  if (days) currentDays = days;
 }
 
 /**

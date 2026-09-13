@@ -2,7 +2,7 @@ import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getHeuteData } from "../data/heute.js";
 import { escapeHtml } from "../util/dom.js";
-import { weekdayOrDate } from "../util/format.js";
+import { weekdayOrDate, daysUntil } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 const STATUS_PILL = {
@@ -70,16 +70,24 @@ function newGradeSection(grade) {
 function notesSection(items) {
   if (items.length === 0) return "";
   const rows = items
-    .map(
-      (n) => `
+    .map((n) => {
+      // Due today or tomorrow gets the same accent-pill treatment as a
+      // room/substitution change elsewhere in the app — a reminder that
+      // this one needs attention now, not just another list entry.
+      const isUrgent = (daysUntil(n.date) ?? 99) <= 1;
+      const dueLabel = escapeHtml(weekdayOrDate(n.date));
+      const due = isUrgent
+        ? `<span class="pill pill--room">${dueLabel}</span>`
+        : `<span class="hw-due">${dueLabel}</span>`;
+      return `
       <div class="hw-row">
         <div class="hw-text">
           <div class="hw-title">${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
           ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
         </div>
-        <span class="hw-due">${escapeHtml(weekdayOrDate(n.date))}</span>
-      </div>`
-    )
+        ${due}
+      </div>`;
+    })
     .join("");
   return `
     <div class="section" style="gap:10px">
