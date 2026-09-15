@@ -1,8 +1,8 @@
 {
-  "name": "bestere-schule",
+  "name": "bessere-schule",
   "private": true,
   "type": "module",
-  "description": "Inoffizielle Bestere-Schule-PWA für beste.schule. Statische App, kein Build-Schritt; package.json existiert nur für `type: module` (Node-ESM für scripts/) und npm-Skripte.",
+  "description": "Inoffizielle Bessere-Schule-PWA für beste.schule. Statische App, kein Build-Schritt; package.json existiert nur für `type: module` (Node-ESM für scripts/) und npm-Skripte.",
   "scripts": {
     "discover": "node scripts/discover.mjs",
     "cors-check": "node scripts/cors-check.mjs",
