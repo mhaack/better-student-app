@@ -97,11 +97,41 @@ naming convention — subject code uppercase for LK, lowercase for GK
 actual LKs. The app treats it as a hint and falls back to one flat list when
 the result looks implausible (see `resolveCourseTypes` in `js/data/context.js`).
 
-## Still open
+## OAuth from a browser-only app
 
-- OAuth: whether `/oauth/token` sends CORS headers, and whether public
-  (PKCE, secret-less) clients can be created. Not tested — the app uses a
-  Personal Access Token.
+**`/oauth/token` is CORS-enabled** (verified 2026-09), so the authorization
+code exchange can run in the browser with no server or edge function:
+
+- `OPTIONS /oauth/token` preflight -> `204` with
+  `access-control-allow-origin: <caller origin>`, `allow-methods: POST`,
+  `allow-headers: authorization,content-type,accept`.
+- The **actual** `POST` response carries the same `access-control-allow-origin`
+  too (a preflight passing alone wouldn't be enough — the browser also has to
+  be allowed to read the real response). Probed with a bogus client_id: the
+  reply is a readable `401 {"error":"invalid_client"}`, i.e. rejected on the
+  credentials, not on CORS.
+- The origin is echoed back rather than `*`, alongside
+  `access-control-allow-credentials: true`, so any origin works — including
+  `localhost` during development.
+- `/oauth/authorize` needs no CORS at all: it's a top-level browser redirect,
+  not a fetch.
+
+The token endpoint accepts a JSON body (not just form-encoded).
+
+### Still open
+
+- Whether this account can register a **public** (secret-less) client, which
+  is what makes PKCE honest. The docs' wording — a secret is issued only
+  "gegebenenfalls" — hints that it can, but it can only be confirmed by
+  creating one under *Benutzerkonto -> API -> OAuth-Clients*. If only
+  confidential clients can be created, a browser-only app would have to ship
+  the "secret" in public, where it isn't a secret — the registered
+  redirect_uri allowlist would be the only real protection.
+- Note there are no scopes: a token carries the full permissions of the
+  logged-in user's role, so OAuth buys a real login screen, expiry and
+  revocation here — not least privilege.
+
+## Still open
 - Write routes (marking announcements/notifications read) and their CORS.
 - Token lifetime and rate limits.
 - Whether other schools populate `calculation_rule` on finalgrades (the

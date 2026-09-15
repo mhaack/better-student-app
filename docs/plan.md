@@ -35,12 +35,13 @@ returns.** Resolved there: the "me" route and user↔student link, grade value
 formats and collection types, how Oberstufe/Kurshalbjahre are represented
 (interval `type`), and how LK/GK is (not) exposed. Still open:
 
-1. **CORS on `/oauth/token`.** Laravel's default CORS config only covers
-   `api/*`, so `/oauth/*` may not send CORS headers even though `/api` does.
-   This decides whether OAuth works without any server.
+1. ~~**CORS on `/oauth/token`.**~~ **Answered: it is CORS-enabled**, on both
+   the preflight and the actual POST, so browser-only PKCE is viable with no
+   server or edge function. See `docs/api-notes.md`.
 2. **Public OAuth clients + PKCE.** The docs say a secret is given only
    "gegebenenfalls", which suggests secret-less public clients exist. Confirm
-   by creating a client.
+   by creating a client — this is now the only thing standing between the app
+   and a serverless OAuth login.
 3. CORS on write routes used by students (announcement/notification
    mark-read, POST/PUT).
 4. Access-token lifetime, refresh tokens, rate limits.
