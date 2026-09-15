@@ -7,7 +7,7 @@
     "discover": "node scripts/discover.mjs",
     "cors-check": "node scripts/cors-check.mjs",
     "anonymize": "node scripts/anonymize.mjs",
-    "test": "node scripts/test-grades.mjs",
+    "test": "node scripts/test-grades.mjs && node scripts/test-pkce.mjs",
     "serve": "node scripts/serve.mjs"
   }
 }
