@@ -785,3 +785,20 @@ button {
   color: var(--text-secondary);
   margin-top: 10px;
 }
+
+/* Login: separator between the OAuth button and the token fallback */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}

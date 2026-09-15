@@ -4,7 +4,8 @@
 // `filter[x]`/`include`/`sort`/`per_page` query params, `{ data, meta }`
 // pagination). Re-check against docs/api-notes.md once Phase 0 discovery has
 // run and adjust if the real API disagrees.
-import { getToken, clearSession } from "../state/auth-store.js";
+import { getToken, clearSession, getSessionKind } from "../state/auth-store.js";
+import { refreshAccessToken } from "../auth/oauth.js";
 
 const BASE_URL = "https://beste.schule/api";
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -51,6 +52,9 @@ export async function apiFetch(path, options = {}) {
   const url = buildUrl(path, params);
 
   let lastError;
+  // An expired OAuth access token is worth exactly one refresh per call; a
+  // second 401 after a fresh token means the session is genuinely gone.
+  let refreshAttempted = false;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -72,6 +76,15 @@ export async function apiFetch(path, options = {}) {
 
       if (res.status === 401 || res.status === 403) {
         const errBody = await safeJson(res);
+
+        if (res.status === 401 && !refreshAttempted && getSessionKind() === "oauth") {
+          refreshAttempted = true;
+          // Doesn't consume a retry attempt: the request never really failed,
+          // it just needs a current token.
+          attempt -= 1;
+          if (await refreshAccessToken()) continue;
+        }
+
         if (res.status === 401) clearSession();
         throw new AuthError(`beste.schule API auth error (${res.status})`, res.status, errBody);
       }

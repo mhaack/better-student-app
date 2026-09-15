@@ -1,8 +1,16 @@
-// Holds the beste.schule Personal Access Token and the resolved student list.
+// Holds the beste.schule credentials and the resolved student list.
+//
+// Two kinds of session live here behind one interface, so everything above
+// this layer only ever asks for "the token":
+//   - "pat": a Personal Access Token the user pasted. Never expires.
+//   - "oauth": an access token from the PKCE flow, with a refresh token and
+//     an expiry. js/api/client.js refreshes it when the API says 401.
 //
 // "Angemeldet bleiben" unchecked (default): sessionStorage, gone when the tab
 // closes. Checked: localStorage, persists across restarts. Never both at once.
 const TOKEN_KEY = "schulblick.token";
+// Kept separate from TOKEN_KEY so sessions predating OAuth keep working.
+const SESSION_KEY = "schulblick.session";
 const STUDENTS_KEY = "schulblick.students";
 const SELECTED_STUDENT_KEY = "schulblick.selectedStudentId";
 
@@ -38,6 +46,10 @@ export function setToken(token, remember) {
   store.setItem(TOKEN_KEY, token);
   try {
     other.removeItem(TOKEN_KEY);
+    // A PAT has no refresh token or expiry. Drop any OAuth metadata left by a
+    // previous session, or the client would try to refresh a PAT on a 401.
+    store.removeItem(SESSION_KEY);
+    other.removeItem(SESSION_KEY);
   } catch {
     // ignore storage access issues (private browsing etc.)
   }
@@ -47,9 +59,54 @@ export function setToken(token, remember) {
   // selected. onAuthChange only needs to fire for *losing* a session.
 }
 
+/**
+ * Stores an OAuth session. `expiresIn` is the API's seconds-from-now; it's
+ * converted to an absolute timestamp because a duration stops being true the
+ * moment it's written to storage.
+ */
+export function setOAuthSession({ accessToken, refreshToken, expiresIn }, remember) {
+  memoryToken = accessToken;
+  const store = storageFor(remember);
+  const other = storageFor(!remember);
+  store.setItem(TOKEN_KEY, accessToken);
+  store.setItem(
+    SESSION_KEY,
+    JSON.stringify({
+      kind: "oauth",
+      refreshToken: refreshToken ?? null,
+      expiresAt: expiresIn ? Date.now() + expiresIn * 1000 : null,
+    })
+  );
+  try {
+    other.removeItem(TOKEN_KEY);
+    other.removeItem(SESSION_KEY);
+  } catch {
+    // ignore storage access issues (private browsing etc.)
+  }
+}
+
+function readSession() {
+  const raw = readFromEitherStorage(SESSION_KEY);
+  if (!raw) return { kind: "pat", refreshToken: null, expiresAt: null };
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { kind: "pat", refreshToken: null, expiresAt: null };
+  }
+}
+
+/** "oauth" once the PKCE flow has run, otherwise "pat". */
+export function getSessionKind() {
+  return readSession().kind;
+}
+
+export function getRefreshToken() {
+  return readSession().refreshToken;
+}
+
 export function clearSession() {
   memoryToken = null;
-  for (const key of [TOKEN_KEY, STUDENTS_KEY, SELECTED_STUDENT_KEY]) {
+  for (const key of [TOKEN_KEY, SESSION_KEY, STUDENTS_KEY, SELECTED_STUDENT_KEY]) {
     try {
       window.localStorage.removeItem(key);
       window.sessionStorage.removeItem(key);
@@ -58,6 +115,15 @@ export function clearSession() {
     }
   }
   notify();
+}
+
+/** Which storage the current session chose, so later writes stay consistent. */
+export function isRemembered() {
+  try {
+    return Boolean(window.localStorage.getItem(TOKEN_KEY));
+  } catch {
+    return false;
+  }
 }
 
 export function setStudents(students) {
