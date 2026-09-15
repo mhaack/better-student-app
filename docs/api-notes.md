@@ -118,18 +118,31 @@ code exchange can run in the browser with no server or edge function:
 
 The token endpoint accepts a JSON body (not just form-encoded).
 
+**Public (secret-less) clients are supported.** Creating a client with
+"Proof Key for Code Exchange" ticked yields a client with no secret. Verified
+by posting to `/oauth/token` with only a `client_id` and a deliberately bogus
+code: the reply is `400 invalid_grant` ("Cannot validate the provided
+authorization code") — the client authenticated fine and only the code was
+rejected. A confidential client would have answered `invalid_client` instead.
+That one-word difference is the whole test.
+
+Two notes on the client registration UI:
+
+- The client id is a small **integer** (this account's is 236), not a UUID —
+  older Passport. Easy to miss when scanning for a long random-looking string.
+- A PKCE client is shown **without a secret**, which is correct, not a failed
+  creation.
+
+`/oauth/authorize` accepts the client and 302s an unauthenticated visitor to
+`/login`, as expected.
+
 ### Still open
 
-- Whether this account can register a **public** (secret-less) client, which
-  is what makes PKCE honest. The docs' wording — a secret is issued only
-  "gegebenenfalls" — hints that it can, but it can only be confirmed by
-  creating one under *Benutzerkonto -> API -> OAuth-Clients*. If only
-  confidential clients can be created, a browser-only app would have to ship
-  the "secret" in public, where it isn't a secret — the registered
-  redirect_uri allowlist would be the only real protection.
-- Note there are no scopes: a token carries the full permissions of the
-  logged-in user's role, so OAuth buys a real login screen, expiry and
-  revocation here — not least privilege.
+- There are no scopes: a token carries the full permissions of the logged-in
+  user's role, so OAuth buys a real login screen, expiry and revocation here —
+  not least privilege.
+- Access-token lifetime and whether refresh tokens rotate (the app handles
+  rotation either way — it stores whatever the refresh response returns).
 
 ## Still open
 - Write routes (marking announcements/notifications read) and their CORS.

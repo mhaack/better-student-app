@@ -6,7 +6,7 @@
 // here: anything shipped to a browser is readable by everyone.
 //
 // Leave CLIENT_ID empty to hide the OAuth button and keep the PAT login only.
-export const CLIENT_ID = "";
+export const CLIENT_ID = "236";
 
 /**
  * Must match a redirect URI registered on the client, exactly. Derived from

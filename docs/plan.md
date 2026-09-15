@@ -38,10 +38,9 @@ formats and collection types, how Oberstufe/Kurshalbjahre are represented
 1. ~~**CORS on `/oauth/token`.**~~ **Answered: it is CORS-enabled**, on both
    the preflight and the actual POST, so browser-only PKCE is viable with no
    server or edge function. See `docs/api-notes.md`.
-2. **Public OAuth clients + PKCE.** The docs say a secret is given only
-   "gegebenenfalls", which suggests secret-less public clients exist. Confirm
-   by creating a client — this is now the only thing standing between the app
-   and a serverless OAuth login.
+2. ~~**Public OAuth clients + PKCE.**~~ **Answered: supported.** A client
+   created with "Proof Key for Code Exchange" ticked carries no secret and
+   authenticates on `client_id` alone. Serverless OAuth login is live.
 3. CORS on write routes used by students (announcement/notification
    mark-read, POST/PUT).
 4. Access-token lifetime, refresh tokens, rate limits.
