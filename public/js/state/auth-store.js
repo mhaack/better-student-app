@@ -1,10 +1,11 @@
 // Holds the beste.schule credentials and the resolved student list.
 //
-// Two kinds of session live here behind one interface, so everything above
-// this layer only ever asks for "the token":
-//   - "pat": a Personal Access Token the user pasted. Never expires.
-//   - "oauth": an access token from the PKCE flow, with a refresh token and
-//     an expiry. js/api/client.js refreshes it when the API says 401.
+// Sessions come from the OAuth PKCE flow: an access token plus a refresh
+// token and an expiry, which js/api/client.js uses to refresh when the API
+// says 401. Anything stored without that metadata is a leftover Personal
+// Access Token session from before OAuth — still a usable bearer token, but
+// with nothing to refresh, so getSessionKind() reports it as "pat" and the
+// client leaves it alone.
 //
 // "Angemeldet bleiben" unchecked (default): sessionStorage, gone when the tab
 // closes. Checked: localStorage, persists across restarts. Never both at once.
@@ -37,26 +38,6 @@ export function getToken() {
 
 export function isAuthenticated() {
   return Boolean(getToken());
-}
-
-export function setToken(token, remember) {
-  memoryToken = token;
-  const store = storageFor(remember);
-  const other = storageFor(!remember);
-  store.setItem(TOKEN_KEY, token);
-  try {
-    other.removeItem(TOKEN_KEY);
-    // A PAT has no refresh token or expiry. Drop any OAuth metadata left by a
-    // previous session, or the client would try to refresh a PAT on a 401.
-    store.removeItem(SESSION_KEY);
-    other.removeItem(SESSION_KEY);
-  } catch {
-    // ignore storage access issues (private browsing etc.)
-  }
-  // No notify() here: login.js validates the token (fetchStudents) before
-  // navigating itself. Firing the global auth-change listener this early
-  // would send the app into the authenticated shell before a student id is
-  // selected. onAuthChange only needs to fire for *losing* a session.
 }
 
 /**

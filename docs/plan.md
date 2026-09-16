@@ -6,7 +6,7 @@ Goal: a static, client-only PWA where a student logs in with their beste.schule 
 **Project decisions (this build):**
 - Design: the **hybrid direction (2a)** from `project/Schulblick Layoutrichtungen.dc.html` only — not 1a/1b/1c.
 - Stack: **plain HTML/CSS/JS**, no build step, no framework (deviates from this plan's React/Vite suggestion below — kept for the architecture/data-model reasoning, adapted to vanilla JS in the app itself).
-- Data: real beste.schule API, Personal Access Token auth for now.
+- Data: real beste.schule API, OAuth (Authorization Code + PKCE) login.
 - Scope: the 5 designed screens (Heute, Noten Sek I, Noten Oberstufe, Fach-Detail Sek I, Fach-Detail Oberstufe) + stub Stundenplan/Mehr tabs.
 
 **What changed in v2:** CORS confirmed for `/api` (authenticated GET from a foreign origin works, so the preflight passes). Next.js/BFF dropped in favour of a static PWA. Oberstufe (points 0–15, LK/GK, Kurshalbjahre) added to the data model and screens. Server-side push dropped from scope.
@@ -134,9 +134,10 @@ Announcement = { id, title, body, createdAt, read }
 
 ## 5. Auth
 
-**Now (MVP): Personal Access Token.**
-- Login screen with a token field and a short in-app guide: *Benutzerkonto → API → Personal Access Token erstellen*.
-- Validate with `GET me`/`students`, then resolve the student(s). If more than one (guardian account), show a switcher.
+**Personal Access Token (removed from the app).** The first version had the
+user paste a PAT — a password-equivalent string that never expires. That's
+gone now that OAuth works; the only thing that still uses a PAT is
+`scripts/discover.mjs`, which reads one from `.env` for API exploration.
 
 **Built: OAuth Authorization Code + PKCE (public client, no secret).**
 `/oauth/token` turned out to be CORS-enabled, so the whole flow runs in the
@@ -154,8 +155,9 @@ browser with no server or edge function — see `docs/api-notes.md`.
 
 **To enable it:** create a client under *Benutzerkonto -> API -> OAuth-Clients*
 with redirect URIs for both `http://localhost:8080/` and the deployed origin,
-then put its id in `js/auth/oauth-config.js`. Empty id = the button is hidden
-and only the PAT login shows. A client id is public by design under PKCE; a
+then put its id in `js/auth/oauth-config.js` (this account's is 236). Without
+an id there is no way to log in, so the screen says so plainly rather than
+rendering a dead button. A client id is public by design under PKCE; a
 client *secret* must never go in there, since anything shipped to a browser is
 readable by everyone.
 

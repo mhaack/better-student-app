@@ -1,14 +1,12 @@
-import { setToken, setStudents, setSelectedStudentId, clearSession } from "../state/auth-store.js";
+import { setStudents, setSelectedStudentId } from "../state/auth-store.js";
 import { fetchStudents } from "../data/repository.js";
-import { AuthError } from "../api/client.js";
 import { beginLogin } from "../auth/oauth.js";
 import { isOAuthConfigured } from "../auth/oauth-config.js";
 import { escapeHtml } from "../util/dom.js";
-import { navigate } from "../router.js";
 
 /**
- * Everything that has to happen once credentials are accepted, whichever way
- * they were obtained: find the student(s) this account can see and pick one.
+ * Everything that has to happen once credentials are accepted: find the
+ * student(s) this account can see and pick one.
  */
 export async function establishSession() {
   const students = await fetchStudents();
@@ -32,38 +30,22 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
                  <input id="remember" type="checkbox" style="width:20px;height:20px" />
                  Angemeldet bleiben
                </label>
-               <div class="login-divider"><span>oder mit Zugriffsschlüssel</span></div>
              </div>`
-          : ""
+          : `<div class="login-error" role="alert">
+               Diese Installation hat keine OAuth-Client-ID hinterlegt, deshalb
+               ist keine Anmeldung möglich. Siehe js/auth/oauth-config.js.
+             </div>`
       }
-      <form id="login-form" class="section" novalidate>
-        <div class="login-field">
-          <label for="token">Persönlicher Zugriffsschlüssel</label>
-          <input id="token" name="token" type="password" autocomplete="off" required
-                 placeholder="Von beste.schule kopiert" />
-        </div>
-        ${
-          isOAuthConfigured()
-            ? ""
-            : `<label class="login-checkbox">
-                 <input id="remember" type="checkbox" style="width:20px;height:20px" />
-                 Angemeldet bleiben
-               </label>`
-        }
-        <div id="login-error" class="login-error" role="alert" hidden></div>
-        <button type="submit" id="login-submit" class="button-primary">Anmelden</button>
-      </form>
+      <div id="login-error" class="login-error" role="alert" hidden></div>
       <div class="login-help">
-        So bekommst du einen Zugriffsschlüssel: auf beste.schule unter
-        <strong>Benutzerkonto → API → Personal Access Token erstellen</strong>.
-        Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        Die Anmeldung läuft direkt über beste.schule — Bessere Schule bekommt
+        dein Passwort nie zu sehen. Bessere Schule ist eine inoffizielle App
+        und nicht mit beste.schule verbunden.
       </div>
     </div>
   `;
 
-  const form = container.querySelector("#login-form");
   const errorBox = container.querySelector("#login-error");
-  const submitButton = container.querySelector("#login-submit");
 
   if (initialError) {
     errorBox.textContent = initialError;
@@ -71,37 +53,9 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
   }
 
   container.querySelector("#oauth-login")?.addEventListener("click", () => {
-    // "Angemeldet bleiben" applies to both login routes.
     beginLogin({ remember: container.querySelector("#remember").checked }).catch((err) => {
       errorBox.textContent = err.message || "Anmeldung fehlgeschlagen.";
       errorBox.hidden = false;
     });
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const token = container.querySelector("#token").value.trim();
-    const remember = container.querySelector("#remember").checked;
-    if (!token) return;
-
-    errorBox.hidden = true;
-    submitButton.disabled = true;
-    submitButton.textContent = "Prüfe …";
-
-    setToken(token, remember);
-    try {
-      await establishSession();
-      navigate("/heute");
-    } catch (err) {
-      clearSession();
-      errorBox.textContent =
-        err instanceof AuthError
-          ? "Der Zugriffsschlüssel wurde abgelehnt. Bitte prüfe, ob er korrekt kopiert wurde."
-          : escapeHtml(err.message || "Anmeldung fehlgeschlagen. Bitte erneut versuchen.");
-      errorBox.hidden = false;
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Anmelden";
-    }
   });
 }
