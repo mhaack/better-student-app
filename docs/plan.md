@@ -164,7 +164,7 @@ readable by everyone.
 **Token storage:**
 - Default: memory + `sessionStorage` (gone when the tab closes).
 - Opt-in "Angemeldet bleiben": `localStorage`, with a clear note on the login screen.
-- The real protection against token theft is a clean frontend: no third-party scripts, strict CSP, no raw-HTML injection of API text (announcements, notes).
+- The real protection against token theft is a clean frontend: a strict CSP, no raw-HTML injection of API text (announcements, notes), and third-party scripts kept to the one analytics tag, which `connect-src` still cannot let reach anything but its own host.
 - Logout clears storage and the IndexedDB cache.
 
 ---
@@ -172,7 +172,8 @@ readable by everyone.
 ## 6. Privacy & security
 
 - Grade data only ever lives in the student's browser (memory + IndexedDB cache). Nothing is sent to you.
-- No analytics, no third-party scripts. Self-host fonts (hardening phase; MVP may still use Google Fonts to match the mockup — swap before shipping).
+- Analytics: Pirsch only (cookieless, German-hosted, page views only) — allowlisted in the CSP as a single extra host for `script-src`/`connect-src`. No other third-party scripts beyond Google Fonts, which is still pending the self-hosting swap below.
+- Self-host fonts (hardening phase; MVP may still use Google Fonts to match the mockup — swap before shipping).
 - CSP: `default-src 'self'; connect-src 'self' https://beste.schule; img-src 'self' https://beste.schule data:; frame-ancestors 'none'` (adjust after Phase 0).
 - If public: Impressum, short privacy page (the host still logs IPs), and an "inoffizielle App" disclaimer. Still get an OK from schulverwalter.online.
 

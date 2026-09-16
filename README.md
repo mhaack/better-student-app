@@ -123,5 +123,10 @@ or login will work locally and fail in production.
 ## Privacy
 
 Grades and tokens live only in your browser — memory, session/local storage and
-an in-memory request cache. There is no server to send them to. No analytics,
-no third-party scripts, no tracking.
+an in-memory request cache. There is no server to send them to.
+
+The one third party is [Pirsch](https://pirsch.io), for page-view counts:
+cookieless, no cross-site profile, and hosted in Germany. It sees that a page
+was opened, never anything the app fetched — the CSP's `connect-src` allows
+exactly two hosts, `beste.schule` and `api.pirsch.io`, so grades and tokens
+cannot reach it even in principle. No other analytics, no ad tech.
