@@ -538,29 +538,6 @@ button {
   padding: 24px;
 }
 
-.login-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.login-field label {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.login-field input[type="password"],
-.login-field input[type="text"] {
-  min-height: var(--touch-target);
-  padding: 0 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-primary);
-  font-size: 16px;
-  font-family: inherit;
-}
-
 .login-checkbox {
   display: flex;
   align-items: center;
@@ -785,3 +762,4 @@ button {
   color: var(--text-secondary);
   margin-top: 10px;
 }
+

@@ -6,7 +6,7 @@ Goal: a static, client-only PWA where a student logs in with their beste.schule 
 **Project decisions (this build):**
 - Design: the **hybrid direction (2a)** from `project/Schulblick Layoutrichtungen.dc.html` only — not 1a/1b/1c.
 - Stack: **plain HTML/CSS/JS**, no build step, no framework (deviates from this plan's React/Vite suggestion below — kept for the architecture/data-model reasoning, adapted to vanilla JS in the app itself).
-- Data: real beste.schule API, Personal Access Token auth for now.
+- Data: real beste.schule API, OAuth (Authorization Code + PKCE) login.
 - Scope: the 5 designed screens (Heute, Noten Sek I, Noten Oberstufe, Fach-Detail Sek I, Fach-Detail Oberstufe) + stub Stundenplan/Mehr tabs.
 
 **What changed in v2:** CORS confirmed for `/api` (authenticated GET from a foreign origin works, so the preflight passes). Next.js/BFF dropped in favour of a static PWA. Oberstufe (points 0–15, LK/GK, Kurshalbjahre) added to the data model and screens. Server-side push dropped from scope.
@@ -35,12 +35,12 @@ returns.** Resolved there: the "me" route and user↔student link, grade value
 formats and collection types, how Oberstufe/Kurshalbjahre are represented
 (interval `type`), and how LK/GK is (not) exposed. Still open:
 
-1. **CORS on `/oauth/token`.** Laravel's default CORS config only covers
-   `api/*`, so `/oauth/*` may not send CORS headers even though `/api` does.
-   This decides whether OAuth works without any server.
-2. **Public OAuth clients + PKCE.** The docs say a secret is given only
-   "gegebenenfalls", which suggests secret-less public clients exist. Confirm
-   by creating a client.
+1. ~~**CORS on `/oauth/token`.**~~ **Answered: it is CORS-enabled**, on both
+   the preflight and the actual POST, so browser-only PKCE is viable with no
+   server or edge function. See `docs/api-notes.md`.
+2. ~~**Public OAuth clients + PKCE.**~~ **Answered: supported.** A client
+   created with "Proof Key for Code Exchange" ticked carries no secret and
+   authenticates on `client_id` alone. Serverless OAuth login is live.
 3. CORS on write routes used by students (announcement/notification
    mark-read, POST/PUT).
 4. Access-token lifetime, refresh tokens, rate limits.
@@ -134,14 +134,32 @@ Announcement = { id, title, body, createdAt, read }
 
 ## 5. Auth
 
-**Now (MVP): Personal Access Token.**
-- Login screen with a token field and a short in-app guide: *Benutzerkonto → API → Personal Access Token erstellen*.
-- Validate with `GET me`/`students`, then resolve the student(s). If more than one (guardian account), show a switcher.
+**Personal Access Token (removed from the app).** The first version had the
+user paste a PAT — a password-equivalent string that never expires. That's
+gone now that OAuth works; the only thing that still uses a PAT is
+`scripts/discover.mjs`, which reads one from `.env` for API exploration.
 
-**Later: OAuth Authorization Code + PKCE (public client, no secret)**, if Phase 0 confirms public clients and CORS on `/oauth/token`.
-1. Generate `code_verifier`/`code_challenge` + `state` in the browser, redirect to `/oauth/authorize`.
-2. Callback route in the SPA verifies `state`, POSTs the code + verifier to `/oauth/token`.
-3. Keep tokens in memory; refresh if refresh tokens are issued.
+**Built: OAuth Authorization Code + PKCE (public client, no secret).**
+`/oauth/token` turned out to be CORS-enabled, so the whole flow runs in the
+browser with no server or edge function — see `docs/api-notes.md`.
+
+1. `js/auth/pkce.js` generates the `code_verifier`/`code_challenge` (S256, via
+   WebCrypto) and `state`. Tested against RFC 7636's own vectors.
+2. `js/auth/oauth.js` redirects to `/oauth/authorize`, then on the way back
+   verifies `state`, POSTs code + verifier to `/oauth/token`, and stores the
+   session. The redirect URI is just the app's origin — routing is hash-based,
+   so the code arrives in the query string and nothing needs a server rewrite.
+3. `js/api/client.js` refreshes on a 401 and retries the request once.
+   Refreshes are single-flight: the app fires many requests in parallel, and
+   each one 401-ing must not start its own refresh.
+
+**To enable it:** create a client under *Benutzerkonto -> API -> OAuth-Clients*
+with redirect URIs for both `http://localhost:8080/` and the deployed origin,
+then put its id in `js/auth/oauth-config.js` (this account's is 236). Without
+an id there is no way to log in, so the screen says so plainly rather than
+rendering a dead button. A client id is public by design under PKCE; a
+client *secret* must never go in there, since anything shipped to a browser is
+readable by everyone.
 
 **Token storage:**
 - Default: memory + `sessionStorage` (gone when the tab closes).

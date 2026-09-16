@@ -97,11 +97,54 @@ naming convention — subject code uppercase for LK, lowercase for GK
 actual LKs. The app treats it as a hint and falls back to one flat list when
 the result looks implausible (see `resolveCourseTypes` in `js/data/context.js`).
 
-## Still open
+## OAuth from a browser-only app
 
-- OAuth: whether `/oauth/token` sends CORS headers, and whether public
-  (PKCE, secret-less) clients can be created. Not tested — the app uses a
-  Personal Access Token.
+**`/oauth/token` is CORS-enabled** (verified 2026-09), so the authorization
+code exchange can run in the browser with no server or edge function:
+
+- `OPTIONS /oauth/token` preflight -> `204` with
+  `access-control-allow-origin: <caller origin>`, `allow-methods: POST`,
+  `allow-headers: authorization,content-type,accept`.
+- The **actual** `POST` response carries the same `access-control-allow-origin`
+  too (a preflight passing alone wouldn't be enough — the browser also has to
+  be allowed to read the real response). Probed with a bogus client_id: the
+  reply is a readable `401 {"error":"invalid_client"}`, i.e. rejected on the
+  credentials, not on CORS.
+- The origin is echoed back rather than `*`, alongside
+  `access-control-allow-credentials: true`, so any origin works — including
+  `localhost` during development.
+- `/oauth/authorize` needs no CORS at all: it's a top-level browser redirect,
+  not a fetch.
+
+The token endpoint accepts a JSON body (not just form-encoded).
+
+**Public (secret-less) clients are supported.** Creating a client with
+"Proof Key for Code Exchange" ticked yields a client with no secret. Verified
+by posting to `/oauth/token` with only a `client_id` and a deliberately bogus
+code: the reply is `400 invalid_grant` ("Cannot validate the provided
+authorization code") — the client authenticated fine and only the code was
+rejected. A confidential client would have answered `invalid_client` instead.
+That one-word difference is the whole test.
+
+Two notes on the client registration UI:
+
+- The client id is a small **integer** (this account's is 236), not a UUID —
+  older Passport. Easy to miss when scanning for a long random-looking string.
+- A PKCE client is shown **without a secret**, which is correct, not a failed
+  creation.
+
+`/oauth/authorize` accepts the client and 302s an unauthenticated visitor to
+`/login`, as expected.
+
+### Still open
+
+- There are no scopes: a token carries the full permissions of the logged-in
+  user's role, so OAuth buys a real login screen, expiry and revocation here —
+  not least privilege.
+- Access-token lifetime and whether refresh tokens rotate (the app handles
+  rotation either way — it stores whatever the refresh response returns).
+
+## Still open
 - Write routes (marking announcements/notifications read) and their CORS.
 - Token lifetime and rate limits.
 - Whether other schools populate `calculation_rule` on finalgrades (the
