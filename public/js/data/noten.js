@@ -65,7 +65,6 @@ export async function getNotenData(studentId, options) {
   };
 
   if (scale === "points_0_15") {
-    result.unterkursCount = subjects.filter((s) => s.average.unterkurs).length;
     result.lk = subjects.filter((s) => s.courseType === "LK");
     result.gk = subjects.filter((s) => s.courseType !== "LK");
     // Without a trustworthy LK/GK split the view shows one flat list instead.

@@ -118,12 +118,11 @@ async function loadAndRender(container, studentId, context, intervalId) {
     : `<div style="display:flex;flex-direction:column">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
 
   body.innerHTML = `
-    <div class="average-header${isPoints ? " average-header--points" : ""}" style="justify-content:${isPoints ? "space-between" : "flex-start"}">
+    <div class="average-header${isPoints ? " average-header--points" : ""}">
       <div style="display:flex;align-items:baseline;gap:14px">
         <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${isPoints ? '<span style="font-size:30px"> P</span>' : ""}</div>
         <div class="average-label">${scaleLabel}</div>
       </div>
-      ${isPoints ? `<span class="unterkurs-counter">${data.unterkursCount} Unterkurs${data.unterkursCount === 1 ? "" : "e"}</span>` : ""}
     </div>
     ${list}
     <div style="font-size:12px;line-height:1.5;color:var(--text-muted)">
