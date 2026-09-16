@@ -3,6 +3,7 @@ import { resetContext } from "../state/session.js";
 import { clearCache } from "../data/cache.js";
 import { fetchSchool } from "../data/repository.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
+import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
 
@@ -11,6 +12,44 @@ const THEME_OPTIONS = [
   { value: "light", label: "Hell" },
   { value: "dark", label: "Dunkel" },
 ];
+
+/**
+ * Four cases, because "install this app" means something different in each:
+ * already installed, a browser that offered us a prompt, iOS (which never
+ * does and needs the manual steps), and everything else — where the honest
+ * answer is to show nothing rather than a button that can't work.
+ */
+function installSection() {
+  if (isStandalone()) {
+    return `
+      <div class="section">
+        <div class="eyebrow">App</div>
+        <div style="font-size:14px;color:var(--text-secondary)">Bessere Schule ist auf diesem Gerät installiert.</div>
+      </div>`;
+  }
+
+  if (canInstall()) {
+    return `
+      <div class="section">
+        <div class="eyebrow">App</div>
+        <button type="button" id="install-button" class="button-primary">Zum Home-Bildschirm hinzufügen</button>
+      </div>`;
+  }
+
+  if (isIos()) {
+    return `
+      <div class="section">
+        <div class="eyebrow">App</div>
+        <div class="card" style="font-size:14px;line-height:1.5;color:var(--text-secondary)">
+          Zum Home-Bildschirm hinzufügen: in Safari auf <strong>Teilen</strong>
+          tippen und dann <strong>Zum Home-Bildschirm</strong> wählen.
+        </div>
+      </div>`;
+  }
+
+  // Desktop Firefox and friends: no install path, so no dead end.
+  return "";
+}
 
 export async function renderMehr(container) {
   const students = getStudents();
@@ -54,6 +93,7 @@ export async function renderMehr(container) {
           ).join("")}
         </select>
       </div>
+      ${installSection()}
       <div class="empty-state" style="padding-top:24px">
         Hausaufgabenübersicht, Fehlzeiten und Mitteilungen kommen in einer späteren Version.
       </div>
@@ -62,6 +102,26 @@ export async function renderMehr(container) {
         Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>`;
+
+  container.querySelector("#install-button")?.addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    const outcome = await promptInstall();
+    if (outcome === "accepted") {
+      // The section can't re-evaluate to "installed" until the app is next
+      // opened standalone, so say so rather than leaving a dead button.
+      button.replaceWith(
+        Object.assign(document.createElement("div"), {
+          style: "font-size:14px;color:var(--text-secondary)",
+          textContent: "Installiert — zu finden auf dem Home-Bildschirm.",
+        })
+      );
+      return;
+    }
+    // Dismissed: the event is spent, so a retry needs a fresh page load.
+    button.disabled = false;
+    button.textContent = "Zum Home-Bildschirm hinzufügen";
+  });
 
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
     setThemePreference(e.target.value);

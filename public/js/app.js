@@ -1,3 +1,7 @@
+// Side-effect import: registers the beforeinstallprompt listener at boot.
+// Chromium fires that event once and early — too late if we wait for the
+// Mehr view to be opened.
+import "./state/install.js";
 import { isAuthenticated, onAuthChange, clearSession } from "./state/auth-store.js";
 import { route, startRouter, currentBasePath, navigate } from "./router.js";
 import { isCallback, completeLogin } from "./auth/oauth.js";
