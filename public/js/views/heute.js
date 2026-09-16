@@ -100,7 +100,7 @@ export async function renderHeute(container) {
   container.innerHTML = `
     <div class="view">
       <div>
-        <h1 class="view-title">Heute</h1>
+        <h1 class="view-title" id="heute-title">Heute</h1>
         <div class="view-subtitle" id="heute-subtitle">…</div>
       </div>
       <div id="heute-body" class="view-body">${renderSkeleton()}</div>
@@ -114,6 +114,9 @@ export async function renderHeute(container) {
     const data = await getHeuteData(studentId, scale);
 
     const klasse = student?.className ?? "";
+    // After the cutoff this screen shows the next school day, so the heading
+    // says which one rather than claiming "Heute" for tomorrow's plan.
+    container.querySelector("#heute-title").textContent = data.title;
     container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? " · " + klasse : ""}`;
 
     const body = container.querySelector("#heute-body");

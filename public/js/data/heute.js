@@ -6,6 +6,8 @@ import {
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
+import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
+import { getCutoffHour } from "../state/settings.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
@@ -30,25 +32,31 @@ function changeText(lesson) {
 }
 
 /**
- * Aggregates the "Heute" screen: today's lessons with their status, a change
- * summary, the newest grade and upcoming Klassenbuch entries.
+ * Aggregates the "Heute" screen. Once the school day is over the screen rolls
+ * forward to the next one (see domain/school-day.js), so "today" here is the
+ * day being shown, which is not necessarily the current date.
  * @param {number} studentId
  * @param {import('../domain/grades.js').GradeScale} scale
  */
 export async function getHeuteData(studentId, scale) {
-  const today = new Date();
-  const todayIso = isoDate(today);
-  const notesUntilIso = isoDate(new Date(today.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
+  const now = new Date();
 
-  const [dayPlans, timetable, grades, notes] = await Promise.all([
-    fetchDayPlans(todayIso, todayIso),
-    fetchCurrentTimetable(),
+  // The timetable carries the holiday list, and which day to show depends on
+  // it — so it has to land before the day-specific calls can be made. It's
+  // cached for an hour, so this only costs a round trip on a cold load.
+  const timetable = await fetchCurrentTimetable();
+  const day = resolveSchoolDay(now, getCutoffHour(), timetable.noSchoolDates);
+  const dayIso = isoDate(day);
+  const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
+
+  const [dayPlans, grades, notes] = await Promise.all([
+    fetchDayPlans(dayIso, dayIso),
     fetchGrades(studentId, { scale }),
-    fetchJournalNotes(studentId, todayIso, notesUntilIso),
+    fetchJournalNotes(studentId, dayIso, notesUntilIso),
   ]);
 
-  const lessons = lessonsForDate(today, dayPlans, timetable);
-  const dayNotes = dayPlans.find((day) => day.date === todayIso)?.notes ?? [];
+  const lessons = lessonsForDate(day, dayPlans, timetable);
+  const dayNotes = dayPlans.find((d) => d.date === dayIso)?.notes ?? [];
 
   const changes = lessons
     .filter((l) => l.status !== "regular")
@@ -63,7 +71,7 @@ export async function getHeuteData(studentId, scale) {
   const sortedGrades = [...grades].sort((a, b) => new Date(b.givenAt) - new Date(a.givenAt));
   const newest = sortedGrades[0];
   const withinWindow =
-    newest && (today - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
+    newest && (now - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
 
   // A double period records the same Klassenbuch entry once per lesson, each
   // with its own note id, so identical entries are collapsed by content.
@@ -72,7 +80,9 @@ export async function getHeuteData(studentId, scale) {
   ];
 
   return {
-    dateLabel: germanWeekdayDate(today),
+    // "Heute" / "Morgen" / "Montag" — the heading has to say which day this is.
+    title: schoolDayLabel(day, now),
+    dateLabel: germanWeekdayDate(day),
     dayNotes,
     lessons,
     changes,

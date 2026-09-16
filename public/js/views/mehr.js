@@ -4,6 +4,8 @@ import { clearCache } from "../data/cache.js";
 import { fetchSchool } from "../data/repository.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
+import { getCutoffHour, setCutoffHour } from "../state/settings.js";
+import { CUTOFF_HOUR_OPTIONS } from "../domain/school-day.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
 
@@ -86,6 +88,18 @@ export async function renderMehr(container) {
       }
       ${switcher}
       <div class="section">
+        <div class="eyebrow">Tageswechsel</div>
+        <select id="cutoff-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
+          ${CUTOFF_HOUR_OPTIONS.map(
+            (h) => `<option value="${h}" ${h === getCutoffHour() ? "selected" : ""}>ab ${h}:00 Uhr</option>`
+          ).join("")}
+        </select>
+        <div style="font-size:12px;line-height:1.5;color:var(--text-muted)">
+          Ab dieser Uhrzeit zeigt „Heute" schon den nächsten Schultag —
+          freitags abends und am Wochenende den Montag.
+        </div>
+      </div>
+      <div class="section">
         <div class="eyebrow">Darstellung</div>
         <select id="theme-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
           ${THEME_OPTIONS.map(
@@ -121,6 +135,11 @@ export async function renderMehr(container) {
     // Dismissed: the event is spent, so a retry needs a fresh page load.
     button.disabled = false;
     button.textContent = "Zum Home-Bildschirm hinzufügen";
+  });
+
+  container.querySelector("#cutoff-picker").addEventListener("change", (e) => {
+    setCutoffHour(Number(e.target.value));
+    // Heute is rendered from this on its next mount; nothing to refresh here.
   });
 
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
