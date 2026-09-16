@@ -90,5 +90,69 @@ test("the heading names the day it's actually showing", () => {
   assert.equal(schoolDayLabel(resolveSchoolDay(saturday), saturday), "Montag");
 });
 
+// --- holidays (the timetable's no_school_dates) ---
+
+// Autumn break: Mon 2026-10-19 .. Fri 2026-10-23.
+const AUTUMN_BREAK = ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"];
+const oct = (day, hour) => new Date(2026, 9, day, hour, 0, 0);
+
+test("the Friday before a break skips to the Monday school resumes", () => {
+  // Fri 2026-10-16 after the cutoff: Mon the 19th is a holiday, so keep going
+  // to Mon the 26th rather than landing on an empty day.
+  assert.equal(iso(resolveSchoolDay(oct(16, 18), 17, AUTUMN_BREAK)), "2026-10-26");
+});
+
+test("without the holiday list that same Friday still lands on the empty Monday", () => {
+  assert.equal(iso(resolveSchoolDay(oct(16, 18), 17)), "2026-10-19");
+});
+
+test("a holiday today is skipped even before the cutoff", () => {
+  // Tue 2026-10-20, 08:00, mid-break: an empty day is no use.
+  assert.equal(iso(resolveSchoolDay(oct(20, 8), 17, AUTUMN_BREAK)), "2026-10-26");
+});
+
+test("a single bridging day rolls to the next working day", () => {
+  // Thu 2026-09-17 evening -> Fri the 18th is closed -> Mon the 21st.
+  assert.equal(iso(resolveSchoolDay(at(17, 18), 17, ["2026-09-18"])), "2026-09-21");
+});
+
+test("skipping never lands on a weekend", () => {
+  for (let day = 14; day <= 20; day++) {
+    for (const hour of [8, 18]) {
+      const result = resolveSchoolDay(at(day, hour), 17, ["2026-09-18", "2026-09-21"]);
+      const weekday = result.getDay();
+      assert.ok(weekday !== 0 && weekday !== 6, `landed on a weekend from day ${day} @${hour}: ${iso(result)}`);
+    }
+  }
+});
+
+test("a real two-week break is cleared, weekends included", () => {
+  // This school's actual autumn break: Mon 12th - Fri 23rd October. Counting
+  // the weekends either side, the next day with lessons is 17 days past the
+  // Friday it starts on — a fortnight of lookahead is not enough, which is
+  // the bug this pins down.
+  const autumn = [
+    "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16",
+    "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23",
+  ];
+  assert.equal(iso(resolveSchoolDay(oct(9, 18), 17, autumn)), "2026-10-26");
+});
+
+test("a break longer than the lookahead shows the empty day rather than a date weeks out", () => {
+  // Six weeks closed: give up and return the plain next weekday.
+  const summer = [];
+  for (let d = 0; d < 45; d++) {
+    const day = new Date(2026, 6, 1 + d);
+    summer.push(`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`);
+  }
+  const midSummer = new Date(2026, 6, 15, 10, 0, 0); // Wed 2026-07-15
+  assert.equal(iso(resolveSchoolDay(midSummer, 17, summer)), "2026-07-15");
+});
+
+test("the heading still names the day after a holiday skip", () => {
+  const thu = at(17, 18); // -> Fri closed -> Monday
+  assert.equal(schoolDayLabel(resolveSchoolDay(thu, 17, ["2026-09-18"]), thu), "Montag");
+});
+
 console.log(`\n${passed} test(s) passed.`);
 if (process.exitCode) console.error("Some tests failed.");

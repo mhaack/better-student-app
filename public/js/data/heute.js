@@ -40,13 +40,17 @@ function changeText(lesson) {
  */
 export async function getHeuteData(studentId, scale) {
   const now = new Date();
-  const day = resolveSchoolDay(now, getCutoffHour());
+
+  // The timetable carries the holiday list, and which day to show depends on
+  // it — so it has to land before the day-specific calls can be made. It's
+  // cached for an hour, so this only costs a round trip on a cold load.
+  const timetable = await fetchCurrentTimetable();
+  const day = resolveSchoolDay(now, getCutoffHour(), timetable.noSchoolDates);
   const dayIso = isoDate(day);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
-  const [dayPlans, timetable, grades, notes] = await Promise.all([
+  const [dayPlans, grades, notes] = await Promise.all([
     fetchDayPlans(dayIso, dayIso),
-    fetchCurrentTimetable(),
     fetchGrades(studentId, { scale }),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
   ]);
