@@ -27,11 +27,11 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
       ${
         isOAuthConfigured()
           ? `<div class="section" style="gap:14px">
+               <button type="button" id="oauth-login" class="button-primary">Mit beste.schule anmelden</button>
                <label class="login-checkbox">
                  <input id="remember" type="checkbox" style="width:20px;height:20px" />
                  Angemeldet bleiben
                </label>
-               <button type="button" id="oauth-login" class="button-primary">Mit beste.schule anmelden</button>
                <div class="login-divider"><span>oder mit Zugriffsschlüssel</span></div>
              </div>`
           : ""
