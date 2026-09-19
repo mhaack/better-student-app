@@ -1,1 +1,1 @@
-Introducing Bessere Schule: Noten, Stundenplan und Vertretungen für beste.schule — clientseitig, ohne Server dazwischen. Dein Passwort sieht nur beste.schule.
+Bessere Schule: Noten, Stundenplan und Vertretungen aus beste.schule — endlich übersichtlich. Gebaut für Schüler, nicht für Verwaltung. Reines HTML/CSS/JS, kein Build-Schritt, kein Backend.

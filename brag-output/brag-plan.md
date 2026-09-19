@@ -1,29 +1,30 @@
 # Brag Plan: Bessere Schule
 
 ## What is this app?
-An unofficial, client-only PWA for beste.schule that shows a German student their grades, timetable, substitutions and homework in one calm mobile view — with no backend and no server ever seeing their data.
+An unofficial mobile app for beste.schule that gives a German student the three things they actually check — what's on today, the week's timetable, and their grades — in one calm, focused view instead of a crowded school portal.
 
 ## The angle
-The genuinely impressive claim isn't a feature, it's an architecture decision: there is no backend at all. The browser talks straight to beste.schule's API over OAuth PKCE; nobody else — not even this app's own maker — ever sees a student's grades or password. The video leads with that claim, then proves it's not just marketing by showing three real, detailed screens (today's changes, the week grid, the Oberstufe point average) that only make sense if the app actually works.
+beste.schule is built for everyone a school has to serve: administration, teachers, guardians, students. That breadth makes it heavy to use when you're a student who just wants to know whether first period is cancelled. Bessere Schule takes the same data and builds one thing: a student's daily view. The video makes that argument visually — it never says "cluttered", it just shows three screens so calm and legible that the contrast speaks for itself, then names the positioning at the end.
 
 ## Hook (first 2-3 seconds)
-Full-bleed cream card, serif type: **"Deine Noten. Kein Server dazwischen."** ("Your grades. No server in between.") — the tagline sits alone, confident, then the wordmark "Bessere Schule" settles under it.
+Full-bleed cream, serif type: **"Deine Schule. Endlich übersichtlich."** ("Your school. Finally clear.") — "endlich" carries the whole implied critique without naming or attacking beste.schule. The wordmark "Bessere Schule" settles beneath it.
 
 ## Key moments (the middle)
-- **Heute**: the "Änderungen heute" accent card arrives first (Physik → Raum 204, Sport entfällt), then the day's lesson list settles in below it — the app surfacing exactly what changed before anything else.
-- **Stundenplan**: the Mo–Fr grid appears, and the four changed/cancelled cells (accent-tinted or dashed) pop against the plain white cells one after another, showing a whole week's exceptions at a glance.
-- **Noten**: the Oberstufe average count up to "11 P", then the Leistungskurse/Grundkurse rows settle in with their sparkline trends — proof the app understands the actual German grading system (0–15 points, LK/GK), not a generic grade tracker.
+The three screens are the three things a student actually opens the app for — that's the argument, in order of how often you'd check them.
+- **Heute** ("what's up today"): the "Änderungen heute" accent card arrives first (Physik → Raum 204, Sport entfällt), then the day's lesson list settles below it — the answer to "was ist heute?" without a single tap.
+- **Stundenplan** (the timetable): the Mo–Fr grid appears, and the changed/cancelled cells pop against the plain ones one after another — a whole week's exceptions readable in one glance.
+- **Noten** (grades): the Oberstufe average counts up to "11 P", then the Leistungskurse/Grundkurse rows settle in with their sparkline trends — the app speaks the actual German system (0–15 Punkte, LK/GK), not a generic grade tracker.
 
 ## Outro / punchline
-Return to the cream hook background. Line: **"Dein Passwort sieht nur beste.schule."** ("Only beste.schule ever sees your password.") under the wordmark, then the share line settles: "Noten, Stundenplan, Vertretungen. Ohne Umwege." Small subtext: "Inoffiziell. Nicht verbunden mit beste.schule."
+Return to the cream hook background. Two-beat serif line: **"Gebaut für Schüler. Nicht für Verwaltung."** ("Built for students. Not for administration.") — the positioning stated plainly, once. Then the share line settles: "Heute, Stundenplan und Noten aus beste.schule." Small subtext: "Inoffiziell. Nicht verbunden mit beste.schule."
 
 ## User flow worth showing
 Entry → key action → result, across the app's three core screens rather than a single flow: open the app to **Heute** (today's changes surfaced first) → check **Stundenplan** for the week's exceptions → check **Noten** for the Oberstufe average. This is the app's real daily-use loop for an Oberstufe student, not a landing page.
 
 ## Tone
 - Preset: polished
-- Creative direction: quiet, confident product film — the restraint itself is the argument for a privacy-respecting app. No jokes, no chaos, no fake hype language.
-- Interpretation: longer holds per scene, soft crossfades, generous whitespace, serif display type doing the emotional work instead of motion tricks. Nothing arrives faster than it can be read.
+- Creative direction: the calm alternative — a quiet product film whose own restraint demonstrates the claim. Warm rather than corporate; confident without ever attacking beste.schule by name.
+- Interpretation: longer holds per scene, soft crossfades, generous whitespace, serif display type doing the emotional work instead of motion tricks. The pacing itself has to feel like relief from a cluttered portal, so nothing arrives faster than it can be read.
 
 ## Format: vertical — 1080x1920
 ## Duration: 20s
@@ -37,7 +38,7 @@ Entry → key action → result, across the app's three core screens rather than
 - Strongest visual element: the real app screens themselves (Heute, Stundenplan, Noten) at native mobile width — real markup, real CSS, no mockup gloss.
 
 ## Share copy (draft)
-Deine Schule läuft jetzt clientseitig: Noten, Stundenplan und Vertretungen — dein Passwort sieht nur beste.schule. 🎒
+Bessere Schule: Noten, Stundenplan und Vertretungen aus beste.schule — endlich übersichtlich. Gebaut für Schüler, nicht für Verwaltung.
 
 ## Audio direction
 - Role: warm, sparse professional bed — confidence through restraint, not energy
@@ -52,7 +53,7 @@ Deine Schule läuft jetzt clientseitig: Noten, Stundenplan und Vertretungen — 
 ## Storyboard
 
 ### Scene 1 — Hook — 2.5s
-Cream full-bleed background. Serif headline "Deine Noten. Kein Server dazwischen." fades/settles in, wordmark "Bessere Schule" arrives beneath it a beat later.
+Cream full-bleed background. Serif headline "Deine Schule." / "Endlich übersichtlich." settles in as two deliberate beats, wordmark "Bessere Schule" arrives beneath it.
 Sequential/interaction: none
 Audio intent: calm, confident open under the music's intro
 Audio-coupled idea: none
@@ -84,7 +85,7 @@ Music: steady bed, slight swell
 Transition mood: soft crossfade → Scene 5
 
 ### Scene 5 — Outro — 3.5s
-Return to the cream background. "Dein Passwort sieht nur beste.schule." settles, then the share line and small "inoffiziell" subtext beneath the wordmark.
+Return to the cream background. "Gebaut für Schüler." / "Nicht für Verwaltung." settles as two beats, then "Heute, Stundenplan und Noten aus beste.schule." and the small "inoffiziell" subtext.
 Sequential/interaction: none
 Audio intent: settle and land; the claim gets the last word
 Audio-coupled idea: none

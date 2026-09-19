@@ -65,12 +65,12 @@
         letter-spacing: 0.01em;
         color: #57504A;
       }
+      .outro-heading { display: flex; flex-direction: column; gap: 4px; }
       .outro-line1 {
         font-family: 'Instrument Serif', serif;
-        font-size: 66px;
-        line-height: 1.15;
+        font-size: 72px;
+        line-height: 1.12;
         color: #1A1714;
-        max-width: 820px;
       }
       .outro-line2 {
         font-family: 'Instrument Sans', sans-serif;
@@ -150,8 +150,8 @@
       <section id="s1" class="clip" data-start="0" data-duration="2.9" data-track-index="0">
         <div id="s1-inner" class="inner text-scene">
           <div class="hook-lines">
-            <div id="s1-line1" class="hook-line">Deine Noten.</div>
-            <div id="s1-line2" class="hook-line">Kein Server dazwischen.</div>
+            <div id="s1-line1" class="hook-line">Deine Schule.</div>
+            <div id="s1-line2" class="hook-line">Endlich übersichtlich.</div>
           </div>
           <div id="s1-wordmark" class="wordmark">Bessere Schule</div>
         </div>
@@ -196,8 +196,11 @@
       <!-- Scene 5: Outro (16.5 - 20.0) -->
       <section id="s5" class="clip" data-start="16.5" data-duration="3.5" data-track-index="0">
         <div id="s5-inner" class="inner text-scene">
-          <div id="s5-line1" class="outro-line1">Dein Passwort sieht nur beste.schule.</div>
-          <div id="s5-line2" class="outro-line2">Noten, Stundenplan, Vertretungen. Ohne Umwege.</div>
+          <div class="outro-heading">
+            <div id="s5-line1a" class="outro-line1">Gebaut für Schüler.</div>
+            <div id="s5-line1b" class="outro-line1">Nicht für Verwaltung.</div>
+          </div>
+          <div id="s5-line2" class="outro-line2">Heute, Stundenplan und Noten aus beste.schule.</div>
           <div id="s5-line3" class="outro-sub">Inoffiziell. Nicht verbunden mit beste.schule.</div>
         </div>
       </section>
@@ -282,9 +285,10 @@
       // ---------- Scene 5: Outro (16.5 - 20.0) ----------
       tl.set("#s5-inner", { opacity: 0 }, 16.5);
       tl.to("#s5-inner", { opacity: 1, duration: 0.4, ease: "power1.inOut" }, 16.5);
-      tl.fromTo("#s5-line1", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 16.9);
-      tl.fromTo("#s5-line2", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 17.35);
-      tl.fromTo("#s5-line3", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 17.7);
+      tl.fromTo("#s5-line1a", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 16.9);
+      tl.fromTo("#s5-line1b", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 17.12);
+      tl.fromTo("#s5-line2", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 17.5);
+      tl.fromTo("#s5-line3", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 17.85);
 
       window.__timelines["brag"] = tl;
       tl.seek(0);

@@ -13,22 +13,23 @@ Create a short, polished launch-style brag video for Bessere Schule, an unoffici
 - Project root: `/home/user/better-student-app`
 - Primary files read: `public/index.html`, `public/css/tokens.css`, `public/css/app.css`, `README.md`, `public/js/views/{heute,noten,stundenplan}.js`, `public/js/components/bottom-nav.js`
 - Product name: Bessere Schule
-- Tagline / strongest claim: no backend — the browser talks straight to beste.schule's API, nobody else ever sees a student's data or password
+- Tagline / strongest claim: the same beste.schule data, rebuilt as one focused student view — what's on today, the week's timetable, the grades, and nothing else
 - Key UI moments to recreate: the Heute "Änderungen heute" card + lesson list, the Stundenplan Mo–Fr grid with changed/cancelled cells, the Noten Oberstufe average + LK/GK subject rows with sparkline trends
 - Copy that must appear verbatim:
-  - "Deine Noten. Kein Server dazwischen."
-  - "Dein Passwort sieht nur beste.schule."
-  - "Noten, Stundenplan, Vertretungen. Ohne Umwege."
+  - "Deine Schule. Endlich übersichtlich."
+  - "Gebaut für Schüler. Nicht für Verwaltung."
+  - "Heute, Stundenplan und Noten aus beste.schule."
 
 ## Creative Direction
 - Tone preset: polished
-- Creative direction: quiet, confident product film. The restraint itself is the argument for a privacy-respecting app — no jokes, no chaos, no hype language.
-- Interpretation: longer holds per scene, soft crossfades, generous whitespace, serif display type carrying the emotional weight instead of motion tricks.
-- Angle: the app's real differentiator is architectural (no server, no backend) rather than a feature list; prove it's real by showing three actual, detailed screens, not a generic mockup.
-- Hook: "Deine Noten. Kein Server dazwischen." over a cream background, wordmark settles beneath it.
-- Outro / punchline: "Dein Passwort sieht nur beste.schule." then the share line "Noten, Stundenplan, Vertretungen. Ohne Umwege."
+- Creative direction: the calm alternative. A quiet product film whose own restraint demonstrates the claim — warm rather than corporate, confident without ever attacking beste.schule by name.
+- Interpretation: longer holds per scene, soft crossfades, generous whitespace, serif display type carrying the emotional weight instead of motion tricks. The pacing should feel like relief from a crowded portal.
+- Angle: beste.schule serves a whole school (administration, teachers, guardians, students) and is heavy to use for a student who just wants to know if first period is cancelled. Bessere Schule takes the same data and builds only the student's daily view. Show, don't tell: three screens so calm the contrast argues itself.
+- Hook: "Deine Schule. Endlich übersichtlich." over a cream background, wordmark settles beneath it.
+- Outro / punchline: "Gebaut für Schüler." / "Nicht für Verwaltung." then "Heute, Stundenplan und Noten aus beste.schule."
 - Avoid:
   - Generic SaaS language ("streamline your workflow")
+  - Naming, mocking or mocking up beste.schule's own UI — the critique stays implicit
   - Abstract filler visuals / stock motion graphics
   - Any redesign of the real screens — use them as captured
 
@@ -44,11 +45,11 @@ Create a short, polished launch-style brag video for Bessere Schule, an unoffici
 Use the storyboard in `brag-output/brag-plan.md` as the creative contract.
 
 Scene summary:
-1. Hook — 2.5s — "Deine Noten. Kein Server dazwischen." + wordmark
+1. Hook — 2.5s — "Deine Schule. Endlich übersichtlich." + wordmark
 2. Heute — 5s — Änderungen-heute card settles first, then the lesson list
 3. Stundenplan — 4.5s — Mo–Fr grid, 4 changed/cancelled cells highlight in sequence
 4. Noten — 4.5s — "11 P" average counts up, then LK/GK subject rows with sparklines settle in
-5. Outro — 3.5s — "Dein Passwort sieht nur beste.schule." + share line + small "inoffiziell" subtext
+5. Outro — 3.5s — "Gebaut für Schüler." / "Nicht für Verwaltung." + "Heute, Stundenplan und Noten aus beste.schule." + small "inoffiziell" subtext
 
 ## Audio
 - Audio role: warm, sparse professional bed
