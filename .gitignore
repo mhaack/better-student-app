@@ -3,3 +3,4 @@ fixtures/raw/
 node_modules/
 .playwright-mcp/
 .DS_Store
+.claude/settings.local.json

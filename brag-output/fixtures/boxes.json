@@ -1,0 +1,52 @@
+{
+  "heuteChangesCard": {
+    "x": 48,
+    "y": 204,
+    "width": 864,
+    "height": 202
+  },
+  "notenAverage": {
+    "x": 48,
+    "y": 252,
+    "width": 164,
+    "height": 108
+  },
+  "notenSubjectGroups": {
+    "x": 48,
+    "y": 481,
+    "width": 864,
+    "height": 290
+  },
+  "stundenplanCells": [
+    {
+      "x": 88,
+      "y": 432,
+      "width": 158,
+      "height": 116
+    },
+    {
+      "x": 88,
+      "y": 556,
+      "width": 158,
+      "height": 116
+    },
+    {
+      "x": 421,
+      "y": 556,
+      "width": 158,
+      "height": 116
+    },
+    {
+      "x": 88,
+      "y": 680,
+      "width": 158,
+      "height": 116
+    },
+    {
+      "x": 587,
+      "y": 680,
+      "width": 158,
+      "height": 116
+    }
+  ]
+}

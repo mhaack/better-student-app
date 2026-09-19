@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stundenplan — Bessere Schule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../public/css/tokens.css">
+<link rel="stylesheet" href="../../public/css/app.css">
+<style>html,body{height:100%}</style>
+</head>
+<body>
+<div id="app">
+  <div id="view-container" style="flex:1;display:flex;flex-direction:column;min-height:0">
+    <div class="view">
+      <div>
+        <h1 class="view-title">Stundenplan</h1>
+        <div class="sp-week-nav">
+          <button type="button" class="sp-week-nav-btn" aria-label="Vorherige Woche" disabled style="visibility:hidden">‹</button>
+          <div class="view-subtitle">Mo 17.11 – Fr 21.11 · 10b</div>
+          <button type="button" class="sp-week-nav-btn" aria-label="Nächste Woche">›</button>
+        </div>
+      </div>
+      <div class="view-body">
+        <div class="sp-grid">
+          <div class="sp-grid-row">
+            <span></span>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+              <div class="sp-day-label sp-day-label--today">Mo</div>
+              <div class="sp-day-date">17.11.</div>
+            </div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+              <div class="sp-day-label">Di</div>
+              <div class="sp-day-date">18.11.</div>
+            </div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+              <div class="sp-day-label">Mi</div>
+              <div class="sp-day-date">19.11.</div>
+            </div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+              <div class="sp-day-label">Do</div>
+              <div class="sp-day-date">20.11.</div>
+            </div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+              <div class="sp-day-label">Fr</div>
+              <div class="sp-day-date">21.11.</div>
+            </div>
+          </div>
+
+          <div class="sp-grid-row">
+            <div class="sp-period">1</div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ma</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">De</div><div class="sp-cell-meta">210</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">En</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ma</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ge</div><div class="sp-cell-meta">112</div></div></div>
+          </div>
+
+          <div class="sp-grid-row">
+            <div class="sp-period">2</div>
+            <div class="sp-grid-cell">
+              <div class="sp-cell sp-cell--changed" role="button" tabindex="0" aria-label="Physik, Raumänderung">
+                <div class="sp-cell-title">→ Ph</div>
+                <div class="sp-cell-meta">204</div>
+              </div>
+            </div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ma</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ph</div><div class="sp-cell-meta">015</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">De</div><div class="sp-cell-meta">210</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">En</div><div class="sp-cell-meta">118</div></div></div>
+          </div>
+
+          <div class="sp-grid-row">
+            <div class="sp-period">3</div>
+            <div class="sp-grid-cell">
+              <div class="sp-cell sp-cell--changed" role="button" tabindex="0" aria-label="Englisch, Vertretung">
+                <div class="sp-cell-title">± En</div>
+                <div class="sp-cell-meta">118</div>
+                <div class="sp-cell-meta">Krause</div>
+              </div>
+            </div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ge</div><div class="sp-cell-meta">112</div></div></div>
+            <div class="sp-grid-cell">
+              <div class="sp-cell sp-cell--changed" role="button" tabindex="0" aria-label="Kunst, Geändert">
+                <div class="sp-cell-title">Ku</div>
+                <div class="sp-cell-meta">Aufgaben im Sekretariat</div>
+              </div>
+            </div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ch</div><div class="sp-cell-meta">015</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Sp</div><div class="sp-cell-meta">Halle 2</div></div></div>
+          </div>
+
+          <div class="sp-grid-row">
+            <div class="sp-period">4</div>
+            <div class="sp-grid-cell">
+              <div class="sp-cell sp-cell--cancelled" role="button" tabindex="0" aria-label="Sport, Entfällt">
+                <div class="sp-cell-title" style="text-decoration:line-through">Sp</div>
+                <div class="sp-cell-meta">entfällt</div>
+              </div>
+            </div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ch</div><div class="sp-cell-meta">015</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">De</div><div class="sp-cell-meta">210</div></div></div>
+            <div class="sp-grid-cell">
+              <div class="sp-cell sp-cell--cancelled" role="button" tabindex="0" aria-label="Biologie, Entfällt">
+                <div class="sp-cell-title" style="text-decoration:line-through">Bio</div>
+                <div class="sp-cell-meta">entfällt</div>
+              </div>
+            </div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ma</div><div class="sp-cell-meta">118</div></div></div>
+          </div>
+
+          <div class="sp-grid-row">
+            <div class="sp-period">5</div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ge</div><div class="sp-cell-meta">112</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Sp</div><div class="sp-cell-meta">Halle 2</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">Ma</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"><div class="sp-cell"><div class="sp-cell-title">En</div><div class="sp-cell-meta">118</div></div></div>
+            <div class="sp-grid-cell"></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted)"><span style="color:var(--accent);font-weight:600">5 Änderungen</span> · in dieser Woche</div>
+      </div>
+    </div>
+  </div>
+  <div id="nav-container">
+    <nav class="bottom-nav" aria-label="Hauptnavigation">
+      <a class="nav-item" href="#/heute">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Heute</span>
+      </a>
+      <a class="nav-item" href="#/noten">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+        <span>Noten</span>
+      </a>
+      <a class="nav-item" href="#/stundenplan" aria-current="page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>
+        <span>Stundenplan</span>
+      </a>
+      <a class="nav-item" href="#/mehr">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span>Mehr</span>
+      </a>
+    </nav>
+  </div>
+</div>
+</body>
+</html>
