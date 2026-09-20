@@ -471,7 +471,9 @@ button {
   /* Bottom padding is just enough to clear the iPhone home-indicator via
      safe-area-inset-bottom; on devices without one this is a slim 8px, not
      the old fixed 20px that made the bar tall even where no inset applies. */
-  padding: 4px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  /* 4px of side padding rather than 8px: at five tabs the labels, not the
+     touch targets, are what runs out of room on a 390px screen. */
+  padding: 4px 4px calc(8px + env(safe-area-inset-bottom, 0px));
   flex: none;
 }
 
@@ -482,8 +484,10 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 5px;
+  /* 11px is the design's own answer to a five-tab bar; --touch-target is
+     untouched, so each tab stays full height and only the label shrinks. */
+  font-size: 11px;
   color: var(--text-muted);
 }
 
@@ -754,3 +758,206 @@ button {
   margin-top: 10px;
 }
 
+
+/* Termine ------------------------------------------------------------- */
+
+/* Two segments over one dataset, not two pages: the choice re-renders only
+   the body below, so the title and the control itself never flash. */
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--chip-bg);
+  border-radius: var(--radius-sm);
+}
+
+.segment {
+  flex: 1;
+  min-height: 38px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.segment--active {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(26, 23, 20, .12);
+}
+
+/* The inverted "Als nächstes" card. It reuses the LK-badge pair because
+   those are the only tokens that already flip with the theme — on a dark
+   theme the card has to invert too, or it stops being the emphatic one. */
+.next-card {
+  background: var(--lk-badge-bg);
+  color: var(--lk-badge-text);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.next-card-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+
+.next-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  /* The grid/flex item itself has to be shrinkable for the title's ellipsis
+     to work — putting min-width on a child does nothing here. */
+  min-width: 0;
+}
+
+.next-card-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.next-card-when {
+  font-size: 13px;
+  opacity: .72;
+  white-space: nowrap;
+}
+
+.next-card-meta {
+  font-size: 14px;
+  opacity: .72;
+}
+
+.next-card-body {
+  font-size: 14px;
+  border-top: 1px solid rgba(128, 128, 128, .35);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+/* Date-led rows: a serif day number in a fixed gutter, details beside it. */
+.date-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.date-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.date-row-number {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.date-row-weekday {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.date-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  /* Same rule as above: this is the grid item, so this is where it belongs. */
+  min-width: 0;
+}
+
+.date-row-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.date-row-detail {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Free text from the Klassenbuch — can be a sentence, so it wraps to two
+   lines and then clamps rather than pushing the row out of shape. */
+.date-row-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Holidays sit in the same list as an orientation point, not as an event. */
+.date-row--muted .date-row-number,
+.date-row--muted .date-row-weekday {
+  color: var(--text-disabled);
+}
+
+.date-row--muted .date-row-title {
+  color: var(--text-secondary);
+}
+
+.ferien-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.ferien-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ferien-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.ferien-row-name {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.ferien-row--small .ferien-row-name {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+/* The date is the fixed part; a long holiday name wraps instead of shoving
+   it off the row. */
+.ferien-row-range {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

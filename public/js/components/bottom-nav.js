@@ -1,9 +1,13 @@
 import { ICONS } from "./icons.js";
 
+// The label is not always the screen's own title: at five tabs on a 390px
+// screen "Stundenplan" no longer fits, so the nav says "Plan" while the route
+// and the view's heading stay "Stundenplan".
 const TABS = [
   { path: "/heute", label: "Heute", icon: ICONS.house },
   { path: "/noten", label: "Noten", icon: ICONS.graduationCap },
-  { path: "/stundenplan", label: "Stundenplan", icon: ICONS.calendarDays },
+  { path: "/stundenplan", label: "Plan", icon: ICONS.calendarDays },
+  { path: "/termine", label: "Termine", icon: ICONS.calendarCheck },
   { path: "/mehr", label: "Mehr", icon: ICONS.ellipsis },
 ];
 

@@ -11,6 +11,7 @@ import { renderHeute } from "./views/heute.js";
 import { renderNoten } from "./views/noten.js";
 import { renderFachDetail } from "./views/fach-detail.js";
 import { renderStundenplan } from "./views/stundenplan.js";
+import { renderTermine } from "./views/termine.js";
 import { renderMehr } from "./views/mehr.js";
 
 const app = document.getElementById("app");
@@ -44,6 +45,7 @@ route(/^\/heute$/, withShell(renderHeute));
 route(/^\/noten$/, withShell(renderNoten));
 route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFachDetail(container, params)));
 route(/^\/stundenplan$/, withShell(renderStundenplan));
+route(/^\/termine$/, withShell(renderTermine));
 route(/^\/mehr$/, withShell(renderMehr));
 
 onAuthChange(() => {
