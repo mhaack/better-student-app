@@ -11,6 +11,14 @@ const STATUS_PILL = {
   cancelled: '<span class="pill pill--cancel">entfällt</span>',
 };
 
+/** "218 → 206" for a moved lesson, otherwise just where it is. */
+function lessonMeta(lesson) {
+  if (lesson.status === "room_change" && lesson.previousRoom && lesson.room) {
+    return `${lesson.previousRoom} → ${lesson.room}`;
+  }
+  return lesson.room ?? lesson.teacher ?? "";
+}
+
 function lessonRow(lesson) {
   const isCancelled = lesson.status === "cancelled";
   return `
@@ -18,7 +26,7 @@ function lessonRow(lesson) {
       <div class="lesson-period">${escapeHtml(lesson.period)}</div>
       <div style="display:flex;flex-direction:column;gap:3px">
         <div class="${isCancelled ? "lesson-subject lesson-subject--cancelled" : "lesson-subject"}">${escapeHtml(lesson.subject ?? "–")}</div>
-        <div class="lesson-meta">${escapeHtml(lesson.room ?? lesson.teacher ?? "")}</div>
+        <div class="lesson-meta">${escapeHtml(lessonMeta(lesson))}</div>
       </div>
       ${STATUS_PILL[lesson.status] ?? "<span></span>"}
     </div>`;

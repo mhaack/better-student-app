@@ -41,8 +41,18 @@ export function peopleNames(people) {
 
 /** Rooms are labelled by local_id ("210", "THR1"), and a lesson can have several. */
 export function roomNames(rooms) {
-  const names = (rooms ?? []).map((r) => r?.local_id).filter(Boolean);
+  const names = roomList(rooms);
   return names.length ? names.join(", ") : undefined;
+}
+
+/**
+ * The raw room labels. Kept as a list because a changed lesson carries both
+ * the original room and the new one in the same array, alphabetically sorted
+ * — so telling them apart is a set operation against the timetable, not
+ * something the joined string can express.
+ */
+export function roomList(rooms) {
+  return (rooms ?? []).map((r) => r?.local_id).filter(Boolean);
 }
 
 /** Staff also carry a local_id ("KRC", "KLH") — too narrow a column for full names. */
@@ -184,6 +194,7 @@ export function mapPlanLesson(raw) {
     subjectShort: raw.subject?.local_id,
     subjectId: raw.subject?.id,
     room: roomNames(raw.rooms),
+    roomList: roomList(raw.rooms),
     teacher: peopleNames(raw.teachers),
     teacherShort: teacherShortNames(raw.teachers),
     notes: (raw.notes ?? []).filter(Boolean),
@@ -200,6 +211,7 @@ export function mapTimetableLesson(raw) {
     subject: raw.subject?.name,
     subjectShort: raw.subject?.local_id,
     room: roomNames(raw.rooms),
+    roomList: roomList(raw.rooms),
     teacher: peopleNames(raw.teachers),
     teacherShort: teacherShortNames(raw.teachers),
     from: raw.time?.from,
