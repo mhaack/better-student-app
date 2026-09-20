@@ -57,7 +57,7 @@ export function refineChangedLessons(planLessons, timetable, date) {
     if (lesson.status !== "changed") return lesson;
 
     const base = baseByPeriod.get(lesson.period);
-    const roomChanged = base?.room && lesson.room && base.room !== lesson.room;
+    const { movedTo, movedFrom } = diffRooms(base?.roomList, lesson.roomList);
     const teacherChanged = base?.teacher && lesson.teacher && base.teacher !== lesson.teacher;
 
     if (teacherChanged) {
@@ -68,9 +68,39 @@ export function refineChangedLessons(planLessons, timetable, date) {
         previousTeacherShort: base.teacherShort,
       };
     }
-    if (roomChanged) return { ...lesson, status: "room_change", previousRoom: base.room };
+    if (movedTo) {
+      return {
+        ...lesson,
+        status: "room_change",
+        // Show where the lesson has moved to, not the raw list that still
+        // carries the old room alongside the new one.
+        room: movedTo,
+        previousRoom: movedFrom,
+      };
+    }
     return { ...lesson, status: "changed" };
   });
+}
+
+/**
+ * A relocated lesson lists the original room *and* the new one in the same
+ * `rooms` array, alphabetically, so "218 → 206, 218" was the whole array
+ * being printed as the destination. The new room is whichever entry the
+ * timetable doesn't already have.
+ *
+ * @returns {{ movedTo?: string, movedFrom?: string }} empty when nothing moved
+ */
+function diffRooms(baseRooms, planRooms) {
+  const before = baseRooms ?? [];
+  const after = planRooms ?? [];
+  if (!before.length || !after.length) return {};
+
+  const added = after.filter((room) => !before.includes(room));
+  // Nothing added means the lesson stayed put (a cancellation lists its
+  // original room unchanged, for instance).
+  if (!added.length) return {};
+
+  return { movedTo: added.join(", "), movedFrom: before.join(", ") };
 }
 
 /**
