@@ -93,7 +93,18 @@ inherits the subject of its collection.
   lesson covered — backward-looking). No `due_date`; the lesson's own date is
   the date it applies to. A double period records the **same entry twice, once
   per lesson, with different note ids** — dedupe by content.
-- **Announcement** body is `message` (markdown-ish, with attachment links).
+- **Announcement** body is `message`: Markdown (`**bold**`, `\n\n`
+  paragraphs, `[file.pdf](/attachments/463)` links **relative** to
+  `https://beste.schule`), no HTML. There's no `created_at`: the only dates
+  are `read_from`/`read_to` (visibility window) and `write_from`/`write_to`
+  (meaning unclear). No read flag and no author by default — use
+  `include=teacher,readGuardiansCount,readStudentsCount`; the read counts
+  are scoped to the viewer, not school-wide. Attachments exist only as links
+  in `message`. `/api/attachments/:id` returns metadata as JSON, and
+  otherwise 302s to a presigned S3 URL on `s3-eu-central-1.ionoscloud.com`
+  (not in our `connect-src`); the web route `/attachments/:id` needs a web
+  session. Allowed filters include `student`; there's no `read` filter.
+  Details in `docs/plans/mitteilungen.md`.
 
 ## No LK/GK anywhere
 
