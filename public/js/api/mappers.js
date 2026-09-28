@@ -34,40 +34,33 @@ export function personName(person) {
   return [person.forename, person.name].filter(Boolean).join(" ") || undefined;
 }
 
-export function peopleNames(people) {
-  const names = peopleList(people);
-  return names.length ? names.join(", ") : undefined;
+/** Rooms and staff are labelled by local_id ("210", "THR1", "KRC"). */
+function localIds(items) {
+  return (items ?? []).map((item) => item?.local_id).filter(Boolean);
 }
 
-/** The raw names, kept as a list for the same reason as `roomList`. */
-export function peopleList(people) {
-  return (people ?? []).map(personName).filter(Boolean);
-}
-
-/** Rooms are labelled by local_id ("210", "THR1"), and a lesson can have several. */
-export function roomNames(rooms) {
-  const names = roomList(rooms);
-  return names.length ? names.join(", ") : undefined;
+function joined(list) {
+  return list.length ? list.join(", ") : undefined;
 }
 
 /**
- * The raw room labels. Kept as a list because a changed lesson carries both
- * the original room and the new one in the same array, alphabetically sorted
- * — so telling them apart is a set operation against the timetable, not
- * something the joined string can express.
+ * Room and teacher fields shared by timetable and plan lessons. The lists are
+ * kept alongside the joined strings because a changed lesson carries both the
+ * original entry and the new one in the same array — so telling them apart is
+ * a set operation against the timetable, not something a string can express.
  */
-export function roomList(rooms) {
-  return (rooms ?? []).map((r) => r?.local_id).filter(Boolean);
-}
-
-/** Staff also carry a local_id ("KRC", "KLH") — too narrow a column for full names. */
-export function teacherShortNames(people) {
-  const names = teacherShortList(people);
-  return names.length ? names.join(", ") : undefined;
-}
-
-export function teacherShortList(people) {
-  return (people ?? []).map((p) => p?.local_id).filter(Boolean);
+function roomsAndTeachers(raw) {
+  const roomList = localIds(raw.rooms);
+  const teacherList = (raw.teachers ?? []).map(personName).filter(Boolean);
+  const teacherShortList = localIds(raw.teachers);
+  return {
+    room: joined(roomList),
+    roomList,
+    teacher: joined(teacherList),
+    teacherList,
+    teacherShort: joined(teacherShortList),
+    teacherShortList,
+  };
 }
 
 export function mapStudent(raw) {
@@ -202,12 +195,7 @@ export function mapPlanLesson(raw) {
     subject: raw.subject?.name,
     subjectShort: raw.subject?.local_id,
     subjectId: raw.subject?.id,
-    room: roomNames(raw.rooms),
-    roomList: roomList(raw.rooms),
-    teacher: peopleNames(raw.teachers),
-    teacherShort: teacherShortNames(raw.teachers),
-    teacherList: peopleList(raw.teachers),
-    teacherShortList: teacherShortList(raw.teachers),
+    ...roomsAndTeachers(raw),
     notes: (raw.notes ?? []).filter(Boolean),
   };
 }
@@ -221,12 +209,7 @@ export function mapTimetableLesson(raw) {
     subjectId: raw.subject?.id,
     subject: raw.subject?.name,
     subjectShort: raw.subject?.local_id,
-    room: roomNames(raw.rooms),
-    roomList: roomList(raw.rooms),
-    teacher: peopleNames(raw.teachers),
-    teacherShort: teacherShortNames(raw.teachers),
-    teacherList: peopleList(raw.teachers),
-    teacherShortList: teacherShortList(raw.teachers),
+    ...roomsAndTeachers(raw),
     from: raw.time?.from,
     to: raw.time?.to,
   };
@@ -252,7 +235,7 @@ export function mapJournalNotes(rawLesson) {
     text: note.description ?? "",
     typeName: note.type?.name,
     typeCode: note.type?.local_id,
-    teacher: teacherShortNames(rawLesson.teachers),
+    teacher: joined(localIds(rawLesson.teachers)),
   }));
 }
 
