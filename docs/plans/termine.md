@@ -197,7 +197,9 @@ third-party service.
      that name ("Buß- und Bettag");
   3. otherwise the month heuristic below;
   4. otherwise `null`, rendered "Schulfrei" — never a guess.
-- `nextHoliday(blocks, fromIso)` → the first named block after `fromIso`.
+- `nextHoliday(blocks, fromIso)` → the first Ferien block after `fromIso`.
+  Single named Feiertage are skipped: "bis zu den Buß- und Bettag" is no
+  break to count down to.
 
 **Fallback heuristic** (step 3), used only when the service is unreachable.
 Applied to blocks of `MIN_FERIEN_SCHOOL_DAYS = 5`+ school days:

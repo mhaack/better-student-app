@@ -53,6 +53,15 @@ function onlyWeekendBetween(from, to) {
   return false;
 }
 
+/** Weekdays from `from` to `to` inclusive — what "Schultage frei" counts. */
+function weekdaysIn(from, to) {
+  let count = 0;
+  for (let day = from; day <= to; day = addDays(day, 1)) {
+    if (!isWeekend(day)) count++;
+  }
+  return count;
+}
+
 /** Which official range a date belongs to, as a comparable identity. */
 function officialKeyFor(date, officialFerien) {
   const match = officialFerien.find((f) => date >= f.from && date <= f.to);
@@ -146,15 +155,24 @@ export function ferienStem(name) {
  * @param {{name: string, from: string, to: string}[]} officialFerien
  */
 export function nameBlocks(blocks, officialFerien = []) {
+  const seenOfficial = new Set();
   return blocks.map((block) => {
     const official = officialFerien.find((f) => block.from >= f.from && block.from <= f.to);
     if (official) {
+      // A gap in the school's own list splits one official break into several
+      // blocks, and each would expand to the same official range. Keep the
+      // first; the rest are dropped below.
+      const key = `${official.name}|${official.from}`;
+      if (seenOfficial.has(key)) return null;
+      seenOfficial.add(key);
       // The official range replaces the school's own, which is what repairs a
-      // break the school only partly recorded.
+      // break the school only partly recorded. The school-day count follows
+      // the range, or the card pairs the real dates with the truncated count.
       return {
         ...block,
         from: official.from,
         to: official.to,
+        schoolDays: weekdaysIn(official.from, official.to),
         name: official.name,
         isFerien: true,
         source: "official",
@@ -173,13 +191,15 @@ export function nameBlocks(blocks, officialFerien = []) {
       isFerien: Boolean(guessed),
       source: guessed ? "derived" : "none",
     };
-  });
+  }).filter(Boolean);
 }
 
 /**
- * The next named block starting after `fromIso`. Unnamed blocks are skipped:
- * "Als nächstes: Schulfrei" says nothing worth a card.
+ * The next Ferien block starting after `fromIso`. Single free days are
+ * skipped, named or not: the card and the "bis zu den …" subtitle both speak
+ * of a break, and "bis zu den Buß- und Bettag · 1 Schultage frei" is neither
+ * grammatical nor what a student counts down to.
  */
 export function nextHoliday(namedBlocks, fromIso) {
-  return namedBlocks.find((block) => block.name && block.from > fromIso) ?? null;
+  return namedBlocks.find((block) => block.isFerien && block.from > fromIso) ?? null;
 }

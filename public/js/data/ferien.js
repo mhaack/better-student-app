@@ -15,7 +15,7 @@
 // school-specific. And the school recorded only 15 of the 30 weekdays of the
 // 2027 summer break, so its own dates cannot be trusted for the ranges.
 
-import { fetchCurrentTimetable, fetchSchool } from "./repository.js";
+import { fetchCurrentTimetable, fetchSchool, isoDate } from "./repository.js";
 import { fetchSchulferien } from "../api/schulferien.js";
 import { holidayBlocks, nameBlocks, nextHoliday, MIN_FERIEN_SCHOOL_DAYS } from "../domain/holidays.js";
 
@@ -46,7 +46,9 @@ export async function getFerienData(context = {}) {
   const blocks = holidayBlocks(timetable.noSchoolDates, official).filter((b) => b.from >= yearFrom);
 
   const named = nameBlocks(blocks, official);
-  const today = new Date().toISOString().slice(0, 10);
+  // Local date, as in data/termine.js. The UTC date is still yesterday in
+  // Berlin until 01:00/02:00, which would put the two segments on different days.
+  const today = isoDate(new Date());
 
   return {
     next: nextHoliday(named, today),

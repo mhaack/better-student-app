@@ -164,5 +164,13 @@ await test("entries missing a name or dates are dropped, not rendered blank", as
   assert.deepEqual(rows.map((r) => r.name), ["Herbstferien"]);
 });
 
+await test("a failure is not cached: the next call retries", async () => {
+  stubFetch(async () => { throw new TypeError("Failed to fetch"); });
+  assert.deepEqual(await fetchSchulferien("Schleswig-Holstein"), []);
+  stubFetch(jsonOk([entry("Herbstferien", "2026-10-12", "2026-10-24")]));
+  const rows = await fetchSchulferien("Schleswig-Holstein");
+  assert.deepEqual(rows.map((r) => r.name), ["Herbstferien"]);
+});
+
 globalThis.fetch = realFetch;
 console.log(`\n${passed} passed`);

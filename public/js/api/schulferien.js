@@ -93,34 +93,39 @@ export async function fetchSchulferien(stateName) {
   const code = stateCodeFor(stateName);
   if (!code) return [];
 
-  return cached(
-    `schulferien:${code}`,
-    async () => {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-      try {
-        const res = await fetch(
-          `${BASE_URL}/next/${LOOKAHEAD_DAYS}?states=${encodeURIComponent(code)}`,
-          { headers: { Accept: "application/json" }, signal: controller.signal }
-        );
-        if (!res.ok) return [];
-        const body = await res.json();
-        const rows = Array.isArray(body) ? body : (body?.holidays ?? body?.data ?? []);
-        if (!Array.isArray(rows)) return [];
+  try {
+    // Failures throw *inside* the cached fetcher so cached() drops them and
+    // the next open retries. Returning [] there would store the failure for
+    // STALE_MS and pin the guessed names for half a day.
+    return await cached(
+      `schulferien:${code}`,
+      async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        try {
+          const res = await fetch(
+            `${BASE_URL}/next/${LOOKAHEAD_DAYS}?states=${encodeURIComponent(code)}`,
+            { headers: { Accept: "application/json" }, signal: controller.signal }
+          );
+          if (!res.ok) throw new Error(`schulferien-api.de: HTTP ${res.status}`);
+          const body = await res.json();
+          const rows = Array.isArray(body) ? body : (body?.holidays ?? body?.data);
+          if (!Array.isArray(rows)) throw new Error("schulferien-api.de: unexpected body");
 
-        const entries = rows
-          .map(normalize)
-          .filter((entry) => entry.name && entry.from && entry.to)
-          .sort((a, b) => a.from.localeCompare(b.from));
-        return untilSummerInclusive(entries);
-      } catch {
-        // Offline, timed out, CORS, malformed JSON, service gone — all the
-        // same answer: we simply don't have official names this time.
-        return [];
-      } finally {
-        clearTimeout(timeout);
-      }
-    },
-    { staleMs: STALE_MS }
-  );
+          const entries = rows
+            .map(normalize)
+            .filter((entry) => entry.name && entry.from && entry.to)
+            .sort((a, b) => a.from.localeCompare(b.from));
+          return untilSummerInclusive(entries);
+        } finally {
+          clearTimeout(timeout);
+        }
+      },
+      { staleMs: STALE_MS }
+    );
+  } catch {
+    // Offline, timed out, CORS, malformed JSON, service gone — all the
+    // same answer: we simply don't have official names this time.
+    return [];
+  }
 }

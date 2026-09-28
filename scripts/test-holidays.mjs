@@ -120,6 +120,19 @@ test("an official range supplies the name AND replaces the block's dates", () =>
   assert.equal(named[0].to, "2027-08-20");
   assert.equal(named[0].source, "official");
   assert.equal(named[0].isFerien, true);
+  // The count follows the official range: 30 weekdays, not the 15 recorded.
+  assert.equal(named[0].schoolDays, 30);
+});
+
+test("a gap in the school's list does not duplicate the official break", () => {
+  // Wed 2027-07-21 missing: two school blocks, one official Sommerferien.
+  const official = [{ name: "Sommerferien", from: "2027-07-10", to: "2027-08-20" }];
+  const dates = [...weekdaysBetween("2027-07-12", "2027-07-20"), ...weekdaysBetween("2027-07-22", "2027-07-30")];
+  const blocks = holidayBlocks(dates, official);
+  assert.equal(blocks.length, 2, "precondition: the gap splits the school's blocks");
+  const named = nameBlocks(blocks, official);
+  assert.equal(named.length, 1);
+  assert.equal(named[0].to, "2027-08-20");
 });
 
 test("a short official Ferien block is named, where the heuristic could not", () => {
@@ -193,6 +206,17 @@ test("nextHoliday skips unnamed blocks and anything already started", () => {
   assert.equal(nextHoliday(named, "2026-09-20").name, "Herbstferien");
   assert.equal(nextHoliday(named, "2026-10-12"), null); // already begun
   assert.equal(nextHoliday([], "2026-09-20"), null);
+});
+
+test("nextHoliday skips a named single Feiertag and waits for real Ferien", () => {
+  // After Herbstferien 2026 the next closed day is Buß- und Bettag. It has a
+  // name, but "bis zu den Buß- und Bettag" is not a break to count down to.
+  const named = nameBlocks(
+    holidayBlocks(["2026-11-18", ...weekdaysBetween("2026-12-23", "2027-01-01")]),
+    []
+  );
+  assert.equal(named[0].name, "Buß- und Bettag");
+  assert.equal(nextHoliday(named, "2026-10-26").name, "Weihnachtsferien");
 });
 
 console.log(`\n${passed} passed`);
