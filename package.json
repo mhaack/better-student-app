@@ -7,7 +7,7 @@
     "discover": "node scripts/discover.mjs",
     "cors-check": "node scripts/cors-check.mjs",
     "anonymize": "node scripts/anonymize.mjs",
-    "test": "node scripts/test-grades.mjs && node scripts/test-pkce.mjs && node scripts/test-school-day.mjs && node scripts/test-timetable.mjs && node scripts/test-feiertage.mjs && node scripts/test-holidays.mjs && node scripts/test-schulferien.mjs",
+    "test": "node scripts/test.mjs",
     "serve": "node scripts/serve.mjs"
   }
 }

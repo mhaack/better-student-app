@@ -80,6 +80,13 @@ inherits the subject of its collection.
   `status: "initial" | "planned" | "canceled"` (one "l"). There is no explicit
   "room change" vs "substitution" — compare against the base timetable to tell
   them apart. Day-level `notes[]` carry school-wide announcements.
+- **A changed plan lesson lists the original *and* the new entries together**
+  in its `rooms[]` and `teachers[]`, with nothing marking which is which.
+  Rooms come sorted alphabetically (`["206", "218"]` for 218 → 206); a
+  stand-in teacher appears next to the regular one (`["Sandra Kaiser",
+  "Ulrike Raupach"]` for Raupach → Kaiser). The new entry is whichever one the
+  base timetable doesn't have — see `diffList` in `js/data/timetable.js`.
+  Printing the plan's array as "the new room/teacher" is always wrong.
 - **`journal/lessons`** is the Klassenbuch: notes hang off a lesson as
   `{ id, description, type: { local_id, name } }`. Types seen: `LEI`
   ("Leistungskontrolle", an announced test) and `STU` ("Stundenthema", what the
