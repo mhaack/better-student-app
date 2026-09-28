@@ -57,25 +57,30 @@ export function refineChangedLessons(planLessons, timetable, date) {
     if (lesson.status !== "changed") return lesson;
 
     const base = baseByPeriod.get(lesson.period);
-    const { movedTo, movedFrom } = diffRooms(base?.roomList, lesson.roomList);
-    const teacherChanged = base?.teacher && lesson.teacher && base.teacher !== lesson.teacher;
+    const rooms = diffList(base?.roomList, lesson.roomList);
+    const teachers = diffList(base?.teacherList, lesson.teacherList);
 
-    if (teacherChanged) {
+    if (teachers.added) {
+      const shorts = diffList(base?.teacherShortList, lesson.teacherShortList);
       return {
         ...lesson,
         status: "substitution",
-        previousTeacher: base.teacher,
-        previousTeacherShort: base.teacherShort,
+        // Show who's standing in, not the raw list that still carries the
+        // regular teacher alongside them.
+        teacher: teachers.added,
+        teacherShort: shorts.added ?? lesson.teacherShort,
+        previousTeacher: teachers.previous,
+        previousTeacherShort: shorts.previous ?? base?.teacherShort,
       };
     }
-    if (movedTo) {
+    if (rooms.added) {
       return {
         ...lesson,
         status: "room_change",
         // Show where the lesson has moved to, not the raw list that still
         // carries the old room alongside the new one.
-        room: movedTo,
-        previousRoom: movedFrom,
+        room: rooms.added,
+        previousRoom: rooms.previous,
       };
     }
     return { ...lesson, status: "changed" };
@@ -83,24 +88,24 @@ export function refineChangedLessons(planLessons, timetable, date) {
 }
 
 /**
- * A relocated lesson lists the original room *and* the new one in the same
- * `rooms` array, alphabetically, so "218 → 206, 218" was the whole array
- * being printed as the destination. The new room is whichever entry the
- * timetable doesn't already have.
+ * A changed lesson lists the original entries *and* the new ones in the same
+ * array — rooms ("218 → 206, 218" was the whole array being printed as the
+ * destination) and teachers alike ("Raupach → Kaiser, Raupach"). What's new
+ * is whichever entry the timetable doesn't already have.
  *
- * @returns {{ movedTo?: string, movedFrom?: string }} empty when nothing moved
+ * @returns {{ added?: string, previous?: string }} empty when nothing was added
  */
-function diffRooms(baseRooms, planRooms) {
-  const before = baseRooms ?? [];
-  const after = planRooms ?? [];
+function diffList(baseList, planList) {
+  const before = baseList ?? [];
+  const after = planList ?? [];
   if (!before.length || !after.length) return {};
 
-  const added = after.filter((room) => !before.includes(room));
-  // Nothing added means the lesson stayed put (a cancellation lists its
+  const added = after.filter((entry) => !before.includes(entry));
+  // Nothing added means nothing changed hands (a cancellation lists its
   // original room unchanged, for instance).
   if (!added.length) return {};
 
-  return { movedTo: added.join(", "), movedFrom: before.join(", ") };
+  return { added: added.join(", "), previous: before.join(", ") };
 }
 
 /**

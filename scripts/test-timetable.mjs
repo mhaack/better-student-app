@@ -21,13 +21,17 @@ function test(name, fn) {
 // Thursday 2026-09-24.
 const THURSDAY = new Date(2026, 8, 24, 9, 0, 0);
 
+const teachers = (teacherList, teacherShortList) => ({
+  teacherList, teacher: teacherList.join(", "),
+  teacherShortList, teacherShort: teacherShortList.join(", "),
+});
 const timetableWith = (roomList, extra = {}) => ({
   weeks: [],
-  lessons: [{ weekday: 4, period: 7, weeks: [], subject: "Englisch", roomList, room: roomList.join(", "), teacher: "Frau A", teacherShort: "A", ...extra }],
+  lessons: [{ weekday: 4, period: 7, weeks: [], subject: "Englisch", roomList, room: roomList.join(", "), ...teachers(["Frau A"], ["A"]), ...extra }],
 });
 const planLesson = (roomList, extra = {}) => ({
   period: 7, status: "changed", subject: "Englisch", subjectShort: "EN",
-  roomList, room: roomList.join(", "), teacher: "Frau A", teacherShort: "A", notes: [], ...extra,
+  roomList, room: roomList.join(", "), ...teachers(["Frau A"], ["A"]), notes: [], ...extra,
 });
 
 const refineOne = (base, plan, date = THURSDAY) => refineChangedLessons([plan], base, date)[0];
@@ -73,11 +77,41 @@ test("a cancelled lesson keeps its room and its status", () => {
 test("a stand-in teacher outranks a room move", () => {
   const out = refineOne(
     timetableWith(["218"]),
-    planLesson(["206", "218"], { teacher: "Herr B", teacherShort: "B" })
+    planLesson(["206", "218"], teachers(["Herr B"], ["B"]))
   );
   assert.equal(out.status, "substitution");
   assert.equal(out.previousTeacherShort, "A");
   assert.equal(out.teacherShort, "B");
+});
+
+test("a stand-in joining the regular teacher: only the stand-in after the arrow", () => {
+  // Real case: ["Sandra Kaiser", "Ulrike Raupach"] for a lesson normally
+  // held by Ulrike Raupach alone.
+  const out = refineOne(
+    timetableWith(["312"], teachers(["Ulrike Raupach"], ["RAP"])),
+    planLesson(["312"], teachers(["Sandra Kaiser", "Ulrike Raupach"], ["KSR", "RAP"]))
+  );
+  assert.equal(out.status, "substitution");
+  assert.equal(out.previousTeacher, "Ulrike Raupach");
+  assert.equal(out.teacher, "Sandra Kaiser");
+  assert.equal(out.previousTeacherShort, "RAP");
+  assert.equal(out.teacherShort, "KSR");
+});
+
+test("a teacher replaced outright", () => {
+  const out = refineOne(timetableWith(["210"]), planLesson(["210"], teachers(["Herr B"], ["B"])));
+  assert.equal(out.status, "substitution");
+  assert.equal(out.previousTeacher, "Frau A");
+  assert.equal(out.teacher, "Herr B");
+});
+
+test("a teacher dropping out of a shared lesson is not a stand-in", () => {
+  const out = refineOne(
+    timetableWith(["210"], teachers(["Frau A", "Herr B"], ["A", "B"])),
+    planLesson(["210"], teachers(["Frau A"], ["A"]))
+  );
+  assert.equal(out.status, "changed");
+  assert.equal(out.previousTeacher, undefined);
 });
 
 test("no timetable entry to compare against: stays a plain change", () => {

@@ -35,8 +35,13 @@ export function personName(person) {
 }
 
 export function peopleNames(people) {
-  const names = (people ?? []).map(personName).filter(Boolean);
+  const names = peopleList(people);
   return names.length ? names.join(", ") : undefined;
+}
+
+/** The raw names, kept as a list for the same reason as `roomList`. */
+export function peopleList(people) {
+  return (people ?? []).map(personName).filter(Boolean);
 }
 
 /** Rooms are labelled by local_id ("210", "THR1"), and a lesson can have several. */
@@ -57,8 +62,12 @@ export function roomList(rooms) {
 
 /** Staff also carry a local_id ("KRC", "KLH") — too narrow a column for full names. */
 export function teacherShortNames(people) {
-  const names = (people ?? []).map((p) => p?.local_id).filter(Boolean);
+  const names = teacherShortList(people);
   return names.length ? names.join(", ") : undefined;
+}
+
+export function teacherShortList(people) {
+  return (people ?? []).map((p) => p?.local_id).filter(Boolean);
 }
 
 export function mapStudent(raw) {
@@ -197,6 +206,8 @@ export function mapPlanLesson(raw) {
     roomList: roomList(raw.rooms),
     teacher: peopleNames(raw.teachers),
     teacherShort: teacherShortNames(raw.teachers),
+    teacherList: peopleList(raw.teachers),
+    teacherShortList: teacherShortList(raw.teachers),
     notes: (raw.notes ?? []).filter(Boolean),
   };
 }
@@ -214,6 +225,8 @@ export function mapTimetableLesson(raw) {
     roomList: roomList(raw.rooms),
     teacher: peopleNames(raw.teachers),
     teacherShort: teacherShortNames(raw.teachers),
+    teacherList: peopleList(raw.teachers),
+    teacherShortList: teacherShortList(raw.teachers),
     from: raw.time?.from,
     to: raw.time?.to,
   };
