@@ -32,7 +32,8 @@ data). Everything below was observed, not inferred.
 | `time-tables/current` | `include=lessons.times` |
 | `substitution-plans/days` | `filter[range]=YYYY-MM-DD,YYYY-MM-DD`, `include=lessons,subject,teachers,rooms,notes` |
 | `journal/lessons` | `filter[student]`, `filter[range]`, `include=notes.type` |
-| `announcements`, `absences`, `notifications`, `checklists` | — |
+| `announcements` | `include=readGuardiansCount,readStudentsCount` (see below); `filter[student]`; `sort=read_from` |
+| `absences`, `notifications`, `checklists` | — |
 | `notes` | **403** for this (guardian) role |
 
 **`subject` is not an allowed include on `grades`.** The allowlist is
@@ -94,6 +95,54 @@ inherits the subject of its collection.
   the date it applies to. A double period records the **same entry twice, once
   per lesson, with different note ids** — dedupe by content.
 - **Announcement** body is `message` (markdown-ish, with attachment links).
+  See *Announcements* below.
+
+## Announcements
+
+Verified 2026-09 (guardian token, 2 items). One page of `per_page: 20`.
+
+```
+{ id, title, message,
+  read_from, read_to,       // visibility window, YYYY-MM-DD — no created_at
+  write_from, write_to,     // window in which a confirmation can be given
+  for: "guardian" | "student",
+  need_confirmation_from_student: 0|1,   // ints, not booleans
+  need_confirmation_from_guardian: 0|1,
+  single_group: false,
+  type: { id, name: "Elternbrief", color: null, default, default_for } }
+```
+
+- **There is no `created_at` and no `read` field.** The mapper's old guesses
+  (`created_at`/`date`, `read`/`is_read`) all miss. `read_from` is the only
+  date and works as "published on"; the list comes back in `id` order.
+- `message` is Markdown: `**bold**`, blank-line paragraphs, a trailing
+  `"  "` hard break, and links as `[Name.pdf](/attachments/463)` with a
+  **path relative to the site root**. Some senders type lists inline
+  (`"… empfehlen wir: - a, - b, - c"`), so they don't render as real lists.
+- Allowed includes: `teacher`, `guardians`, `students`, `groups` (each with
+  `…Count`/`…Exists`), `readGuardiansCount`, `readStudentsCount`,
+  `allGuardiansCount`, `allStudentsCount`, `readByAnyGuardianCount`,
+  `readByAllGuardiansCount`. Allowed sorts: `id, title, read_from, read_to,
+  for, read`. Allowed filters: `title, type, min_groups, min_students, group,
+  student, guardian, teacher, subject, room, interval, year, role, school`.
+- **Read state** lives on per-person rows: with `include=guardians,students`
+  each person carries `status: [{ id, read: bool, response: [] }]`. An item
+  sent to 47 whole groups had *no* guardian/student rows at all until someone
+  opened it, so "no row" means unread. Those includes also bring emails,
+  phone numbers and all 47 groups — don't use them for this. The counts are
+  enough: `read_guardians_count` / `read_students_count` came back `1/0` on
+  the item this guardian had opened and `0/0` on the unopened one. The counts
+  appear to be scoped to the viewer (`all_guardians_count: 1` for a student
+  who surely has two guardians), but that is only verified for one account.
+- **Role**: `GET /api/user` (alias `/api/me`) returns `role: "guardian"`,
+  plus `unread_notifications_count`. That's how to pick which count applies.
+- **Attachments**: `GET /api/attachments/{id}` with the Bearer token answers
+  `302` to a presigned S3 URL (`s3-eu-central-1.ionoscloud.com`, expires in
+  5 min), with CORS headers on the 302. A `fetch` would follow it to a host
+  the CSP's `connect-src` doesn't allow. The web path `/attachments/{id}` (what
+  the Markdown links to) needs a beste.schule *web session*: without one it
+  302s to `/login`.
+- Confirming ("Lesebestätigung") is not verified yet: no write route is known.
 
 ## No LK/GK anywhere
 
@@ -152,7 +201,8 @@ Two notes on the client registration UI:
   rotation either way — it stores whatever the refresh response returns).
 
 ## Still open
-- Write routes (marking announcements/notifications read) and their CORS.
+- Write routes (marking announcements read / confirming them, notifications)
+  and their CORS. `OPTIONS /api/announcements` allows only `GET`.
 - Token lifetime and rate limits.
 - Whether other schools populate `calculation_rule` on finalgrades (the
   formula evaluator in `js/domain/grades.js` handles it if they do).
