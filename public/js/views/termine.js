@@ -9,10 +9,10 @@ import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } fr
 
 const WEEKDAY_SHORT = new Intl.DateTimeFormat("de-DE", { weekday: "short" });
 
-/** "Fr 19.9." — the design's compact date. */
-function shortDate(iso) {
+/** "Fr 19.9." — the design's compact date; "Fr 19.9.2026" with the year. */
+function shortDate(iso, includeYear = false) {
   const date = new Date(`${iso}T00:00:00`);
-  return `${WEEKDAY_SHORT.format(date).replace(".", "")} ${date.getDate()}.${date.getMonth() + 1}.`;
+  return `${WEEKDAY_SHORT.format(date).replace(".", "")} ${numericDate(iso, includeYear)}`;
 }
 
 /** "6.10." within the current year, "6.1.2027" once it crosses over. */
@@ -144,10 +144,12 @@ function ferienListRow(block) {
 
 function freierTagRow(block) {
   const label = block.name || "Schulfrei";
+  // Same year rule as the Ferien rows above, keeping the weekday.
+  const crossesYear = block.from.slice(0, 4) !== block.to.slice(0, 4);
   const range =
     block.from === block.to
-      ? shortDate(block.from)
-      : `${shortDate(block.from)} – ${shortDate(block.to)}`;
+      ? shortDate(block.from, true)
+      : `${shortDate(block.from, crossesYear)} – ${shortDate(block.to, true)}`;
   return `
     <div class="ferien-row">
       <div class="ferien-row-name">${escapeHtml(label)}</div>
