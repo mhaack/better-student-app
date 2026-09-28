@@ -948,12 +948,6 @@ button {
   min-width: 0;
 }
 
-.ferien-row--small .ferien-row-name {
-  font-size: 15px;
-  font-weight: 400;
-  color: var(--text-secondary);
-}
-
 /* The date is the fixed part; a long holiday name wraps instead of shoving
    it off the row. */
 .ferien-row-range {

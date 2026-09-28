@@ -149,7 +149,7 @@ function freierTagRow(block) {
       ? shortDate(block.from)
       : `${shortDate(block.from)} – ${shortDate(block.to)}`;
   return `
-    <div class="ferien-row ferien-row--small">
+    <div class="ferien-row">
       <div class="ferien-row-name">${escapeHtml(label)}</div>
       <div class="ferien-row-range">${escapeHtml(range)}</div>
     </div>`;
