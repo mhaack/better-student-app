@@ -220,9 +220,12 @@ export function mapTimetableLesson(raw) {
 }
 
 /**
- * Klassenbuch notes hanging off a lesson: announced tests
- * ("Leistungskontrolle"), homework, lesson topics ("Stundenthema", which is
- * backward-looking and filtered out by the data layer).
+ * Klassenbuch notes hanging off a lesson. Four types exist, verified against
+ * the live API: KLA (Klassenarbeit/Klausur), LEI (Leistungskontrolle), HAU
+ * (Hausaufgabe) and STU (Stundenthema, which is backward-looking and filtered
+ * out by the data layer). KLA and LEI are what the Termine screen shows;
+ * teachers enter them months ahead, so they reach much further into the
+ * future than the other two.
  */
 export function mapJournalNotes(rawLesson) {
   const date = rawLesson.day?.date;
@@ -231,10 +234,12 @@ export function mapJournalNotes(rawLesson) {
     date,
     period: rawLesson.nr,
     subject: rawLesson.subject?.name,
+    subjectShort: rawLesson.subject?.local_id,
     subjectId: rawLesson.subject?.id,
     text: note.description ?? "",
     typeName: note.type?.name,
     typeCode: note.type?.local_id,
+    teacher: teacherShortNames(rawLesson.teachers),
   }));
 }
 

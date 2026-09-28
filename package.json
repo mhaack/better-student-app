@@ -2,12 +2,12 @@
   "name": "bessere-schule",
   "private": true,
   "type": "module",
-  "description": "Inoffizielle Bessere-Schule-PWA für beste.schule. Statische App, kein Build-Schritt; package.json existiert nur für `type: module` (Node-ESM für scripts/) und npm-Skripte.",
+  "description": "Unofficial student app for beste.schule. Static browser-only PWA, no build step; package.json exists only for `type: module` (Node ESM in scripts/) and npm scripts.",
   "scripts": {
     "discover": "node scripts/discover.mjs",
     "cors-check": "node scripts/cors-check.mjs",
     "anonymize": "node scripts/anonymize.mjs",
-    "test": "node scripts/test-grades.mjs && node scripts/test-pkce.mjs && node scripts/test-school-day.mjs && node scripts/test-timetable.mjs",
+    "test": "node scripts/test-grades.mjs && node scripts/test-pkce.mjs && node scripts/test-school-day.mjs && node scripts/test-timetable.mjs && node scripts/test-feiertage.mjs && node scripts/test-holidays.mjs && node scripts/test-schulferien.mjs",
     "serve": "node scripts/serve.mjs"
   }
 }
