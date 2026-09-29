@@ -134,10 +134,15 @@ CSP change. Row subtitle: "Öffnet beste.schule (Anmeldung dort nötig)".
 
 ## UI
 
-- **Heute:** compact "Mitteilungen" card below the existing cards, only when
-  `fresh` is non-empty: per item title, date, one-line preview, accent dot;
-  tap → detail. Loaded independently of the Heute data so an announcements
-  error just hides the card instead of breaking Heute.
+- **Heute:** compact "Mitteilungen" section at the **end** of the screen,
+  after the Klassenbuch notes — the day's plan stays first. Only rendered
+  when `fresh` is non-empty: per item title, date, one-line preview, accent
+  dot; tap → detail. Loaded independently of the Heute data so an
+  announcements error just hides the section instead of breaking Heute.
+- **Bottom nav:** a small accent dot on the Mehr tab icon while
+  `unreadCount > 0`. Once an item is older than 14 days it leaves Heute but
+  can stay unread for months (one letter is visible for a year); the dot
+  keeps it findable without a sixth tab (five already barely fit at 390px).
 - **List `#/mehr/mitteilungen`:** back link `‹ Mehr`, cards with title, date
   (`formatFullDate`, new in `util/format.js` — `weekdayOrDate` is for near
   dates only), type ("Elternbrief"), two-line preview, unread dot, paperclip
