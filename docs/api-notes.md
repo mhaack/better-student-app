@@ -102,7 +102,8 @@ inherits the subject of its collection.
   are scoped to the viewer, not school-wide. Attachments exist only as links
   in `message`. `/api/attachments/:id` returns metadata as JSON, and
   otherwise 302s to a presigned S3 URL on `s3-eu-central-1.ionoscloud.com`
-  (not in our `connect-src`); the web route `/attachments/:id` needs a web
+  that sends **no CORS headers** for any origin (preflight → 403), so the
+  browser can't fetch attachment bytes at all; the web route `/attachments/:id` needs a web
   session. Allowed filters include `student`; there's no `read` filter.
   Details in `docs/plans/mitteilungen.md`.
 

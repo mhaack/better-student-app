@@ -116,8 +116,21 @@ Everything else (headings, lists, italics, HTML) stays literal. Links get
 `/attachments/\d+` becomes `{ id, name: linkText, url }` and is removed from
 the body (an emptied trailing paragraph is dropped). The detail screen shows
 them as tappable rows (file icon, name) opening
-`https://beste.schule/attachments/<id>` in a new tab — a navigation, so no
-CSP change. Row subtitle: "Öffnet beste.schule (Anmeldung dort nötig)".
+`https://beste.schule/attachments/<id>` with `target="_blank"` — a
+navigation, so no CSP change. In the installed PWA that opens as an in-app
+browser sheet over the app; the first time it asks for the beste.schule web
+login, after that the browser session persists. Row subtitle: "Öffnet in
+beste.schule".
+
+Opening the file *inside* the app was checked and isn't possible client-side
+(decided 2026-09-29): the API's 302 carries CORS headers for our origin, but
+the S3 bucket it redirects to sends no `Access-Control-Allow-Origin` for any
+origin and answers preflights with 403, so `fetch` can't read the file even
+with the host in `connect-src`. `redirect: "manual"` hides the presigned
+`Location`, the token isn't accepted as a query parameter, and the file is
+served as `Content-Disposition: attachment` anyway. A proxy of our own would
+route tokens and student documents through our server — ruled out. If
+beste.schule ever enables CORS on the bucket, revisit.
 
 ## Data layer (`data/mitteilungen.js`)
 
@@ -169,13 +182,9 @@ on a raw item shaped like the API's.
 
 ## Open questions
 
-1. Attachments: is "opens beste.schule, needs web login" acceptable, or do
-   we want in-app download? The latter means adding
-   `s3-eu-central-1.ionoscloud.com` to `connect-src` (and hoping for S3
-   CORS) — a privacy-guarantee change, so only with your OK.
-2. Multiple children: fetch unfiltered (current plan) or per selected child
+1. Multiple children: fetch unfiltered (current plan) or per selected child
    with `filter[student]`? Unverifiable with one child; unfiltered can't
    miss anything.
-3. Read counts were checked with a guardian token only. For a student token
+2. Read counts were checked with a guardian token only. For a student token
    `read_students_count` should be the one that matters; summing both is
    assumed to be right for either role.
