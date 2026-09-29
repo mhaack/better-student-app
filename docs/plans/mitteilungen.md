@@ -167,8 +167,8 @@ beste.schule ever enables CORS on the bucket, revisit.
   `needsConfirmation && !read`: a muted note "Lesebestätigung in beste.schule
   erforderlich". Reads from the same cached list — no second request.
 - **Mehr:** a "Mitteilungen" row at the top with the unread count badge;
-  drop "und Mitteilungen" from the placeholder sentence (Hausaufgaben and
-  Fehlzeiten remain).
+  the "kommen in einer späteren Version" placeholder is removed, and the
+  settings (Tageswechsel, Darstellung) share one "Einstellungen" card.
 - Routes nested under `/mehr` so the Mehr tab stays highlighted
   (`currentBasePath()` uses the first segment). No fifth tab.
 - Read-only: no mark-as-read write (CORS of write routes unconfirmed).

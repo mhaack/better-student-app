@@ -95,30 +95,36 @@ export async function renderMehr(container) {
           <span class="mt-chevron" aria-hidden="true">›</span>
         </span>
       </a>
-      <div class="section">
-        <div class="eyebrow">Tageswechsel</div>
-        <select id="cutoff-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
-          ${CUTOFF_HOUR_OPTIONS.map(
-            (h) => `<option value="${h}" ${h === getCutoffHour() ? "selected" : ""}>ab ${h}:00 Uhr</option>`
-          ).join("")}
-        </select>
-        <div style="font-size:12px;line-height:1.5;color:var(--text-muted)">
-          Ab dieser Uhrzeit zeigt „Heute" schon den nächsten Schultag —
-          freitags abends und am Wochenende den Montag.
+      <div class="section" style="gap:10px">
+        <div class="eyebrow">Einstellungen</div>
+        <div class="card settings-group">
+          <label class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label">Tageswechsel</span>
+              <span class="settings-hint">
+                Ab dieser Uhrzeit zeigt „Heute" schon den nächsten Schultag —
+                freitags abends und am Wochenende den Montag.
+              </span>
+            </span>
+            <select id="cutoff-picker" class="interval-picker">
+              ${CUTOFF_HOUR_OPTIONS.map(
+                (h) => `<option value="${h}" ${h === getCutoffHour() ? "selected" : ""}>ab ${h}:00 Uhr</option>`
+              ).join("")}
+            </select>
+          </label>
+          <label class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label">Darstellung</span>
+            </span>
+            <select id="theme-picker" class="interval-picker">
+              ${THEME_OPTIONS.map(
+                (o) => `<option value="${o.value}" ${o.value === getThemePreference() ? "selected" : ""}>${o.label}</option>`
+              ).join("")}
+            </select>
+          </label>
         </div>
       </div>
-      <div class="section">
-        <div class="eyebrow">Darstellung</div>
-        <select id="theme-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
-          ${THEME_OPTIONS.map(
-            (o) => `<option value="${o.value}" ${o.value === getThemePreference() ? "selected" : ""}>${o.label}</option>`
-          ).join("")}
-        </select>
-      </div>
       ${installSection()}
-      <div class="empty-state" style="padding-top:24px">
-        Hausaufgabenübersicht und Fehlzeiten kommen in einer späteren Version.
-      </div>
       <button id="logout-button" class="button-primary" style="background:transparent;color:var(--accent);border:1px solid var(--accent-border)">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
         Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
