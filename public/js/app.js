@@ -5,7 +5,7 @@ import "./state/install.js";
 import { isAuthenticated, onAuthChange, clearSession } from "./state/auth-store.js";
 import { route, startRouter, currentBasePath, navigate } from "./router.js";
 import { isCallback, completeLogin } from "./auth/oauth.js";
-import { renderBottomNav } from "./components/bottom-nav.js";
+import { renderBottomNav, setMehrDot } from "./components/bottom-nav.js";
 import { renderLogin, establishSession } from "./views/login.js";
 import { renderHeute } from "./views/heute.js";
 import { renderNoten } from "./views/noten.js";
@@ -13,6 +13,8 @@ import { renderFachDetail } from "./views/fach-detail.js";
 import { renderStundenplan } from "./views/stundenplan.js";
 import { renderTermine } from "./views/termine.js";
 import { renderMehr } from "./views/mehr.js";
+import { renderMitteilungen, renderMitteilung } from "./views/mitteilungen.js";
+import { getMitteilungenData } from "./data/mitteilungen.js";
 
 const app = document.getElementById("app");
 
@@ -36,7 +38,12 @@ function withShell(viewFn) {
       return;
     }
     ensureShell();
-    app.querySelector("#nav-container").innerHTML = renderBottomNav(currentBasePath());
+    const navContainer = app.querySelector("#nav-container");
+    navContainer.innerHTML = renderBottomNav(currentBasePath());
+    // Cached for a minute, so this doesn't refetch on every tab switch.
+    getMitteilungenData()
+      .then(({ unreadCount }) => setMehrDot(navContainer, unreadCount > 0))
+      .catch(() => {});
     await viewFn(app.querySelector("#view-container"), params);
   };
 }
@@ -47,6 +54,10 @@ route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFac
 route(/^\/stundenplan$/, withShell(renderStundenplan));
 route(/^\/termine$/, withShell(renderTermine));
 route(/^\/mehr$/, withShell(renderMehr));
+// Nested under /mehr so the Mehr tab stays highlighted (currentBasePath()
+// only looks at the first segment), same as /noten/:subjectId.
+route(/^\/mehr\/mitteilungen$/, withShell(renderMitteilungen));
+route(/^\/mehr\/mitteilungen\/(?<id>\d+)$/, withShell((container, params) => renderMitteilung(container, params)));
 
 onAuthChange(() => {
   if (!isAuthenticated()) {

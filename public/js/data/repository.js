@@ -150,7 +150,13 @@ export async function fetchJournalNotes(studentId, fromIso, toIso) {
 
 export async function fetchAnnouncements() {
   return cached("announcements", async () => {
-    const list = await apiFetchAll("announcements");
+    // Author and read state only exist as includes. `guardians`/`students`
+    // would also be allowed but carry phone numbers and e-mail addresses,
+    // so they're deliberately not requested. No filter[student]: a guardian
+    // gets every child's announcements in one list.
+    const list = await apiFetchAll("announcements", {
+      params: { include: "teacher,readGuardiansCount,readStudentsCount" },
+    });
     return list.map(mapAnnouncement);
   });
 }

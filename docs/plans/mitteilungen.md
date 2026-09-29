@@ -1,5 +1,7 @@
 # Plan: Mitteilungen (announcements)
 
+**Status:** built (2026-09-29). Tests: `scripts/test-mitteilungen.mjs`.
+
 ## Context
 
 beste.schule announcements (Elternbriefe, Informationen der Schulleitung) are

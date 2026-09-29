@@ -249,12 +249,24 @@ export function mapAbsence(raw) {
   };
 }
 
+/**
+ * An announcement has no created_at: `read_from`/`read_to` (the visibility
+ * window) are its only dates, so `read_from` stands in for the publish date.
+ * There's no read flag either — the read counts (from
+ * include=readGuardiansCount,readStudentsCount) are scoped to the viewer,
+ * so a count above zero means "this account has read it". The author only
+ * exists with include=teacher.
+ */
 export function mapAnnouncement(raw) {
   return {
     id: raw.id,
     title: raw.title ?? "",
-    body: pick(raw, "message", "body", "text", "description", "content") ?? "",
-    createdAt: pick(raw, "created_at", "date"),
-    read: Boolean(pick(raw, "read", "is_read")),
+    body: raw.message ?? "",
+    date: raw.read_from,
+    visibleUntil: raw.read_to,
+    type: raw.type?.name,
+    author: personName(raw.teacher) ?? null,
+    needsConfirmation: Boolean(raw.need_confirmation_from_guardian || raw.need_confirmation_from_student),
+    readCount: (raw.read_guardians_count ?? 0) + (raw.read_students_count ?? 0),
   };
 }
