@@ -58,23 +58,18 @@ function attachmentRow(attachment) {
     </a>`;
 }
 
-/** Where a letter lives on beste.schule — the fallback whenever we can't confirm in-app. */
+/** The letter on beste.schule — the fallback whenever we can't confirm in-app. */
 function webUrl(id) {
   return `https://beste.schule/school/announcements/${id}`;
 }
 
-/**
- * The Lesebestätigung block above the letter: ours to send, already sent, or —
- * when `/api/me` didn't answer and we don't know which role we'd be confirming
- * as — a pointer to beste.schule, which is what this screen did before it
- * could write. Nothing at all when the letter asks for no confirmation.
- */
+/** Confirm button, sent state, or — with no known role — a link to beste.schule. */
 function confirmCard(item) {
   if (item.canConfirm) {
     return `
       <div class="card card--accent mt-confirm" id="mt-confirm">
         <div>Für diese Mitteilung wird eine Lesebestätigung erwartet.</div>
-        <button type="button" class="button-primary" id="mt-confirm-button">Gelesen bestätigen</button>
+        <button type="button" class="button-primary button-primary--inline" id="mt-confirm-button">Gelesen bestätigen</button>
       </div>`;
   }
   if (!item.needsConfirmation) return "";
@@ -87,14 +82,8 @@ function confirmCard(item) {
     </div>`;
 }
 
-/**
- * Sends the confirmation and re-renders from the refetched list.
- *
- * A rejection isn't predicted client-side. `write_from`/`write_to` looked
- * like the window in which responding is allowed, but a confirmation sent a
- * week after one closed still returned 200 — so we know what those dates
- * aren't, not what they are. Any failure falls back to the beste.schule link.
- */
+/** `write_from`/`write_to` look like a response window but don't gate it, so
+ *  failures aren't predicted — they fall back to the beste.schule link. */
 function bindConfirm(container, body, item) {
   const button = body.querySelector("#mt-confirm-button");
   if (!button) return;

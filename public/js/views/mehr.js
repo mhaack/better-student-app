@@ -125,7 +125,7 @@ export async function renderMehr(container) {
         </div>
       </div>
       ${installSection()}
-      <button id="logout-button" class="button-primary" style="background:transparent;color:var(--accent);border:1px solid var(--accent-border)">Abmelden</button>
+      <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
         Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>

@@ -612,6 +612,17 @@ button {
   cursor: default;
 }
 
+/* The base button is stretched by its parent; a centred one needs its own padding. */
+.button-primary--inline {
+  padding: 0 20px;
+}
+
+.button-primary--ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
 .login-help {
   font-size: 13px;
   line-height: 1.55;
@@ -1110,12 +1121,6 @@ button {
   gap: 10px;
   align-items: center;
   text-align: center;
-}
-
-/* .button-primary carries no padding of its own — it's normally stretched by
-   its parent. Centring makes it shrink to its label, so it needs its own. */
-.mt-confirm .button-primary {
-  padding: 0 18px;
 }
 
 .mt-confirm--done {

@@ -84,9 +84,7 @@ test("mapAnnouncement: no teacher include, no confirmation", () => {
 // --- /api/me ----------------------------------------------------------------
 
 test("mapMe: keeps the role and drops everything else", () => {
-  // The live payload carries the signed-in person's e-mail, phone numbers and
-  // a nested guardian/student object. The mapper is where that stops, so this
-  // asserts the whole result — a new field can't slip through unnoticed.
+  // Asserts the whole result, so a new personal field can't slip through.
   const raw = {
     id: 9,
     role: "guardian",
@@ -251,10 +249,8 @@ function seenBy(role, overrides = {}) {
 }
 
 test("prepareMitteilungen: a guardian's read state ignores the student's", () => {
-  // The bug this guards: summing both counts marked a letter read as soon as
-  // the child had opened it, hiding that the guardian's Lesebestätigung was
-  // still outstanding. Real shape — the letter is `for: "guardian"` and only
-  // asks the guardian to confirm.
+  // Summing the counts marked a letter read once the child had opened it,
+  // hiding the guardian's outstanding Lesebestätigung.
   const item = seenBy("guardian", { read_guardians_count: 0, read_students_count: 1 });
   assert.equal(item.read, false);
   assert.equal(item.canConfirm, true);
@@ -277,8 +273,7 @@ test("prepareMitteilungen: no confirmation offered once this role has read it", 
 });
 
 test("prepareMitteilungen: unread but no confirmation asked of this role", () => {
-  // Unread and awaiting nothing: the letter only wants the student's
-  // signature, so a guardian gets no button — and the student does.
+  // The letter only wants the student's signature.
   const raw = {
     read_guardians_count: 0,
     read_students_count: 0,
@@ -290,9 +285,7 @@ test("prepareMitteilungen: unread but no confirmation asked of this role", () =>
 });
 
 test("prepareMitteilungen: unknown role never offers to confirm", () => {
-  // /api/me failing must not put a button in front of someone whose role we
-  // can't establish; read state falls back to either count so the unread
-  // badge keeps working.
+  // Read state still falls back to either count, so the unread badge works.
   const item = seenBy(null, { read_guardians_count: 0, read_students_count: 1 });
   assert.equal(item.read, true);
   assert.equal(item.canConfirm, false);
