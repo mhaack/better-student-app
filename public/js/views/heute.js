@@ -6,6 +6,7 @@ import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
 import { weekdayOrDate, daysUntil } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
+import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
@@ -80,7 +81,7 @@ function newGradeSection(grade) {
 function notesSection(items) {
   if (items.length === 0) return "";
   const rows = items
-    .map((n) => {
+    .map((n, index) => {
       // Due today or tomorrow gets the same accent-pill treatment as a
       // room/substitution change elsewhere in the app — a reminder that
       // this one needs attention now, not just another list entry.
@@ -90,7 +91,7 @@ function notesSection(items) {
         ? `<span class="pill pill--room">${dueLabel}</span>`
         : `<span class="hw-due">${dueLabel}</span>`;
       return `
-      <div class="hw-row">
+      <div class="hw-row" data-note-index="${index}">
         <div class="hw-text">
           <div class="hw-title">${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
           ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
@@ -125,6 +126,16 @@ async function fillMitteilungen(container) {
       <div class="eyebrow">Mitteilungen</div>
       <div class="mt-list">${fresh.map((item) => mitteilungRow(item, weekdayOrDate(item.date))).join("")}</div>
     </div>`;
+}
+
+/** The full entry behind an Anstehend row whose text was clamped. */
+function openNoteDetail(container, note) {
+  openDetailSheet(container, {
+    eyebrow: note.typeName,
+    title: note.subject ?? "",
+    subtitle: [weekdayOrDate(note.date), note.periodLabel].filter(Boolean).join(" · "),
+    note: note.text,
+  });
 }
 
 export async function renderHeute(container) {
@@ -164,6 +175,11 @@ export async function renderHeute(container) {
       <div id="heute-mitteilungen" hidden></div>
     `;
     fillMitteilungen(container);
+    markTruncatedRows(body, "[data-note-index]", ".hw-title");
+    bindActivate(body, "[data-note-index]", (row) => {
+      const note = data.notes[Number(row.dataset.noteIndex)];
+      if (note) openNoteDetail(container, note);
+    });
   } catch (err) {
     container.querySelector("#heute-body").innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);

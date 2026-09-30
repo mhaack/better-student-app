@@ -1,6 +1,7 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getNotenData } from "../data/noten.js";
+import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, formatOverallAverage } from "../util/format.js";
 import { MINI_TREND_WIDTH } from "../domain/trend.js";
@@ -116,12 +117,19 @@ async function loadAndRender(container, studentId, context, intervalId) {
   const list = isPoints && data.hasCourseTypes
     ? subjectGroup("Leistungskurse", data.lk, scale) + subjectGroup("Grundkurse", data.gk, scale)
     : `<div style="display:flex;flex-direction:column">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
+  const noteEquivalent =
+    isPoints && data.overallAverage.value !== null
+      ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px">entspricht etwa ${escapeHtml(pointsToGradeLabel(data.overallAverage.value))}</div>`
+      : "";
 
   body.innerHTML = `
     <div class="average-header${isPoints ? " average-header--points" : ""}">
-      <div style="display:flex;align-items:baseline;gap:14px">
-        <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${isPoints ? '<span style="font-size:30px"> P</span>' : ""}</div>
-        <div class="average-label">${scaleLabel}</div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:14px">
+          <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${isPoints ? '<span style="font-size:30px"> P</span>' : ""}</div>
+          <div class="average-label">${scaleLabel}</div>
+        </div>
+        ${noteEquivalent}
       </div>
     </div>
     ${list}
