@@ -2,7 +2,7 @@
 // extraction and the Heute/unread selection. Raw items mirror the shape the
 // live API returns (docs/api-notes.md); the texts are made up.
 import assert from "node:assert/strict";
-import { mapAnnouncement } from "../public/js/api/mappers.js";
+import { mapAnnouncement, mapMe } from "../public/js/api/mappers.js";
 import { renderMessage, splitAttachments, messagePreview } from "../public/js/domain/markdown.js";
 import { prepareMitteilungen } from "../public/js/data/mitteilungen.js";
 
@@ -48,23 +48,28 @@ test("mapAnnouncement: date comes from read_from (there is no created_at)", () =
   assert.equal(a.visibleUntil, "2027-09-01");
 });
 
-test("mapAnnouncement: read state comes from the viewer-scoped read counts", () => {
-  assert.equal(mapAnnouncement(rawAnnouncement()).readCount, 1);
-  assert.equal(mapAnnouncement(rawAnnouncement({ read_guardians_count: 0 })).readCount, 0);
-  assert.equal(mapAnnouncement(rawAnnouncement({ read_guardians_count: 0, read_students_count: 1 })).readCount, 1);
+test("mapAnnouncement: read state stays split by role, never summed", () => {
+  const a = mapAnnouncement(rawAnnouncement());
+  assert.equal(a.readByGuardian, true);
+  assert.equal(a.readByStudent, false);
+  const b = mapAnnouncement(rawAnnouncement({ read_guardians_count: 0, read_students_count: 1 }));
+  assert.equal(b.readByGuardian, false);
+  assert.equal(b.readByStudent, true);
   // Without the include the counts are absent — treat as unread, not crash.
   const { read_guardians_count, read_students_count, ...bare } = rawAnnouncement();
-  assert.equal(mapAnnouncement(bare).readCount, 0);
+  assert.equal(mapAnnouncement(bare).readByGuardian, false);
+  assert.equal(mapAnnouncement(bare).readByStudent, false);
 });
 
-test("mapAnnouncement: title, body, type, author, confirmation flag", () => {
+test("mapAnnouncement: title, body, type, author, confirmation flags", () => {
   const a = mapAnnouncement(rawAnnouncement());
   assert.equal(a.id, 2982);
   assert.equal(a.title, "Belehrung Sportunterricht");
   assert.match(a.body, /^Liebe Erziehungsberechtigte,/);
   assert.equal(a.type, "Elternbrief");
   assert.equal(a.author, "Anna Müller");
-  assert.equal(a.needsConfirmation, true);
+  assert.equal(a.needsGuardianConfirmation, true);
+  assert.equal(a.needsStudentConfirmation, false);
 });
 
 test("mapAnnouncement: no teacher include, no confirmation", () => {
@@ -72,7 +77,36 @@ test("mapAnnouncement: no teacher include, no confirmation", () => {
     rawAnnouncement({ teacher: undefined, need_confirmation_from_guardian: 0, need_confirmation_from_student: 0 })
   );
   assert.equal(a.author, null);
-  assert.equal(a.needsConfirmation, false);
+  assert.equal(a.needsGuardianConfirmation, false);
+  assert.equal(a.needsStudentConfirmation, false);
+});
+
+// --- /api/me ----------------------------------------------------------------
+
+test("mapMe: keeps the role and drops everything else", () => {
+  // The live payload carries the signed-in person's e-mail, phone numbers and
+  // a nested guardian/student object. The mapper is where that stops, so this
+  // asserts the whole result — a new field can't slip through unnoticed.
+  const raw = {
+    id: 9,
+    role: "guardian",
+    username: "hmuster",
+    email: "h.muster@example.org",
+    email_private: null,
+    phone_private: "0170 0000000",
+    guardian: { id: 2256, forename: "Hanna", name: "Muster", email_private: "h@example.org" },
+    students: [{ id: 30762, forename: "Mia", name: "Muster", birthday: "2009-11-13" }],
+    teacher: null,
+    school: { id: 1 },
+    unread_notifications_count: 3,
+  };
+  assert.deepEqual(mapMe(raw), { role: "guardian" });
+});
+
+test("mapMe: a student session, and an unknown shape", () => {
+  assert.deepEqual(mapMe({ role: "student" }), { role: "student" });
+  assert.deepEqual(mapMe({}), { role: null });
+  assert.deepEqual(mapMe(null), { role: null });
 });
 
 // --- Markdown subset --------------------------------------------------------
@@ -202,11 +236,62 @@ test("prepareMitteilungen: newest first, id breaks ties", () => {
 });
 
 test("prepareMitteilungen: read, attachments and preview per item", () => {
-  const [item] = prepareMitteilungen([mapped()], TODAY).items;
+  const [item] = prepareMitteilungen([mapped()], TODAY, "guardian").items;
   assert.equal(item.read, true);
   assert.equal(item.attachments.length, 1);
   assert.doesNotMatch(item.body, /attachments/);
   assert.equal(item.preview, "bitte lesen Sie die Belehrung. Die Fachschaft Sport");
+});
+
+// --- read state and confirmation, per role ----------------------------------
+
+test("prepareMitteilungen: a guardian's read state ignores the student's", () => {
+  // The bug this guards: summing both counts marked a letter read as soon as
+  // the child had opened it, hiding that the guardian's Lesebestätigung was
+  // still outstanding. Real shape — the letter is `for: "guardian"` and only
+  // asks the guardian to confirm.
+  const raw = { read_guardians_count: 0, read_students_count: 1 };
+  const [item] = prepareMitteilungen([mapped(raw)], TODAY, "guardian").items;
+  assert.equal(item.read, false);
+  assert.equal(item.canConfirm, true);
+});
+
+test("prepareMitteilungen: a student's read state ignores the guardian's", () => {
+  const raw = { read_guardians_count: 1, read_students_count: 0, need_confirmation_from_student: 1 };
+  const [item] = prepareMitteilungen([mapped(raw)], TODAY, "student").items;
+  assert.equal(item.read, false);
+  assert.equal(item.canConfirm, true);
+});
+
+test("prepareMitteilungen: no confirmation offered once this role has read it", () => {
+  const [item] = prepareMitteilungen([mapped()], TODAY, "guardian").items;
+  assert.equal(item.read, true);
+  assert.equal(item.canConfirm, false);
+});
+
+test("prepareMitteilungen: unread but no confirmation asked of this role", () => {
+  // Unread and awaiting nothing: the letter only wants the student's
+  // signature, so a guardian gets no button.
+  const raw = {
+    read_guardians_count: 0,
+    read_students_count: 0,
+    need_confirmation_from_guardian: 0,
+    need_confirmation_from_student: 1,
+  };
+  const items = prepareMitteilungen([mapped(raw)], TODAY, "guardian").items;
+  assert.equal(items[0].canConfirm, false);
+  // …and the same letter does offer it to the student.
+  assert.equal(prepareMitteilungen([mapped(raw)], TODAY, "student").items[0].canConfirm, true);
+});
+
+test("prepareMitteilungen: unknown role never offers to confirm", () => {
+  // /api/me failing must not put a button in front of someone whose role we
+  // can't establish; read state falls back to either count so the unread
+  // badge keeps working.
+  const raw = { read_guardians_count: 0, read_students_count: 1 };
+  const [item] = prepareMitteilungen([mapped(raw)], TODAY, null).items;
+  assert.equal(item.read, true);
+  assert.equal(item.canConfirm, false);
 });
 
 test("prepareMitteilungen: fresh = unread and at most 14 days old", () => {
@@ -217,14 +302,15 @@ test("prepareMitteilungen: fresh = unread and at most 14 days old", () => {
       mapped({ id: 3, read_from: "2026-09-14", read_guardians_count: 0 }), // unread, 15 days — too old for Heute
       mapped({ id: 4, read_from: "2026-09-28", read_guardians_count: 1 }), // read
     ],
-    TODAY
+    TODAY,
+    "guardian"
   );
   assert.deepEqual(fresh.map((i) => i.id), [1, 2]);
   assert.equal(unreadCount, 3);
 });
 
 test("prepareMitteilungen: nothing new → empty fresh list", () => {
-  const { fresh, unreadCount } = prepareMitteilungen([mapped()], TODAY);
+  const { fresh, unreadCount } = prepareMitteilungen([mapped()], TODAY, "guardian");
   assert.deepEqual(fresh, []);
   assert.equal(unreadCount, 0);
 });

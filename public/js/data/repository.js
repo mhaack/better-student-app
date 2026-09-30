@@ -6,7 +6,7 @@
 // filter[range] all validate; `include` values are the ones the API's
 // allowlist actually accepts.
 import { apiFetch, apiFetchAll } from "../api/client.js";
-import { cached } from "./cache.js";
+import { cached, invalidate } from "./cache.js";
 import {
   mapStudent,
   mapYear,
@@ -16,6 +16,7 @@ import {
   mapTimetableLesson,
   mapJournalNotes,
   mapAnnouncement,
+  mapMe,
 } from "../api/mappers.js";
 
 export async function fetchStudents() {
@@ -159,6 +160,43 @@ export async function fetchAnnouncements() {
     });
     return list.map(mapAnnouncement);
   });
+}
+
+/**
+ * The signed-in role ("guardian" | "student" | …), or null if it can't be
+ * established. Announcements keep guardian and student read state in separate
+ * fields, so the app needs to know which side it is looking at.
+ */
+export async function fetchRole() {
+  return cached("me", async () => {
+    try {
+      const res = await apiFetch("me");
+      return mapMe(res?.data ?? res).role;
+    } catch {
+      // Not worth failing a screen over: every caller treats a null role as
+      // "read-only", which is what the app did before it could confirm.
+      return null;
+    }
+  });
+}
+
+/**
+ * Sends the Lesebestätigung for one announcement.
+ *
+ * The 200 body is deliberately thrown away. It arrives with `guardians` and
+ * `students` embedded whether or not they were asked for — phone numbers,
+ * e-mail addresses, a child's birthday and tags — none of which this app
+ * stores. It also leaves out the read counts (those only exist as includes),
+ * so it couldn't refresh the list anyway. Dropping the cache and refetching
+ * through the narrow include list costs one request and keeps that data out.
+ *
+ * Note the API marks the letter read for *all* entities belonging to the
+ * signed-in user: a guardian with several children confirms for all of them
+ * at once, and there's no per-child variant.
+ */
+export async function respondToAnnouncement(id) {
+  await apiFetch(`announcements/${id}/respond`, { method: "POST" });
+  invalidate("announcements");
 }
 
 export function isoDate(date) {

@@ -1,4 +1,5 @@
 import { getMitteilungenData } from "../data/mitteilungen.js";
+import { respondToAnnouncement } from "../data/repository.js";
 import { renderMessage } from "../domain/markdown.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatFullDate } from "../util/format.js";
@@ -57,6 +58,64 @@ function attachmentRow(attachment) {
     </a>`;
 }
 
+/** Where a letter lives on beste.schule — the fallback whenever we can't confirm in-app. */
+function webUrl(id) {
+  return `https://beste.schule/school/announcements/${id}`;
+}
+
+/**
+ * The Lesebestätigung block above the letter: ours to send, already sent, or —
+ * when `/api/me` didn't answer and we don't know which role we'd be confirming
+ * as — a pointer to beste.schule, which is what this screen did before it
+ * could write. Nothing at all when the letter asks for no confirmation.
+ */
+function confirmCard(item) {
+  if (item.canConfirm) {
+    return `
+      <div class="card card--accent mt-confirm" id="mt-confirm">
+        <div>Für diese Mitteilung wird eine Lesebestätigung erwartet.</div>
+        <button type="button" class="button-primary" id="mt-confirm-button">Gelesen bestätigen</button>
+      </div>`;
+  }
+  if (!item.needsConfirmation) return "";
+  if (item.read) {
+    return `<div class="card mt-confirm mt-confirm--done">✓ Lesebestätigung gesendet.</div>`;
+  }
+  return `
+    <div class="card card--accent mt-confirm">
+      <a href="${webUrl(item.id)}" target="_blank" rel="noopener noreferrer">Lesebestätigung in beste.schule</a>
+    </div>`;
+}
+
+/**
+ * Sends the confirmation and re-renders from the refetched list.
+ *
+ * `write_from`/`write_to` on an announcement look like the window in which
+ * responding is allowed, but that's unverified — testing it would have meant
+ * sending a real confirmation for a letter outside its window. So a rejection
+ * isn't predicted client-side: any failure falls back to the beste.schule
+ * link rather than guessing a rule we don't know.
+ */
+function bindConfirm(container, body, item) {
+  const button = body.querySelector("#mt-confirm-button");
+  if (!button) return;
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    button.textContent = "Wird gesendet…";
+    try {
+      await respondToAnnouncement(item.id);
+      await renderMitteilung(container, { id: item.id });
+    } catch {
+      const card = body.querySelector("#mt-confirm");
+      if (!card) return;
+      card.innerHTML = `
+        <div>Die Bestätigung konnte nicht gesendet werden.</div>
+        <a href="${webUrl(item.id)}" target="_blank" rel="noopener noreferrer">In beste.schule bestätigen</a>`;
+    }
+  });
+}
+
 export async function renderMitteilung(container, { id }) {
   container.innerHTML = `
     <div class="view view--detail">
@@ -81,11 +140,7 @@ export async function renderMitteilung(container, { id }) {
         <h1 class="mt-detail-title">${escapeHtml(item.title)}</h1>
         <div class="view-subtitle">${meta}</div>
       </div>
-      ${
-        item.needsConfirmation && !item.read
-          ? `<div class="card card--accent mt-confirm">Lesebestätigung in beste.schule erforderlich.</div>`
-          : ""
-      }
+      ${confirmCard(item)}
       <div class="mt-message">${renderMessage(item.body)}</div>
       ${
         item.attachments.length
@@ -95,6 +150,8 @@ export async function renderMitteilung(container, { id }) {
              </div>`
           : ""
       }`;
+
+    bindConfirm(container, body, item);
   } catch (err) {
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);

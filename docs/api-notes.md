@@ -5,6 +5,29 @@ Recorded 2026-09 against the live API with a guardian Personal Access Token
 Raw responses live in `fixtures/raw/` (gitignored — they contain real student
 data). Everything below was observed, not inferred.
 
+## There is an OpenAPI spec — read it before guessing
+
+**`https://beste.schule/api.json`** (OpenAPI 3.1, ~2.7 MB, 242 paths) is the
+machine-readable spec behind `https://beste.schule/documentation/api`. It lists
+every route, its verbs, request bodies and responses.
+
+Check it *first*. Guessing route names cost us real time: the Lesebestätigung
+endpoint is `POST /announcements/{id}/respond`, and probing for `read`,
+`confirm`, `confirmation` and `mark-read` found nothing because none of those
+exist. The docs UI also tags routes unevenly — `/notifications` is in the spec
+but easy to miss in the rendered page.
+
+Two traps when probing by hand:
+
+- **A CORS preflight proves nothing about a route.** `OPTIONS` with an
+  `Origin` + `Access-Control-Request-Method` returns `204` and echoes the
+  requested method back for *any* path, `api/totally/bogus/path/xyz` included.
+  Only the actual request shows whether the browser may read the response.
+- **Unknown `/api/...` paths answer `401 {"message":""}`, not `404`** — they
+  fall through to a web-session-guarded catch-all. A plain `OPTIONS` (no CORS
+  headers) is the reliable probe: a real route reports its verbs in `Allow:`,
+  while the catch-all always says `Allow: GET,HEAD`.
+
 ## Transport
 
 - Base URL `https://beste.schule/api`, `Accept: application/json`,
@@ -105,7 +128,65 @@ inherits the subject of its collection.
   that sends **no CORS headers** for any origin (preflight → 403), so the
   browser can't fetch attachment bytes at all; the web route `/attachments/:id` needs a web
   session. Allowed filters include `student`; there's no `read` filter.
-  Details in `docs/plans/mitteilungen.md`.
+  `GET /announcements/{id}` also takes **`append=stat`**, which returns
+  per-group read stats: `{ group, students_read_count, guardians_read_count,
+  students_count, guardians_count, read_by_any_guardian_count,
+  read_by_all_guardians_count }`. Details in `docs/plans/mitteilungen.md`.
+
+## Sending a Lesebestätigung (verified 2026-09-30)
+
+**`POST /api/announcements/{id}/respond`** — "Marks the announcement as read
+for all entities belonging to the authenticated user and optionally stores
+form-field answers." Body optional, `{ "response": "<string>" }` for the form
+answers; `200` returns the announcement, `422` validation, `404` unknown id.
+
+- Works from the browser: the **actual** `POST` response carries
+  `access-control-allow-origin: <caller origin>`, not just the preflight.
+- A guardian token is authorized. Confirming again is idempotent — the read
+  counts don't move.
+- It marks the letter read for **every** entity belonging to the signed-in
+  user, so a guardian with several children confirms for all of them at once.
+  There is no per-child variant.
+- **The 200 body carries personal data nobody asked for:** `guardians` and
+  `students` come embedded regardless of `include`, with phone numbers,
+  e-mail addresses, a child's `birthday`, `gender`, `nickname` and `tags`
+  (which can include medical consent markers). It also *omits* the read
+  counts, since those only exist as includes. `data/repository.js` throws the
+  body away and refetches through the narrow include list instead.
+- Each embedded entity does carry a `status: { id, read, response }` — real
+  per-person read state, unlike the aggregate counts. Reading it means
+  requesting the personal data above, so the app doesn't.
+- `write_from`/`write_to` still look like the window in which responding is
+  allowed, but that's **unverified**: checking it would have meant sending a
+  real confirmation for a letter outside its window. The app treats any
+  non-200 as "use beste.schule" rather than encoding a rule we don't know.
+- The letter's own page on the web app is
+  `https://beste.schule/school/announcements/{id}` (from a notification's
+  `redirect_url`) — the fallback link.
+
+## Role: `/api/me`
+
+`GET /api/me` (and the identical `/api/user`) returns `role: "guardian"` —
+the only reliable way to tell a guardian session from a student one. It also
+returns `email`, `phone_private`, `unread_notifications_count`, a nested
+`guardian`/`teacher` object and a `students` array with birthdays, so
+`mapMe()` keeps `role` and drops everything else.
+
+Announcements keep guardian and student read state in **separate** fields
+(`read_guardians_count` / `read_students_count`), and a letter asks only one
+of them to confirm. Summing them conflates the roles: a letter would look read
+as soon as the child opened it, hiding the guardian's outstanding
+Lesebestätigung. Pick the side that matches `role`.
+
+## Notifications (not used by the app)
+
+`GET /api/notifications` is the bell feed — one entry per event, shaped
+`{ id (uuid), notification_type: "grade" | "announcement", action: "created" |
+"updated", read_at, redirect_url, data, … }`. `POST /api/notifications/read`
+and `POST /api/notifications/{id}/read` mark them read.
+
+This is an inbox marker, **not** a Lesebestätigung, and it duplicates what the
+app already derives from grades and announcements — so nothing calls it.
 
 ## No LK/GK anywhere
 
@@ -164,7 +245,8 @@ Two notes on the client registration UI:
   rotation either way — it stores whatever the refresh response returns).
 
 ## Still open
-- Write routes (marking announcements/notifications read) and their CORS.
+- Whether `write_from`/`write_to` really gate `POST .../respond`, and what a
+  closed window returns (see above — untested on purpose).
 - Token lifetime and rate limits.
 - Whether other schools populate `calculation_rule` on finalgrades (the
   formula evaluator in `js/domain/grades.js` handles it if they do).

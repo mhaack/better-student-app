@@ -1,18 +1,30 @@
-import { fetchAnnouncements, isoDate } from "./repository.js";
+import { fetchAnnouncements, fetchRole, isoDate } from "./repository.js";
 import { splitAttachments, messagePreview } from "../domain/markdown.js";
 
-// Heute only shows what's new. "Unread" alone isn't enough: this app can't
-// mark anything read (read-only; write routes' CORS is unconfirmed), so an
-// item stays unread until it's confirmed on beste.schule — and a letter can
-// be visible for a whole school year. Unread *and* recent keeps Heute honest.
+// Heute only shows what's new. "Unread" alone isn't enough: a letter stays
+// unread until somebody confirms it, and one can be visible for a whole
+// school year. Unread *and* recent keeps Heute honest.
 const FRESH_DAYS = 14;
+
+/**
+ * Picks the side of a guardian/student field pair that speaks for the
+ * signed-in role. With no role established (an `/api/me` that failed) either
+ * side counts, which keeps the unread badge working — but callers must not
+ * offer to *write* on that basis, since we can't tell who we'd be confirming
+ * as.
+ */
+function forRole(role, guardianValue, studentValue) {
+  if (role === "guardian") return guardianValue;
+  if (role === "student") return studentValue;
+  return guardianValue || studentValue;
+}
 
 /**
  * Sorts, derives read state, pulls attachment links out of the body and
  * picks what Heute and the Mehr badge show. Pure, so it's testable with a
- * fixed `today`.
+ * fixed `today` and role.
  */
-export function prepareMitteilungen(announcements, today = new Date()) {
+export function prepareMitteilungen(announcements, today = new Date(), role = null) {
   const cutoff = new Date(today);
   cutoff.setDate(cutoff.getDate() - FRESH_DAYS);
   const cutoffIso = isoDate(cutoff);
@@ -20,7 +32,20 @@ export function prepareMitteilungen(announcements, today = new Date()) {
   const items = announcements
     .map((a) => {
       const { body, attachments } = splitAttachments(a.body);
-      return { ...a, body, attachments, read: a.readCount > 0, preview: messagePreview(body) };
+      const read = forRole(role, a.readByGuardian, a.readByStudent);
+      const needsConfirmation = forRole(role, a.needsGuardianConfirmation, a.needsStudentConfirmation);
+      return {
+        ...a,
+        body,
+        attachments,
+        read,
+        needsConfirmation,
+        // A known role is part of the condition: without one we'd be putting a
+        // confirm button in front of someone whose confirmation may not even
+        // be the one the letter asks for.
+        canConfirm: Boolean(role) && needsConfirmation && !read,
+        preview: messagePreview(body),
+      };
     })
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || b.id - a.id);
 
@@ -33,5 +58,8 @@ export function prepareMitteilungen(announcements, today = new Date()) {
 }
 
 export async function getMitteilungenData() {
-  return prepareMitteilungen(await fetchAnnouncements());
+  // The role only decides how the list is labelled, so a failing `/api/me`
+  // degrades to "no confirm buttons" instead of taking Mitteilungen with it.
+  const [announcements, role] = await Promise.all([fetchAnnouncements(), fetchRole()]);
+  return prepareMitteilungen(announcements, new Date(), role);
 }

@@ -1105,6 +1105,19 @@ button {
 .mt-confirm {
   font-size: 14px;
   color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* The button sizes to its label on a phone rather than spanning the card. */
+.mt-confirm .button-primary {
+  padding: 0 18px;
+}
+
+.mt-confirm--done {
+  color: var(--text-secondary);
 }
 
 /* Letter text: links must look like links here, unlike everywhere else. */

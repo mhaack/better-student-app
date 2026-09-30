@@ -1,6 +1,8 @@
 # Plan: Mitteilungen (announcements)
 
-**Status:** built (2026-09-29). Tests: `scripts/test-mitteilungen.mjs`.
+**Status:** built (2026-09-29). Lesebestätigung added 2026-09-30 — see
+"Confirming in-app" below, which supersedes the read-only decision.
+Tests: `scripts/test-mitteilungen.mjs`.
 
 ## Context
 
@@ -171,7 +173,42 @@ beste.schule ever enables CORS on the bucket, revisit.
   settings (Tageswechsel, Darstellung) share one "Einstellungen" card.
 - Routes nested under `/mehr` so the Mehr tab stays highlighted
   (`currentBasePath()` uses the first segment). No fifth tab.
-- Read-only: no mark-as-read write (CORS of write routes unconfirmed).
+## Confirming in-app (2026-09-30)
+
+The read-only decision above was wrong about the API, not about the risk: a
+write route does exist, it just isn't named anything we guessed. `POST
+/api/announcements/{id}/respond` sends the Lesebestätigung, is authorized for
+a guardian token and returns CORS headers on the real response. Full contract
+in `docs/api-notes.md`; the lesson recorded there is to read
+`https://beste.schule/api.json` before probing route names by hand.
+
+What changed:
+
+- `mapAnnouncement` no longer sums the two read counts into `readCount`. It
+  exposes `readByGuardian` / `readByStudent` and `needsGuardianConfirmation` /
+  `needsStudentConfirmation`, because a letter asks one role to confirm and
+  summing hid an outstanding guardian confirmation whenever the child had
+  already opened it.
+- `mapMe` (new) reduces `/api/me` to `{ role }` and drops the e-mail, phone
+  numbers, nested guardian object and the children's birthdays it ships with.
+- `prepareMitteilungen(announcements, today, role)` picks the side of each
+  field pair that matches the role, and derives `canConfirm = role &&
+  needsConfirmation && !read`. A null role (an `/api/me` that failed) keeps
+  the old either-side read state so the unread badge still works, but never
+  offers to confirm — we can't tell who we'd be confirming as.
+- `respondToAnnouncement(id)` POSTs, **discards the response body** and
+  invalidates the announcements cache. The body arrives with `guardians` and
+  `students` embedded unrequested (phone, e-mail, birthday, tags); refetching
+  through the narrow include list costs one request and keeps that out.
+- The detail screen's dead-end note becomes a "Gelesen bestätigen" button,
+  then "✓ Lesebestätigung gesendet." Any failure — including a possibly
+  closed `write_from`/`write_to` window — falls back to the beste.schule
+  link rather than predicting a rule we haven't verified.
+
+One constraint from the endpoint's own description: it marks the letter read
+for *all* entities belonging to the signed-in user, so a guardian with
+several children confirms for all of them at once. The button deliberately
+isn't scoped to the selected child and doesn't name one.
 
 ## Tests
 

@@ -266,7 +266,23 @@ export function mapAnnouncement(raw) {
     visibleUntil: raw.read_to,
     type: raw.type?.name,
     author: personName(raw.teacher) ?? null,
-    needsConfirmation: Boolean(raw.need_confirmation_from_guardian || raw.need_confirmation_from_student),
-    readCount: (raw.read_guardians_count ?? 0) + (raw.read_students_count ?? 0),
+    // Guardian and student state is kept apart rather than summed: a letter
+    // asks one of them to confirm, and `data/` decides which side speaks for
+    // the signed-in role. Summing would call a letter read as soon as the
+    // child opened it, hiding the guardian's outstanding Lesebestätigung.
+    needsGuardianConfirmation: Boolean(raw.need_confirmation_from_guardian),
+    needsStudentConfirmation: Boolean(raw.need_confirmation_from_student),
+    readByGuardian: (raw.read_guardians_count ?? 0) > 0,
+    readByStudent: (raw.read_students_count ?? 0) > 0,
   };
+}
+
+/**
+ * `/api/me` — only the role survives. The raw payload carries the signed-in
+ * person's e-mail, phone numbers, a nested guardian/student object and every
+ * child's birthday; none of it has a use in this app, so the mapper is where
+ * it stops rather than something a later view might reach for.
+ */
+export function mapMe(raw) {
+  return { role: raw?.role ?? null };
 }
