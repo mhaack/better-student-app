@@ -6,6 +6,7 @@ import { ferienStem } from "../domain/holidays.js";
 import { escapeHtml } from "../util/dom.js";
 import { daysUntil } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } from "../components/states.js";
+import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 
 const WEEKDAY_SHORT = new Intl.DateTimeFormat("de-DE", { weekday: "short" });
 
@@ -55,11 +56,11 @@ function examNextCard(exam) {
   );
 }
 
-function examRow(exam) {
+function examRow(exam, index) {
   const date = new Date(`${exam.date}T00:00:00`);
   const detail = [exam.typeName, exam.periodLabel].filter(Boolean).join(" · ");
   return `
-    <div class="date-row">
+    <div class="date-row" data-exam-index="${index}">
       <div class="date-row-day">
         <div class="date-row-number">${date.getDate()}.</div>
         <div class="date-row-weekday">${escapeHtml(WEEKDAY_SHORT.format(date).replace(".", ""))}</div>
@@ -96,6 +97,16 @@ const MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long" });
  * Herbstferien"), which only reads correctly if it sits in date order rather
  * than being appended at the end.
  */
+/** The full entry behind a row whose Klassenbuch text was clamped. */
+function openExamDetail(container, exam) {
+  openDetailSheet(container, {
+    eyebrow: exam.typeName,
+    title: exam.subject ?? exam.subjectShort ?? "",
+    subtitle: [shortDate(exam.date), exam.periodLabel].filter(Boolean).join(" · "),
+    note: exam.text,
+  });
+}
+
 function termineBody(termine, ferien) {
   if (!termine.count) {
     return renderEmptyState("Keine Klassenarbeiten oder Tests eingetragen.");
@@ -103,7 +114,7 @@ function termineBody(termine, ferien) {
 
   const lastExam = termine.exams.at(-1)?.date ?? "";
   const entries = [
-    ...termine.exams.map((exam) => ({ date: exam.date, html: examRow(exam) })),
+    ...termine.exams.map((exam, i) => ({ date: exam.date, html: examRow(exam, i) })),
     // Only breaks the exam list actually spans; a holiday after the last exam
     // would dangle with nothing to orient.
     ...(ferien?.ferien ?? [])
@@ -214,6 +225,13 @@ export async function renderTermine(container) {
   const subtitle = container.querySelector("#termine-subtitle");
   const segments = container.querySelector("#termine-segments");
   const body = container.querySelector("#termine-body");
+  let exams = [];
+
+  // Bound once on #termine-body, which survives every segment re-render.
+  bindActivate(body, "[data-exam-index]", (row) => {
+    const exam = exams[Number(row.dataset.examIndex)];
+    if (exam) openExamDetail(container, exam);
+  });
 
   try {
     const studentId = getSelectedStudentId();
@@ -224,6 +242,7 @@ export async function renderTermine(container) {
       getTermineData(studentId, { yearEnd: context.year?.to }),
       getFerienData(context),
     ]);
+    exams = termine.exams;
 
     const render = () => {
       segments.innerHTML = segmentedControl(segment);
@@ -238,6 +257,7 @@ export async function renderTermine(container) {
           ? `${upTo} ${upTo === 1 ? "Termin" : "Termine"}${until}`
           : "Keine Termine";
         body.innerHTML = termineBody(termine, ferien);
+        markTruncatedRows(body, "[data-exam-index]", ".date-row-note");
       } else {
         subtitle.textContent = ferien.yearLabel || "Ferien";
         body.innerHTML = ferienBody(ferien);
