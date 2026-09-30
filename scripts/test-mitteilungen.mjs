@@ -245,51 +245,55 @@ test("prepareMitteilungen: read, attachments and preview per item", () => {
 
 // --- read state and confirmation, per role ----------------------------------
 
+/** The one prepared item for a raw announcement, as `role` sees it. */
+function seenBy(role, overrides = {}) {
+  return prepareMitteilungen([mapped(overrides)], TODAY, role).items[0];
+}
+
 test("prepareMitteilungen: a guardian's read state ignores the student's", () => {
   // The bug this guards: summing both counts marked a letter read as soon as
   // the child had opened it, hiding that the guardian's Lesebestätigung was
   // still outstanding. Real shape — the letter is `for: "guardian"` and only
   // asks the guardian to confirm.
-  const raw = { read_guardians_count: 0, read_students_count: 1 };
-  const [item] = prepareMitteilungen([mapped(raw)], TODAY, "guardian").items;
+  const item = seenBy("guardian", { read_guardians_count: 0, read_students_count: 1 });
   assert.equal(item.read, false);
   assert.equal(item.canConfirm, true);
 });
 
 test("prepareMitteilungen: a student's read state ignores the guardian's", () => {
-  const raw = { read_guardians_count: 1, read_students_count: 0, need_confirmation_from_student: 1 };
-  const [item] = prepareMitteilungen([mapped(raw)], TODAY, "student").items;
+  const item = seenBy("student", {
+    read_guardians_count: 1,
+    read_students_count: 0,
+    need_confirmation_from_student: 1,
+  });
   assert.equal(item.read, false);
   assert.equal(item.canConfirm, true);
 });
 
 test("prepareMitteilungen: no confirmation offered once this role has read it", () => {
-  const [item] = prepareMitteilungen([mapped()], TODAY, "guardian").items;
+  const item = seenBy("guardian");
   assert.equal(item.read, true);
   assert.equal(item.canConfirm, false);
 });
 
 test("prepareMitteilungen: unread but no confirmation asked of this role", () => {
   // Unread and awaiting nothing: the letter only wants the student's
-  // signature, so a guardian gets no button.
+  // signature, so a guardian gets no button — and the student does.
   const raw = {
     read_guardians_count: 0,
     read_students_count: 0,
     need_confirmation_from_guardian: 0,
     need_confirmation_from_student: 1,
   };
-  const items = prepareMitteilungen([mapped(raw)], TODAY, "guardian").items;
-  assert.equal(items[0].canConfirm, false);
-  // …and the same letter does offer it to the student.
-  assert.equal(prepareMitteilungen([mapped(raw)], TODAY, "student").items[0].canConfirm, true);
+  assert.equal(seenBy("guardian", raw).canConfirm, false);
+  assert.equal(seenBy("student", raw).canConfirm, true);
 });
 
 test("prepareMitteilungen: unknown role never offers to confirm", () => {
   // /api/me failing must not put a button in front of someone whose role we
   // can't establish; read state falls back to either count so the unread
   // badge keeps working.
-  const raw = { read_guardians_count: 0, read_students_count: 1 };
-  const [item] = prepareMitteilungen([mapped(raw)], TODAY, null).items;
+  const item = seenBy(null, { read_guardians_count: 0, read_students_count: 1 });
   assert.equal(item.read, true);
   assert.equal(item.canConfirm, false);
 });

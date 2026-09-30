@@ -90,11 +90,10 @@ function confirmCard(item) {
 /**
  * Sends the confirmation and re-renders from the refetched list.
  *
- * `write_from`/`write_to` on an announcement look like the window in which
- * responding is allowed, but that's unverified — testing it would have meant
- * sending a real confirmation for a letter outside its window. So a rejection
- * isn't predicted client-side: any failure falls back to the beste.schule
- * link rather than guessing a rule we don't know.
+ * A rejection isn't predicted client-side. `write_from`/`write_to` looked
+ * like the window in which responding is allowed, but a confirmation sent a
+ * week after one closed still returned 200 — so we know what those dates
+ * aren't, not what they are. Any failure falls back to the beste.schule link.
  */
 function bindConfirm(container, body, item) {
   const button = body.querySelector("#mt-confirm-button");

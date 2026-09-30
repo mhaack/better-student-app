@@ -127,7 +127,8 @@ inherits the subject of its collection.
   otherwise 302s to a presigned S3 URL on `s3-eu-central-1.ionoscloud.com`
   that sends **no CORS headers** for any origin (preflight → 403), so the
   browser can't fetch attachment bytes at all; the web route `/attachments/:id` needs a web
-  session. Allowed filters include `student`; there's no `read` filter.
+  session. Re-checked 2026-09-30 against the OpenAPI spec and the live API —
+  see "Attachments can't be shown in-app" below before probing this again. Allowed filters include `student`; there's no `read` filter.
   `GET /announcements/{id}` also takes **`append=stat`**, which returns
   per-group read stats: `{ group, students_read_count, guardians_read_count,
   students_count, guardians_count, read_by_any_guardian_count,
@@ -156,13 +157,53 @@ answers; `200` returns the announcement, `422` validation, `404` unknown id.
 - Each embedded entity does carry a `status: { id, read, response }` — real
   per-person read state, unlike the aggregate counts. Reading it means
   requesting the personal data above, so the app doesn't.
-- `write_from`/`write_to` still look like the window in which responding is
-  allowed, but that's **unverified**: checking it would have meant sending a
-  real confirmation for a letter outside its window. The app treats any
-  non-200 as "use beste.schule" rather than encoding a rule we don't know.
+- **`write_from`/`write_to` do not gate responding** (verified 2026-09-30).
+  They looked like the window in which a response is accepted, but a guardian
+  confirmed announcement 3866 through this app on 30.09, seven days after its
+  `write_to` of `2026-09-23`, and the API returned 200. What the pair actually
+  means is still unknown — just not this. The app keeps treating any non-200
+  as "use beste.schule" rather than predicting a rule from two dates.
 - The letter's own page on the web app is
   `https://beste.schule/school/announcements/{id}` (from a notification's
   `redirect_url`) — the fallback link.
+
+## Attachments can't be shown in-app (re-verified 2026-09-30)
+
+Settled, and not for lack of a route: the spec documents only
+`GET/POST /attachments`, `GET /attachments/{attachmentId}` and
+`DELETE /attachments/{attachment}`. There is no inline, preview, base64 or
+download variant, and the `Attachment` schema is just
+`{id, filename, filesize_kb, attachmentable_type, attachmentable_id, url}` —
+`url` being the session-guarded web route. The spec's "a valid signed URL
+bypasses the read authorization check" means Laravel signed routes the server
+generates; the API never hands one to a client.
+
+**Two independent blockers**, either of which alone would be fatal:
+
+1. `GET /api/attachments/:id` with a non-JSON `Accept` 302s to a presigned URL
+   on `s3-eu-central-1.ionoscloud.com`. That bucket answers a CORS preflight
+   with **403** and its real `GET` sends no `access-control-allow-origin` at
+   all, so `fetch` can't read the bytes. Reading the `Location` instead
+   doesn't work either: a cross-origin `redirect: "manual"` fetch yields an
+   opaque-redirect response with no readable headers, by spec.
+2. Even holding the presigned URL, S3 serves the file as
+   `content-disposition: attachment; filename="…"`, baked into the signature.
+   An `<iframe>`/`<object>` pointed at it downloads the file instead of
+   rendering it.
+
+The embedding escape hatches are closed too: an `<iframe>` can't send an
+`Authorization` header, and the route accepts no token in the query string —
+`?token=`, `?access_token=`, `?api_token=`, `?signature=` all 401. The web
+route without a session cookie 302s to `/login`, and third-party cookies are
+blocked in an installed PWA anyway.
+
+Note the presigned URL needs **no credentials** — plain `curl` follows the
+redirect and gets `200 application/pdf`. CORS is a browser rule, not a server
+one, so "curl can download it" is not evidence the app could. Only
+beste.schule enabling CORS on the bucket, or adding an API route that streams
+the file with CORS headers and an inline disposition, would change this. A
+proxy of our own stays ruled out: it would route tokens and student documents
+through our server.
 
 ## Role: `/api/me`
 
@@ -245,8 +286,8 @@ Two notes on the client registration UI:
   rotation either way — it stores whatever the refresh response returns).
 
 ## Still open
-- Whether `write_from`/`write_to` really gate `POST .../respond`, and what a
-  closed window returns (see above — untested on purpose).
+- What `write_from`/`write_to` on an announcement actually mean. They don't
+  gate responding (see above).
 - Token lifetime and rate limits.
 - Whether other schools populate `calculation_rule` on finalgrades (the
   formula evaluator in `js/domain/grades.js` handles it if they do).

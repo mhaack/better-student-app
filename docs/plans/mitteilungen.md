@@ -127,7 +127,9 @@ login, after that the browser session persists. Row subtitle: "Öffnet in
 beste.schule".
 
 Opening the file *inside* the app was checked and isn't possible client-side
-(decided 2026-09-29): the API's 302 carries CORS headers for our origin, but
+(decided 2026-09-29, re-verified 2026-09-30 once the OpenAPI spec was found —
+it documents no inline/preview/download route, so this isn't a discovery gap;
+full write-up in `docs/api-notes.md`): the API's 302 carries CORS headers for our origin, but
 the S3 bucket it redirects to sends no `Access-Control-Allow-Origin` for any
 origin and answers preflights with 403, so `fetch` can't read the file even
 with the host in `connect-src`. `redirect: "manual"` hides the presigned
@@ -201,9 +203,14 @@ What changed:
   `students` embedded unrequested (phone, e-mail, birthday, tags); refetching
   through the narrow include list costs one request and keeps that out.
 - The detail screen's dead-end note becomes a "Gelesen bestätigen" button,
-  then "✓ Lesebestätigung gesendet." Any failure — including a possibly
-  closed `write_from`/`write_to` window — falls back to the beste.schule
-  link rather than predicting a rule we haven't verified.
+  then "✓ Lesebestätigung gesendet." Any failure falls back to the
+  beste.schule link.
+
+Verified end-to-end on 2026-09-30: a guardian confirmed announcement 3866
+from the app. That also settled `write_from`/`write_to` — 3866's window
+closed on 23.09 and the confirmation still returned 200, so the pair doesn't
+gate responding. The fallback link stays anyway: we know what those two dates
+*aren't*, not what they are.
 
 One constraint from the endpoint's own description: it marks the letter read
 for *all* entities belonging to the signed-in user, so a guardian with

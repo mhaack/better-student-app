@@ -1112,7 +1112,8 @@ button {
   text-align: center;
 }
 
-/* The button sizes to its label on a phone rather than spanning the card. */
+/* .button-primary carries no padding of its own — it's normally stretched by
+   its parent. Centring makes it shrink to its label, so it needs its own. */
 .mt-confirm .button-primary {
   padding: 0 18px;
 }
