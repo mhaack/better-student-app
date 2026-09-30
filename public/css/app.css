@@ -1108,7 +1108,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
 }
 
 /* The button sizes to its label on a phone rather than spanning the card. */
