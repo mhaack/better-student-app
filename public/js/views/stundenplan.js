@@ -2,6 +2,7 @@ import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
+import { openDetailSheet, closeDetailSheet, bindActivate } from "../components/detail-sheet.js";
 
 const STATUS_EYEBROW = {
   cancelled: "Entfällt",
@@ -88,9 +89,8 @@ function cellContent(lesson, dayIndex) {
     return `<div class="${classes}">${inner}</div>`;
   }
 
-  // Non-regular cells open the detail sheet. A div, not a real <button> —
-  // WebKit's native button content wrapper ignores appearance:none and
-  // vertically centers short content.
+  // Non-regular cells open the detail sheet (see bindActivate for why this
+  // is a div rather than a real <button>).
   const label = `${lesson.subject ?? lesson.subjectShort ?? ""}, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
   return `
     <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
@@ -118,64 +118,16 @@ function gridRow(row) {
   return `<div class="sp-grid-row"><div class="sp-period">${row.period}</div>${cells}</div>`;
 }
 
-function closeLessonDetail(container) {
-  container.querySelector("#sp-detail-backdrop")?.remove();
-}
-
 function openLessonDetail(container, day, lesson) {
-  closeLessonDetail(container);
-
   const { eyebrow, rows, note } = describeChange(lesson);
-  const rowsHtml = rows
-    .map(
-      (r) => `
-      <div class="sp-detail-row">
-        <span class="sp-detail-label">${escapeHtml(r.label)}</span>
-        <span>${escapeHtml(r.value)}</span>
-      </div>`
-    )
-    .join("");
-
-  const backdrop = document.createElement("div");
-  backdrop.className = "sp-detail-backdrop";
-  backdrop.id = "sp-detail-backdrop";
-  backdrop.innerHTML = `
-    <div class="sp-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="sp-detail-title">
-      <div class="sp-detail-header">
-        <div>
-          <div class="eyebrow" style="color:var(--accent)">${escapeHtml(eyebrow)}</div>
-          <h2 id="sp-detail-title" class="sp-detail-title" style="${lesson.status === "cancelled" ? "text-decoration:line-through" : ""}">${escapeHtml(lesson.subject ?? lesson.subjectShort ?? "")}</h2>
-          <div class="view-subtitle">${escapeHtml(day.label)}, ${escapeHtml(day.dateLabel)} · ${lesson.period}. Stunde</div>
-        </div>
-        <button type="button" class="sp-detail-close" aria-label="Schließen">✕</button>
-      </div>
-      ${rowsHtml}
-      ${note ? `<div class="sp-detail-note">${escapeHtml(note)}</div>` : ""}
-    </div>`;
-  container.appendChild(backdrop);
-
-  function onKeydown(e) {
-    if (e.key === "Escape") backdrop.remove();
-  }
-  document.addEventListener("keydown", onKeydown);
-
-  // Tears the Escape listener down whenever the backdrop leaves the DOM —
-  // via its own close button/backdrop click/Escape, or via closeLessonDetail
-  // navigating weeks, or (the leak this fixes) the whole view being
-  // replaced by a route change, which resets #view-container's innerHTML
-  // without ever calling any of the above. Covering every removal path
-  // through one observer is simpler than threading cleanup through each.
-  const observer = new MutationObserver(() => {
-    if (backdrop.isConnected) return;
-    document.removeEventListener("keydown", onKeydown);
-    observer.disconnect();
+  openDetailSheet(container, {
+    eyebrow,
+    title: lesson.subject ?? lesson.subjectShort ?? "",
+    titleStyle: lesson.status === "cancelled" ? "text-decoration:line-through" : "",
+    subtitle: `${day.label}, ${day.dateLabel} · ${lesson.period}. Stunde`,
+    rows,
+    note,
   });
-  observer.observe(container, { childList: true });
-
-  backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) backdrop.remove();
-  });
-  backdrop.querySelector(".sp-detail-close").addEventListener("click", () => backdrop.remove());
 }
 
 // Swipe forward up to 3 weeks past the default (today's/next week) — 4
@@ -225,7 +177,7 @@ export async function renderStundenplan(container) {
     const clamped = Math.max(0, Math.min(MAX_WEEK_OFFSET, offset));
     if (clamped === weekOffset) return;
     weekOffset = clamped;
-    closeLessonDetail(container);
+    closeDetailSheet(container);
     loadAndRender(container, studentId, student, weekOffset, loadState).then((days) => {
       if (days) currentDays = days;
     });
@@ -269,25 +221,7 @@ export async function renderStundenplan(container) {
     const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
     if (day && lesson) openLessonDetail(container, day, lesson);
   }
-  body.addEventListener("click", (e) => {
-    const cell = e.target.closest('[role="button"][data-period]');
-    if (cell) openCellDetail(cell);
-  });
-  // Cells are divs, not real buttons, so Enter/Space activation needs wiring
-  // by hand — Enter on keydown (ignoring OS key-repeat), Space on keyup, same
-  // as a native button.
-  body.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    const cell = e.target.closest('[role="button"][data-period]');
-    if (!cell) return;
-    e.preventDefault();
-    if (e.key === "Enter" && !e.repeat) openCellDetail(cell);
-  });
-  body.addEventListener("keyup", (e) => {
-    if (e.key !== " ") return;
-    const cell = e.target.closest('[role="button"][data-period]');
-    if (cell) openCellDetail(cell);
-  });
+  bindActivate(body, "[data-period]", openCellDetail);
 
   const days = await loadAndRender(container, studentId, student, weekOffset, loadState);
   if (days) currentDays = days;

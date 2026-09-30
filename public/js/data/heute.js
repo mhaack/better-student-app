@@ -6,6 +6,7 @@ import {
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
+import { mergeDoublePeriods } from "./termine.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
 
@@ -73,11 +74,10 @@ export async function getHeuteData(studentId, scale) {
   const withinWindow =
     newest && (now - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
 
-  // A double period records the same Klassenbuch entry once per lesson, each
-  // with its own note id, so identical entries are collapsed by content.
-  const uniqueNotes = [
-    ...new Map(notes.map((n) => [`${n.date}|${n.subjectId}|${n.text}`, n])).values(),
-  ];
+  // A double period records the same Klassenbuch entry once per lesson;
+  // merged the same way as on Termine, so the detail sheet can say
+  // "5.-6. Stunde" here too.
+  const uniqueNotes = mergeDoublePeriods(notes);
 
   return {
     // "Heute" / "Morgen" / "Montag" — the heading has to say which day this is.

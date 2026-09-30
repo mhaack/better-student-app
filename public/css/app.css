@@ -690,8 +690,9 @@ button {
   white-space: nowrap;
 }
 
-/* Stundenplan lesson-detail sheet, opened by tapping a changed cell. */
-.sp-detail-backdrop {
+/* Detail sheet (components/detail-sheet.js), opened by tapping a changed
+   Stundenplan cell or a truncated Termin / Anstehend entry. */
+.detail-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, .45);
@@ -700,7 +701,7 @@ button {
   justify-content: center;
 }
 
-.sp-detail-sheet {
+.detail-sheet {
   width: 100%;
   max-width: 480px;
   max-height: 80vh;
@@ -713,7 +714,7 @@ button {
   gap: 4px;
 }
 
-.sp-detail-header {
+.detail-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -721,14 +722,14 @@ button {
   margin-bottom: 10px;
 }
 
-.sp-detail-title {
+.detail-title {
   font-family: var(--font-serif);
   font-size: 26px;
   margin: 2px 0 0;
   color: var(--text-primary);
 }
 
-.sp-detail-close {
+.detail-close {
   min-width: var(--touch-target);
   min-height: var(--touch-target);
   margin: -10px -10px 0 0;
@@ -737,7 +738,7 @@ button {
   flex: none;
 }
 
-.sp-detail-row {
+.detail-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -747,11 +748,11 @@ button {
   border-top: 1px solid var(--border);
 }
 
-.sp-detail-label {
+.detail-label {
   color: var(--text-muted);
 }
 
-.sp-detail-note {
+.detail-note {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-secondary);
@@ -909,6 +910,17 @@ button {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* A row whose clamped text hides more; tapping opens the detail sheet.
+   Set by markTruncatedRows only when the clamp actually cuts something off. */
+.is-expandable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.is-expandable:active {
+  opacity: .6;
 }
 
 /* Holidays sit in the same list as an orientation point, not as an event. */

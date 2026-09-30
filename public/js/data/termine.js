@@ -29,7 +29,7 @@ const EXAM_TYPE_CODES = new Set(["KLA", "LEI"]);
  * with its own note id. Collapse by content, but keep every period so the
  * row can say "1.-2. Stunde" rather than dropping half the information.
  */
-function mergeDoublePeriods(notes) {
+export function mergeDoublePeriods(notes) {
   const byContent = new Map();
 
   for (const note of notes) {
