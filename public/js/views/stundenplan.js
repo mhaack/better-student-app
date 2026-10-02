@@ -3,6 +3,7 @@ import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, closeDetailSheet, bindActivate } from "../components/detail-sheet.js";
+import { openExamSheet } from "../components/exam-sheet.js";
 
 const STATUS_EYEBROW = {
   cancelled: "Entfällt",
@@ -81,32 +82,40 @@ function cellContent(lesson, dayIndex) {
   }
 
   const inner = `
+    ${lesson.hasExam ? `<span class="sp-exam-dot" aria-hidden="true"></span>` : ""}
     <div class="sp-cell-title" style="${titleStyle}">${escapeHtml(title)}</div>
     <div class="sp-cell-meta">${escapeHtml(roomLine)}</div>
     ${teacherLine ? `<div class="sp-cell-meta">${escapeHtml(teacherLine)}</div>` : ""}`;
 
-  if (lesson.status === "regular") {
+  if (lesson.status === "regular" && !lesson.hasExam) {
     return `<div class="${classes}">${inner}</div>`;
   }
 
-  // Non-regular cells open the detail sheet (see bindActivate for why this
-  // is a div rather than a real <button>).
-  const label = `${lesson.subject ?? lesson.subjectShort ?? ""}, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
+  // A div, not a <button>: see bindActivate.
+  const status = lesson.status === "regular" ? "" : `, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
+  const label = `${lesson.subject ?? lesson.subjectShort ?? ""}${status}${lesson.hasExam ? ", Test" : ""}`;
   return `
     <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
       ${inner}
     </div>`;
 }
 
+const WEEKDAY_LONG = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
+
+/** Headers of days with a test open the test sheet. */
 function headerRow(days) {
   const cells = days
-    .map(
-      (d) => `
-      <div style="text-align:center;display:flex;flex-direction:column;gap:1px">
+    .map((d, i) => {
+      const content = `
         <div class="sp-day-label${d.isToday ? " sp-day-label--today" : ""}">${escapeHtml(d.label)}</div>
-        <div class="sp-day-date">${escapeHtml(d.dateLabel)}</div>
-      </div>`
-    )
+        <div class="sp-day-date">${escapeHtml(d.dateLabel)}</div>`;
+      if (!d.exams.length) return `<div class="sp-day-head">${content}</div>`;
+      const label = `${WEEKDAY_LONG.format(d.date)} ${d.dateLabel} – Test anzeigen`;
+      return `
+        <div class="sp-day-head sp-day-head--exam" role="button" tabindex="0" data-exam-day="${i}" aria-label="${escapeHtml(label)}">
+          ${content}
+        </div>`;
+    })
     .join("");
   return `<div class="sp-grid-row"><span></span>${cells}</div>`;
 }
@@ -214,14 +223,21 @@ export async function renderStundenplan(container) {
     { passive: true }
   );
 
-  // One delegated listener survives every #sp-body re-render, same as the
-  // swipe listeners above.
+  // Delegated, so it survives #sp-body re-renders. A test cell opens the test
+  // sheet even when also changed: its Raum row shows the changed room.
   function openCellDetail(cellEl) {
     const day = currentDays[Number(cellEl.dataset.dayIndex)];
     const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
-    if (day && lesson) openLessonDetail(container, day, lesson);
+    if (!day || !lesson) return;
+    const exam = lesson.hasExam && day.exams.find((e) => e.periods.includes(lesson.period));
+    if (exam) openExamSheet(container, [exam], cellEl);
+    else openLessonDetail(container, day, lesson);
   }
   bindActivate(body, "[data-period]", openCellDetail);
+  bindActivate(body, "[data-exam-day]", (headEl) => {
+    const day = currentDays[Number(headEl.dataset.examDay)];
+    if (day?.exams.length) openExamSheet(container, day.exams, headEl);
+  });
 
   const days = await loadAndRender(container, studentId, student, weekOffset, loadState);
   if (days) currentDays = days;
@@ -248,7 +264,7 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
   nextBtn.style.visibility = weekOffset === MAX_WEEK_OFFSET ? "hidden" : "visible";
 
   try {
-    const data = await getStundenplanData(weekOffset);
+    const data = await getStundenplanData(weekOffset, studentId);
     if (loadState.seq !== seq) return null;
 
     const first = data.days[0];
@@ -258,17 +274,30 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
       `${first.label} ${first.dateLabel} – ${last.label} ${last.dateLabel}${klasse}`;
 
     const weekLabel = weekLabelFor(data.weeksFromNow);
-    const changesLine =
+    const changes =
       data.changeCount > 0
-        ? `<span style="color:var(--accent);font-weight:600">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span> · ${weekLabel}`
-        : `Keine Änderungen ${weekLabel}`;
+        ? `<span style="color:var(--accent);font-weight:600">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span>`
+        : "Keine Änderungen";
+    const legendParts =
+      data.testCount > 0
+        ? [
+            changes,
+            `<span class="sp-legend-dot" aria-hidden="true"></span>${data.testCount} Test${data.testCount === 1 ? "" : "s"}`,
+            "Tippen für Details",
+          ]
+        : data.changeCount > 0
+          ? [changes, weekLabel]
+          : [`${changes} ${weekLabel}`];
+    const changesLine = legendParts
+      .map((part) => `<span>${part}</span>`)
+      .join(`<span aria-hidden="true">·</span>`);
 
     body.innerHTML = `
       <div class="sp-grid">
         ${headerRow(data.days)}
         ${data.grid.map(gridRow).join("")}
       </div>
-      <div style="font-size:12px;color:var(--text-muted)">${changesLine}</div>
+      <div class="sp-legend">${changesLine}</div>
     `;
     return data.days;
   } catch (err) {

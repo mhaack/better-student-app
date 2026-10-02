@@ -11,6 +11,26 @@ export function daysUntil(iso) {
   return iso ? daysFromToday(new Date(iso)) : null;
 }
 
+/**
+ * Calendar days from one "YYYY-MM-DD" to another, negative if `toIso` is
+ * earlier. Counted in UTC so a 23- or 25-hour DST day still counts as one.
+ */
+export function calendarDaysBetween(fromIso, toIso) {
+  const utc = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(toIso) - utc(fromIso)) / 86_400_000);
+}
+
+/** "Heute" / "Morgen" / "In 3 Tagen", and "Gestern" / "Vor 3 Tagen" looking back. */
+export function countdownLabel(days) {
+  if (days === 0) return "Heute";
+  if (days === 1) return "Morgen";
+  if (days === -1) return "Gestern";
+  return days > 0 ? `In ${days} Tagen` : `Vor ${-days} Tagen`;
+}
+
 /** "Heute"/"Morgen" for the next two days, "Montag" through day 6, otherwise "12.09." */
 export function weekdayOrDate(iso) {
   if (!iso) return "";

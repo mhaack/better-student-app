@@ -7,6 +7,7 @@ import { escapeHtml } from "../util/dom.js";
 import { weekdayOrDate, daysUntil } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
+import { openExamSheet } from "../components/exam-sheet.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
@@ -91,7 +92,7 @@ function notesSection(items) {
         ? `<span class="pill pill--room">${dueLabel}</span>`
         : `<span class="hw-due">${dueLabel}</span>`;
       return `
-      <div class="hw-row" data-note-index="${index}">
+      <div class="hw-row${n.isExam ? " is-expandable" : ""}" data-note-index="${index}"${n.isExam ? ' role="button" tabindex="0"' : ""}>
         <div class="hw-text">
           <div class="hw-title">${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
           ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
@@ -128,7 +129,7 @@ async function fillMitteilungen(container) {
     </div>`;
 }
 
-/** The full entry behind an Anstehend row whose text was clamped. */
+/** The full entry behind a clamped Anstehend row that isn't a test. */
 function openNoteDetail(container, note) {
   openDetailSheet(container, {
     eyebrow: note.typeName,
@@ -178,7 +179,8 @@ export async function renderHeute(container) {
     markTruncatedRows(body, "[data-note-index]", ".hw-title");
     bindActivate(body, "[data-note-index]", (row) => {
       const note = data.notes[Number(row.dataset.noteIndex)];
-      if (note) openNoteDetail(container, note);
+      if (note?.isExam) openExamSheet(container, [note], row);
+      else if (note) openNoteDetail(container, note);
     });
   } catch (err) {
     container.querySelector("#heute-body").innerHTML = renderErrorState(escapeHtml(err.message));
