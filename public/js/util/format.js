@@ -24,6 +24,16 @@ export function calendarDaysBetween(fromIso, toIso) {
 }
 
 /** "Heute" / "Morgen" / "In 3 Tagen", and "Gestern" / "Vor 3 Tagen" looking back. */
+/** [3] -> "3. Stunde"; [1,2] -> "1.–2. Stunde"; [1,3] -> "1., 3. Stunde". */
+export function periodLabel(periods) {
+  if (!periods.length) return "";
+  if (periods.length === 1) return `${periods[0]}. Stunde`;
+  const isRun = periods.at(-1) - periods[0] === periods.length - 1;
+  return isRun
+    ? `${periods[0]}.–${periods.at(-1)}. Stunde`
+    : `${periods.map((p) => `${p}.`).join(", ")} Stunde`;
+}
+
 export function countdownLabel(days) {
   if (days === 0) return "Heute";
   if (days === 1) return "Morgen";

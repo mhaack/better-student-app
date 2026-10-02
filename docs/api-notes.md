@@ -238,6 +238,21 @@ naming convention — subject code uppercase for LK, lowercase for GK
 actual LKs. The app treats it as a hint and falls back to one flat list when
 the result looks implausible (see `resolveCourseTypes` in `js/data/context.js`).
 
+## Klausuren the API doesn't have: the school's Klausur plan
+
+Not every teacher enters Klausuren in the Klassenbuch, so KLA notes miss
+some. The school publishes the Jahrgang 11/12 Klausur dates for the whole
+year; they ship as `public/data/klausuren_<Jahrgang>_<YYYY>_<YY>.json`
+(`{ date, kurs, teacher, duration }`) and fill the gaps — beste.schule's own
+tests always win (`js/data/klausuren.js`, `docs/plans/klausuren.md`).
+
+- `kurs` is the group `local_id` minus the Jahrgang prefix: `11MA1` → `MA1`,
+  `11-12la1` → `la1`. **Case-sensitive**: `MA1` (LK) ≠ `ma1` (GK).
+- `teacher` is the teacher's `local_id` ("KLH"), as on timetable lessons.
+- Some groups come back with **`subjects: []`** (`11fr1`, `11gh1`, `11ree1`
+  here). Their subject is only on the timetable lessons of that group
+  (`lesson.group.local_id`).
+
 ## OAuth from a browser-only app
 
 **`/oauth/token` is CORS-enabled** (verified 2026-09), so the authorization

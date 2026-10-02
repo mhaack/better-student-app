@@ -7,6 +7,7 @@ import {
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
 import { withExamDetails } from "./termine.js";
+import { getPlannedKlausuren } from "./klausuren.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
 
@@ -50,11 +51,12 @@ export async function getHeuteData(studentId, scale) {
   const dayIso = isoDate(day);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
-  const [dayPlans, grades, notes] = await Promise.all([
+  const [dayPlans, grades, notes, planned] = await Promise.all([
     // The whole Anstehend window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
+    getPlannedKlausuren(studentId, dayIso, notesUntilIso),
   ]);
 
   const lessons = lessonsForDate(day, dayPlans, timetable);
@@ -75,7 +77,7 @@ export async function getHeuteData(studentId, scale) {
   const withinWindow =
     newest && (now - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
 
-  const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now));
+  const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now), planned);
 
   return {
     // "Heute" / "Morgen" / "Montag" — the heading has to say which day this is.
@@ -86,7 +88,8 @@ export async function getHeuteData(studentId, scale) {
     changes,
     newestGrade: withinWindow ? newest : null,
     notes: uniqueNotes
-      .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && n.text)
+      // A plan Klausur has no text but is still a test.
+      .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && (n.text || n.isExam))
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, MAX_NOTES),
   };
