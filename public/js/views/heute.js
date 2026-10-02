@@ -1,6 +1,8 @@
 import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getHeuteData } from "../data/heute.js";
+import { getMitteilungenData } from "../data/mitteilungen.js";
+import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
 import { weekdayOrDate, daysUntil } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
@@ -105,6 +107,27 @@ function notesSection(items) {
     </div>`;
 }
 
+/**
+ * New announcements go last: the day's plan is what Heute is for. Loaded on
+ * its own so a failing announcements call just leaves the section out
+ * instead of replacing the whole screen with an error.
+ */
+async function fillMitteilungen(container) {
+  let fresh;
+  try {
+    ({ fresh } = await getMitteilungenData());
+  } catch {
+    return;
+  }
+  const slot = container.querySelector("#heute-mitteilungen");
+  if (!slot || fresh.length === 0) return;
+  slot.outerHTML = `
+    <div class="section" style="gap:10px">
+      <div class="eyebrow">Mitteilungen</div>
+      <div class="mt-list">${fresh.map((item) => mitteilungRow(item, weekdayOrDate(item.date))).join("")}</div>
+    </div>`;
+}
+
 /** The full entry behind an Anstehend row whose text was clamped. */
 function openNoteDetail(container, note) {
   openDetailSheet(container, {
@@ -149,7 +172,9 @@ export async function renderHeute(container) {
       </div>
       ${newGradeSection(data.newestGrade)}
       ${notesSection(data.notes)}
+      <div id="heute-mitteilungen" hidden></div>
     `;
+    fillMitteilungen(container);
     markTruncatedRows(body, "[data-note-index]", ".hw-title");
     bindActivate(body, "[data-note-index]", (row) => {
       const note = data.notes[Number(row.dataset.noteIndex)];

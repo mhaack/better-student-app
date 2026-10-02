@@ -371,6 +371,48 @@ button {
   color: var(--text-primary);
 }
 
+/* Mehr: settings share one card, one row each, so they read as a group
+   rather than a string of loose pickers. */
+.settings-group {
+  padding: 0;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 16px;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--border);
+}
+
+.settings-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.settings-label {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.settings-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.settings-row .interval-picker {
+  flex: none;
+  align-self: center;
+}
+
 /* Fach-Detail */
 .back-link {
   font-size: 14px;
@@ -491,6 +533,21 @@ button {
   color: var(--text-muted);
 }
 
+/* Unread-announcements marker on the Mehr tab: top-right of the icon, clear
+   of the ellipsis' own dots. */
+.nav-item { position: relative; }
+.nav-item--dot::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: calc(50% + 9px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
 .nav-item[aria-current="page"] {
   color: var(--text-primary);
   font-weight: 600;
@@ -553,6 +610,17 @@ button {
 .button-primary[disabled] {
   opacity: .5;
   cursor: default;
+}
+
+/* The base button is stretched by its parent; a centred one needs its own padding. */
+.button-primary--inline {
+  padding: 0 20px;
+}
+
+.button-primary--ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
 }
 
 .login-help {
@@ -966,4 +1034,138 @@ button {
   font-size: 13px;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+/* Mitteilungen */
+.mt-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mt-row {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  min-height: var(--touch-target);
+  border-bottom: 1px solid var(--border);
+}
+
+.mt-list .mt-row:last-child { border-bottom: none; }
+
+/* The same accent dot language as the Änderungen card: only unread rows
+   carry it; read rows keep the column so titles stay aligned. */
+.mt-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.mt-dot--read { background: transparent; }
+
+.mt-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mt-title {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.mt-title--unread { font-weight: 600; }
+
+.mt-preview {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.mt-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mt-clip svg,
+.mt-attachment-icon svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.mt-detail-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.mt-confirm {
+  font-size: 14px;
+  color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  text-align: center;
+}
+
+.mt-confirm--done {
+  color: var(--text-secondary);
+}
+
+/* Letter text: links must look like links here, unlike everywhere else. */
+.mt-message {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.mt-message p { margin: 0 0 14px; }
+.mt-message p:last-child { margin-bottom: 0; }
+.mt-message a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mt-attachment {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.mt-attachment-icon {
+  flex: none;
+  color: var(--accent);
+}
+.mt-attachment-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mt-attachment-name {
+  font-size: 15px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.mt-chevron {
+  font-size: 20px;
+  color: var(--text-muted);
+  margin-left: auto;
 }

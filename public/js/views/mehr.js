@@ -2,6 +2,7 @@ import { getStudents, getSelectedStudentId, setSelectedStudentId, clearSession }
 import { resetContext } from "../state/session.js";
 import { clearCache } from "../data/cache.js";
 import { fetchSchool } from "../data/repository.js";
+import { getMitteilungenData } from "../data/mitteilungen.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
 import { getCutoffHour, setCutoffHour } from "../state/settings.js";
@@ -87,31 +88,44 @@ export async function renderMehr(container) {
           : ""
       }
       ${switcher}
-      <div class="section">
-        <div class="eyebrow">Tageswechsel</div>
-        <select id="cutoff-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
-          ${CUTOFF_HOUR_OPTIONS.map(
-            (h) => `<option value="${h}" ${h === getCutoffHour() ? "selected" : ""}>ab ${h}:00 Uhr</option>`
-          ).join("")}
-        </select>
-        <div style="font-size:12px;line-height:1.5;color:var(--text-muted)">
-          Ab dieser Uhrzeit zeigt „Heute" schon den nächsten Schultag —
-          freitags abends und am Wochenende den Montag.
+      <a class="card card-row" href="#/mehr/mitteilungen" style="min-height:52px">
+        <span style="font-size:16px;color:var(--text-primary)">Mitteilungen</span>
+        <span style="display:flex;align-items:center;gap:10px">
+          <span id="mehr-unread"></span>
+          <span class="mt-chevron" aria-hidden="true">›</span>
+        </span>
+      </a>
+      <div class="section" style="gap:10px">
+        <div class="eyebrow">Einstellungen</div>
+        <div class="card settings-group">
+          <label class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label">Tageswechsel</span>
+              <span class="settings-hint">
+                Ab dieser Uhrzeit zeigt „Heute" schon den nächsten Schultag —
+                freitags abends und am Wochenende den Montag.
+              </span>
+            </span>
+            <select id="cutoff-picker" class="interval-picker">
+              ${CUTOFF_HOUR_OPTIONS.map(
+                (h) => `<option value="${h}" ${h === getCutoffHour() ? "selected" : ""}>ab ${h}:00 Uhr</option>`
+              ).join("")}
+            </select>
+          </label>
+          <label class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label">Darstellung</span>
+            </span>
+            <select id="theme-picker" class="interval-picker">
+              ${THEME_OPTIONS.map(
+                (o) => `<option value="${o.value}" ${o.value === getThemePreference() ? "selected" : ""}>${o.label}</option>`
+              ).join("")}
+            </select>
+          </label>
         </div>
       </div>
-      <div class="section">
-        <div class="eyebrow">Darstellung</div>
-        <select id="theme-picker" class="interval-picker" style="border:1px solid var(--border);appearance:none">
-          ${THEME_OPTIONS.map(
-            (o) => `<option value="${o.value}" ${o.value === getThemePreference() ? "selected" : ""}>${o.label}</option>`
-          ).join("")}
-        </select>
-      </div>
       ${installSection()}
-      <div class="empty-state" style="padding-top:24px">
-        Hausaufgabenübersicht, Fehlzeiten und Mitteilungen kommen in einer späteren Version.
-      </div>
-      <button id="logout-button" class="button-primary" style="background:transparent;color:var(--accent);border:1px solid var(--accent-border)">Abmelden</button>
+      <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
         Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
@@ -162,6 +176,16 @@ export async function renderMehr(container) {
     })
     .catch(() => {
       // The school name is decoration; the class from the student record is enough.
+    });
+
+  getMitteilungenData()
+    .then(({ unreadCount }) => {
+      const target = container.querySelector("#mehr-unread");
+      if (!target || unreadCount === 0) return;
+      target.outerHTML = `<span class="pill pill--room">${unreadCount} ungelesen</span>`;
+    })
+    .catch(() => {
+      // The row still links to the list, which shows its own error state.
     });
 
   container.querySelector("#logout-button").addEventListener("click", () => {

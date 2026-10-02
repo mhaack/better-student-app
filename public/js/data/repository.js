@@ -6,7 +6,7 @@
 // filter[range] all validate; `include` values are the ones the API's
 // allowlist actually accepts.
 import { apiFetch, apiFetchAll } from "../api/client.js";
-import { cached } from "./cache.js";
+import { cached, invalidate } from "./cache.js";
 import {
   mapStudent,
   mapYear,
@@ -16,6 +16,7 @@ import {
   mapTimetableLesson,
   mapJournalNotes,
   mapAnnouncement,
+  mapMe,
 } from "../api/mappers.js";
 
 export async function fetchStudents() {
@@ -150,9 +151,37 @@ export async function fetchJournalNotes(studentId, fromIso, toIso) {
 
 export async function fetchAnnouncements() {
   return cached("announcements", async () => {
-    const list = await apiFetchAll("announcements");
+    // Author and read state only exist as includes. `guardians`/`students`
+    // would also be allowed but carry phone numbers and e-mail addresses,
+    // so they're deliberately not requested. No filter[student]: a guardian
+    // gets every child's announcements in one list.
+    const list = await apiFetchAll("announcements", {
+      params: { include: "teacher,readGuardiansCount,readStudentsCount" },
+    });
     return list.map(mapAnnouncement);
   });
+}
+
+/** The signed-in role, or null — announcements keep the two roles' read state apart. */
+export async function fetchRole() {
+  return cached("me", async () => {
+    try {
+      const res = await apiFetch("me");
+      return mapMe(res?.data ?? res).role;
+    } catch {
+      return null;
+    }
+  });
+}
+
+/**
+ * Sends the Lesebestätigung, for all of the user's children at once — the API
+ * has no per-child variant. The 200 body is discarded: it embeds guardians and
+ * students unrequested (phone, e-mail, birthday) and carries no read counts.
+ */
+export async function respondToAnnouncement(id) {
+  await apiFetch(`announcements/${id}/respond`, { method: "POST" });
+  invalidate("announcements");
 }
 
 export function isoDate(date) {

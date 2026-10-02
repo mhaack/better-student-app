@@ -18,11 +18,23 @@ export function renderBottomNav(activeBasePath) {
     // .nav-item[aria-current="page"] in app.css) — that's the only active
     // marker now, so no separate indicator element is needed.
     return `
-      <a class="nav-item" href="#${tab.path}" ${isActive ? 'aria-current="page"' : ""}>
+      <a class="nav-item" href="#${tab.path}" data-path="${tab.path}" ${isActive ? 'aria-current="page"' : ""}>
         ${tab.icon}
         <span>${tab.label}</span>
       </a>`;
   }).join("");
 
   return `<nav class="bottom-nav" aria-label="Hauptnavigation">${items}</nav>`;
+}
+
+/**
+ * Unread announcements leave Heute after two weeks but can stay unread for
+ * months, and they live under Mehr — a dot on that tab keeps them findable
+ * without a sixth tab. Set after render because it needs a fetch.
+ */
+export function setMehrDot(nav, hasUnread) {
+  const item = nav?.querySelector('[data-path="/mehr"]');
+  if (!item) return;
+  item.classList.toggle("nav-item--dot", hasUnread);
+  item.setAttribute("aria-label", hasUnread ? "Mehr, ungelesene Mitteilungen" : "Mehr");
 }

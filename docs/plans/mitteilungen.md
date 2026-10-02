@@ -1,72 +1,236 @@
 # Plan: Mitteilungen (announcements)
 
+**Status:** built (2026-09-29). Lesebestätigung added 2026-09-30 — see
+"Confirming in-app" below, which supersedes the read-only decision.
+Tests: `scripts/test-mitteilungen.mjs`.
+
 ## Context
 
-The data layer already has `fetchAnnouncements()` + `mapAnnouncement()`
-(`public/js/data/repository.js`, `public/js/api/mappers.js`), confirmed
-against the live API (`docs/api-notes.md`: body is `message`, markdown-ish,
-with attachment links) — but nothing calls it. Guardians/students currently
-can't see Elternbriefe or Neuigkeiten at all, even though this is the closest
-of the missing features to already being done.
+beste.schule announcements (Elternbriefe, Informationen der Schulleitung) are
+invisible in the app today. `fetchAnnouncements()` + `mapAnnouncement()`
+exist but nothing calls them, and the mapper's field names were guesses.
+Checked against the live API on 2026-09-28 with a guardian token (one child,
+two announcements visible) — findings below, also recorded in
+`docs/api-notes.md`.
 
-## Implementation
+## What the API returns
 
-**New files:**
-- `public/js/data/mitteilungen.js` — `getMitteilungenData()`: calls the
-  existing `fetchAnnouncements()`, sorts by `createdAt` descending, returns
-  `{ items }`. Thin, mirrors `data/heute.js` / `data/noten.js` in shape.
-- `public/js/views/mitteilungen.js` — mirrors `views/fach-detail.js`'s
-  structure: a `‹ Mehr` back-link (`class="back-link" href="#/mehr"`), title,
-  `renderSkeleton()`/`renderErrorState()`/`bindErrorState()` from
-  `components/states.js` while loading, then a list of cards (date via a new
-  `formatFullDate(iso)` in `util/format.js` — `weekdayOrDate` is for near
-  dates only and wrong here since announcements can be old). Empty list →
-  `renderEmptyState("Keine Mitteilungen.")`.
+`GET /api/announcements` — standard paginated envelope (`data`, `links`,
+`meta` with `per_page: 20`, `total`). `apiFetchAll` already handles that.
 
-**Rendering the body text:** API notes say the body is "markdown-ish, with
-attachment links" but the project's rule (`util/dom.js`) is that API free
-text is rendered as plain text only, never raw HTML. Full markdown rendering
-is out of scope here — instead: escape the body with the existing
-`escapeHtml()`, preserve line breaks with CSS `white-space: pre-wrap`, and add
-one small helper, `linkify(escapedText)` in `util/dom.js`, that
-regex-replaces bare `http(s)://…` URLs in the *already-escaped* string with
-`<a>` tags built from that same safe string (no re-parsing of user input as
-HTML, so no injection risk). This covers "attachment links" without a
-markdown parser. If richer formatting (bold, lists) turns out to matter after
-seeing real announcement content, that's a follow-up, not blocking this pass.
+Per item (no extra includes):
 
-**Read/unread:** `mapAnnouncement` already reads a `read` boolean off the API
-response itself (server-computed) — no local "seen" tracking or write calls
-needed. Render unread items with a small accent-colored dot (reuse the
-existing accent-dot visual language from Heute's Änderungen card) and
-slightly heavier text weight; no "mark as read" action in this pass (the
-mark-read write route's CORS is explicitly unconfirmed per
-`docs/api-notes.md`'s "Still open" section — not worth the risk for this).
+| Field | Example / meaning |
+|---|---|
+| `id` | number |
+| `title` | plain text, always set ("Belehrung Sportunterricht 2026/2027") |
+| `message` | **Markdown** (see below) |
+| `read_from` / `read_to` | `YYYY-MM-DD` — visibility window. The **only date** on the item; there is no `created_at`. `read_from` is effectively the publish date. |
+| `write_from` / `write_to` | `YYYY-MM-DD`, meaning unclear (maybe the confirmation window) — ignore for now |
+| `for` | `"guardian"` or `"student"` — intended audience. A guardian sees both kinds. |
+| `need_confirmation_from_guardian` / `…_student` | `0`/`1` — whether a Lesebestätigung is requested |
+| `single_group` | boolean |
+| `type` | `{ id, name: "Elternbrief", color: null, … }` |
 
-**Wiring:**
-- `public/js/app.js`: import `renderMitteilungen`, add
-  `route(/^\/mehr\/mitteilungen$/, withShell(renderMitteilungen));`. Nested
-  under `/mehr` (not a bare `/mitteilungen`) deliberately — `currentBasePath()`
-  in `router.js` takes only the first path segment, so nesting is what keeps
-  the "Mehr" tab highlighted while viewing this screen (same reason
-  `/noten/:subjectId` is nested under `/noten`).
-- `public/js/views/mehr.js`: replace the stub sentence's "Mitteilungen"
-  mention with a real link/row to `#/mehr/mitteilungen` (styled like the
-  existing `.card`), placed near the top since it's now real content, not a
-  placeholder.
+Not present: author, read flag, attachments field, expiry flag beyond
+`read_to`.
 
-**Verify against the live API before/while building:** the exact field names
-beyond `message` (does `title` exist? is the date field `created_at`?) were
-not in `docs/api-notes.md` — `mapAnnouncement`'s `pick()` fallbacks are
-defensive guesses. Quick check: `curl` the `announcements` route with a real
-token (same pattern as the earlier grades-400 investigation) before
-finalizing the card layout, and correct the mapper if a guessed field name is
-wrong.
+**Includes** (`include=` allowlist): `teacher`, `guardians`, `students`,
+`groups`, and counts `readGuardiansCount`, `readStudentsCount`,
+`readByAnyGuardianCount`, `readByAllGuardiansCount`, `allGuardiansCount`,
+`allStudentsCount` (+ the usual `…Count`/`…Exists`).
+- `include=teacher` → `{ id, local_id, forename, name, tags }` — the author.
+  `name` is the surname, as elsewhere.
+- `include=readGuardiansCount,readStudentsCount` → `read_guardians_count` /
+  `read_students_count`. These are **scoped to the viewer**, not school-wide
+  (a school-wide letter shows `1`, not hundreds): `1` on the letter from
+  August, `0` on last week's one. This is the read state.
+- `guardians` / `students` carry personal data (phone, e-mail, birthday) —
+  **don't request them**.
 
-## Verification
+**Filters** (allowlist): `title, type, min_groups, min_students, group,
+student, guardian, teacher, subject, room, interval, year, role, school`.
+`filter[student]=<id>` is accepted and returned the same two items; with one
+child we can't tell whether it narrows per child. `filter[read]` doesn't
+exist. `GET /api/announcements/:id` works and returns the same shape.
 
-`npm test` (unaffected, sanity check only). `npm run serve` + Playwright:
-mock `/api/announcements` with a couple of read/unread items including a
-bare URL in the body; verify the list renders, the link is clickable, unread
-styling shows, and `#/mehr/mitteilungen` keeps the "Mehr" tab highlighted in
-the bottom nav.
+**`message` format.** Real Markdown, LF line breaks, no HTML, no entities:
+- paragraphs separated by `\n\n`; one line ends in two spaces + `\n` (a
+  Markdown hard break)
+- `**bold**` (used as an in-body headline)
+- links as `[Belehrung_Sportunterricht.pdf](/attachments/463)` — **relative**
+  to `https://beste.schule`. No bare URLs in either item.
+- one "list" is flattened into a sentence (`… empfehlen wir: - a, - b, - c.`),
+  i.e. the editor doesn't reliably produce real list syntax. Don't try to
+  rescue that.
+- the sender's name is typed at the end of the body by hand.
+
+**Attachments** are *only* Markdown links in `message`; there's no separate
+field. `GET /api/attachments/463` (bearer) → `{ id, filename, filesize_kb,
+attachmentable_type: "App\\Models\\Announcement", attachmentable_id, url }`,
+where `url` is the web route `https://beste.schule/attachments/463`.
+- The web route needs a beste.schule **web session** (bearer → 302 to
+  `/login`). Opening it in a new tab works only if the user is logged in to
+  beste.schule in that browser.
+- The API route with `Accept` other than JSON (or `?download=1`) 302s to a
+  **presigned S3 URL** on `s3-eu-central-1.ionoscloud.com` (5-minute
+  expiry). Fetching the file in-app would need that host in `connect-src`
+  (and S3 CORS) — not doing that without discussing it.
+
+**Today's two items** (content summarised): (1) Elternbrief from the sports
+department, visible Aug 2026 – Sep 2027, asks guardians to read and confirm
+the PE safety briefing, one PDF attachment; already read (count 1). (2)
+Letter from the head teacher, visible 23.–30.09., informs about a police
+presence near the school and gives safety advice, no attachment; unread.
+
+## Mapper corrections (`api/mappers.js`)
+
+Current `mapAnnouncement` gets two of five fields right:
+
+| Field | Now | Reality |
+|---|---|---|
+| `title` | `raw.title` | ✓ |
+| `body` | `pick(message, body, text, …)` | ✓ via `message`; drop the other guesses |
+| `createdAt` | `pick(created_at, date)` | ✗ always `undefined` → replace with `date: raw.read_from`, `visibleUntil: raw.read_to` |
+| `read` | `pick(read, is_read)` | ✗ always `false` → `readCount: (read_guardians_count ?? 0) + (read_students_count ?? 0)`; the boolean is decided in `data/` |
+| — | — | add `type: raw.type?.name`, `author` (`forename name` from `teacher`, or `null`), `needsConfirmation` (either flag set) |
+
+`fetchAnnouncements()` requests
+`include=teacher,readGuardiansCount,readStudentsCount`, no filter.
+
+## Body rendering: tiny safe Markdown subset
+
+The format is Markdown, so plain linkify isn't enough (it would show
+`[name](/attachments/463)` literally). New pure function in `domain/`
+(unit-tested), e.g. `domain/markdown.js → renderMessage(text)`:
+
+1. `escapeHtml()` the whole string first.
+2. Split on blank lines into `<p>`; single `\n` (with or without trailing
+   spaces) → `<br>`.
+3. `**x**` → `<strong>x</strong>`.
+4. `[text](href)` → link, where `href` is resolved against
+   `https://beste.schule` with `new URL()` and kept **only if** the protocol
+   is `https:`/`http:`; otherwise the text is left as plain text.
+5. Bare `https?://` URLs → links (none seen yet, cheap to support).
+
+Everything else (headings, lists, italics, HTML) stays literal. Links get
+`target="_blank" rel="noopener noreferrer"`.
+
+**Attachments** are extracted in `data/`: a link whose resolved path matches
+`/attachments/\d+` becomes `{ id, name: linkText, url }` and is removed from
+the body (an emptied trailing paragraph is dropped). The detail screen shows
+them as tappable rows (file icon, name) opening
+`https://beste.schule/attachments/<id>` with `target="_blank"` — a
+navigation, so no CSP change. In the installed PWA that opens as an in-app
+browser sheet over the app; the first time it asks for the beste.schule web
+login, after that the browser session persists. Row subtitle: "Öffnet in
+beste.schule".
+
+Opening the file *inside* the app was checked and isn't possible client-side
+(decided 2026-09-29, re-verified 2026-09-30 once the OpenAPI spec was found —
+it documents no inline/preview/download route, so this isn't a discovery gap;
+full write-up in `docs/api-notes.md`): the API's 302 carries CORS headers for our origin, but
+the S3 bucket it redirects to sends no `Access-Control-Allow-Origin` for any
+origin and answers preflights with 403, so `fetch` can't read the file even
+with the host in `connect-src`. `redirect: "manual"` hides the presigned
+`Location`, the token isn't accepted as a query parameter, and the file is
+served as `Content-Disposition: attachment` anyway. A proxy of our own would
+route tokens and student documents through our server — ruled out. If
+beste.schule ever enables CORS on the bucket, revisit.
+
+## Data layer (`data/mitteilungen.js`)
+
+`getMitteilungenData()` → `{ items, fresh, unreadCount }`:
+- `items`: all, sorted by `date` desc, then `id` desc. Each gets
+  `read = readCount > 0`, `preview` (first non-empty line of the body with
+  Markdown stripped, ~120 chars), `attachments`, `bodyMarkdown` (without the
+  attachment links).
+- `fresh`: unread **and** `date` within the last 14 days. Read-only means an
+  item stays "unread" until confirmed on beste.schule, and one letter here is
+  visible for a whole year — so "unread" alone would pin it to Heute for
+  months. The 14-day window keeps Heute about what's new.
+- `unreadCount`: all unread items (for the Mehr row).
+
+## UI
+
+- **Heute:** compact "Mitteilungen" section at the **end** of the screen,
+  after the Klassenbuch notes — the day's plan stays first. Only rendered
+  when `fresh` is non-empty: per item title, date, one-line preview, accent
+  dot; tap → detail. Loaded independently of the Heute data so an
+  announcements error just hides the section instead of breaking Heute.
+- **Bottom nav:** a small accent dot on the Mehr tab icon while
+  `unreadCount > 0`. Once an item is older than 14 days it leaves Heute but
+  can stay unread for months (one letter is visible for a year); the dot
+  keeps it findable without a sixth tab (five already barely fit at 390px).
+- **List `#/mehr/mitteilungen`:** back link `‹ Mehr`, cards with title, date
+  (`formatFullDate`, new in `util/format.js` — `weekdayOrDate` is for near
+  dates only), type ("Elternbrief"), two-line preview, unread dot, paperclip
+  when attachments exist. Empty → `renderEmptyState("Keine Mitteilungen.")`.
+- **Detail `#/mehr/mitteilungen/:id`:** back link `‹ Mitteilungen`, title,
+  date · type · author (if present), rendered body, attachment rows. If
+  `needsConfirmation && !read`: a muted note "Lesebestätigung in beste.schule
+  erforderlich". Reads from the same cached list — no second request.
+- **Mehr:** a "Mitteilungen" row at the top with the unread count badge;
+  the "kommen in einer späteren Version" placeholder is removed, and the
+  settings (Tageswechsel, Darstellung) share one "Einstellungen" card.
+- Routes nested under `/mehr` so the Mehr tab stays highlighted
+  (`currentBasePath()` uses the first segment). No fifth tab.
+## Confirming in-app (2026-09-30)
+
+The read-only decision above was wrong about the API, not about the risk: a
+write route does exist, it just isn't named anything we guessed. `POST
+/api/announcements/{id}/respond` sends the Lesebestätigung, is authorized for
+a guardian token and returns CORS headers on the real response. Full contract
+in `docs/api-notes.md`; the lesson recorded there is to read
+`https://beste.schule/api.json` before probing route names by hand.
+
+What changed:
+
+- `mapAnnouncement` no longer sums the two read counts into `readCount`. It
+  exposes `readByGuardian` / `readByStudent` and `needsGuardianConfirmation` /
+  `needsStudentConfirmation`, because a letter asks one role to confirm and
+  summing hid an outstanding guardian confirmation whenever the child had
+  already opened it.
+- `mapMe` (new) reduces `/api/me` to `{ role }` and drops the e-mail, phone
+  numbers, nested guardian object and the children's birthdays it ships with.
+- `prepareMitteilungen(announcements, today, role)` picks the side of each
+  field pair that matches the role, and derives `canConfirm = role &&
+  needsConfirmation && !read`. A null role (an `/api/me` that failed) keeps
+  the old either-side read state so the unread badge still works, but never
+  offers to confirm — we can't tell who we'd be confirming as.
+- `respondToAnnouncement(id)` POSTs, **discards the response body** and
+  invalidates the announcements cache. The body arrives with `guardians` and
+  `students` embedded unrequested (phone, e-mail, birthday, tags); refetching
+  through the narrow include list costs one request and keeps that out.
+- The detail screen's dead-end note becomes a "Gelesen bestätigen" button,
+  then "✓ Lesebestätigung gesendet." Any failure falls back to the
+  beste.schule link.
+
+Verified end-to-end on 2026-09-30: a guardian confirmed announcement 3866
+from the app. That also settled `write_from`/`write_to` — 3866's window
+closed on 23.09 and the confirmation still returned 200, so the pair doesn't
+gate responding. The fallback link stays anyway: we know what those two dates
+*aren't*, not what they are.
+
+One constraint from the endpoint's own description: it marks the letter read
+for *all* entities belonging to the signed-in user, so a guardian with
+several children confirms for all of them at once. The button deliberately
+isn't scoped to the selected child and doesn't name one.
+
+## Tests
+
+`scripts/test-mitteilungen.mjs` with synthetic messages in the real shape
+(no real text): `**bold**`, `\n\n` paragraphs, `"  \n"` hard break, a
+relative `/attachments/123` link, an absolute link, a `javascript:` link
+(must stay text), `<script>` in the body (must be escaped), a bare URL.
+Plus `fresh`/`unreadCount` selection around the 14-day edge, and the mapper
+on a raw item shaped like the API's.
+
+## Open questions
+
+1. Multiple children: fetch unfiltered (current plan) or per selected child
+   with `filter[student]`? Unverifiable with one child; unfiltered can't
+   miss anything.
+2. Read counts were checked with a guardian token only. For a student token
+   `read_students_count` should be the one that matters; summing both is
+   assumed to be right for either role.
