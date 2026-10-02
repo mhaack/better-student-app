@@ -17,12 +17,7 @@ body {
 #app {
   width: 100%;
   max-width: 480px;
-  /* A real height cap (not min-height) is what makes the nav stay put: it
-     lets #view-container's min-height:0 shrink .view below its content size,
-     so .view's own overflow-y:auto becomes the only scrolling region and the
-     nav — sitting after it in the flex column — never leaves the viewport.
-     dvh accounts for mobile browser chrome; vh is the fallback for browsers
-     without dvh support. */
+  /* A fixed height (not min-height) makes .view the only scroller, so the nav stays put. */
   height: 100vh;
   height: 100dvh;
   display: flex;
@@ -30,9 +25,6 @@ body {
   background: var(--bg);
 }
 
-/* Every link in the app is a navigation target (tab, list row, back link),
-   none of which is underlined in the design. The accent-underlined link style
-   belonged to the design canvas's prose, not to the screens. */
 a { color: inherit; text-decoration: none; }
 
 button {
@@ -43,7 +35,6 @@ button {
   border: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* Strips native control chrome/appearance (Safari especially). */
   appearance: none;
   -webkit-appearance: none;
 }
@@ -61,8 +52,7 @@ button {
   padding-top: 12px;
 }
 
-/* Each screen renders its sections into a body wrapper; it has to be a flex
-   column itself, otherwise the .view gap never applies to the sections. */
+/* Must be a flex column itself, or the .view gap never reaches the sections. */
 .view-body {
   display: flex;
   flex-direction: column;
@@ -105,14 +95,11 @@ button {
   padding: 14px 16px;
 }
 
-/* Direction 2a puts the Änderungen card on the plain surface with only an
-   accent border — the tinted fill belonged to 1a. */
 .card--accent {
   background: var(--surface);
   border-color: var(--accent-border);
 }
 
-/* The Verlauf chart card is 14px, slightly tighter than the 16px content cards. */
 .card--chart {
   border-radius: 14px;
 }
@@ -215,14 +202,12 @@ button {
 
 .hw-text {
   flex: 1;
-  /* Without this a flex item refuses to shrink below its content, and the
-     clamp below never takes effect. */
+  /* Lets the flex item shrink so the clamp below applies. */
   min-width: 0;
   font-size: 16px;
   color: var(--text-primary);
 }
 
-/* Klassenbuch entries can run to a paragraph; two lines, then ellipsis. */
 .hw-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -285,7 +270,6 @@ button {
   font-weight: 500;
 }
 
-/* Leistungskurse carry more weight than Grundkurse in the list. */
 .subject-row--points .subject-name {
   font-weight: 400;
 }
@@ -371,8 +355,6 @@ button {
   color: var(--text-primary);
 }
 
-/* Mehr: settings share one card, one row each, so they read as a group
-   rather than a string of loose pickers. */
 .settings-group {
   padding: 0;
 }
@@ -444,7 +426,6 @@ button {
   margin-top: 6px;
 }
 
-/* With the LK/Halbjahr row above the title, the weighting line tucks up. */
 .subject-header--badged .subject-header-weighting {
   margin-top: 4px;
 }
@@ -510,11 +491,7 @@ button {
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  /* Bottom padding is just enough to clear the iPhone home-indicator via
-     safe-area-inset-bottom; on devices without one this is a slim 8px, not
-     the old fixed 20px that made the bar tall even where no inset applies. */
-  /* 4px of side padding rather than 8px: at five tabs the labels, not the
-     touch targets, are what runs out of room on a 390px screen. */
+  /* Just enough to clear the iPhone home indicator. */
   padding: 4px 4px calc(8px + env(safe-area-inset-bottom, 0px));
   flex: none;
 }
@@ -527,14 +504,10 @@ button {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  /* 11px is the design's own answer to a five-tab bar; --touch-target is
-     untouched, so each tab stays full height and only the label shrinks. */
   font-size: 11px;
   color: var(--text-muted);
 }
 
-/* Unread-announcements marker on the Mehr tab: top-right of the icon, clear
-   of the ellipsis' own dots. */
 .nav-item { position: relative; }
 .nav-item--dot::after {
   content: "";
@@ -573,13 +546,6 @@ button {
   color: var(--text-muted);
 }
 
-.stale-banner {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 6px 0;
-}
-
 /* Login */
 .login-view {
   flex: 1;
@@ -612,7 +578,6 @@ button {
   cursor: default;
 }
 
-/* The base button is stretched by its parent; a centred one needs its own padding. */
 .button-primary--inline {
   padding: 0 20px;
 }
@@ -638,9 +603,7 @@ button {
   .view { padding-left: 16px; padding-right: 16px; }
 }
 
-/* Stundenplan week navigation — arrow buttons for desktop/a11y, flanking
-   the date-range subtitle that swipe (touchstart/touchend on #sp-body,
-   see views/stundenplan.js) also drives. */
+/* Stundenplan week navigation */
 .sp-week-nav {
   display: flex;
   align-items: center;
@@ -669,11 +632,72 @@ button {
   align-items: stretch;
 }
 
-/* The grid item itself (not .sp-cell inside it) is what CSS Grid sizes by
-   max-content by default; without min-width:0 here, a long note forces the
-   whole 1fr track wider no matter what .sp-cell's own overflow rule says. */
+/* min-width:0 on the grid item, or a long note widens the whole track. */
 .sp-grid-cell {
   min-width: 0;
+}
+
+.sp-day-head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+/* The 44px hit area lives on ::before, so the header row keeps its height. */
+.sp-day-head--exam {
+  position: relative;
+  isolation: isolate;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 8px;
+}
+
+.sp-day-head--exam::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, var(--touch-target));
+  transform: translateY(-50%);
+  border-radius: 8px;
+}
+
+.sp-day-head--exam:hover::before,
+.sp-day-head--exam:active::before {
+  background: var(--pressed);
+}
+
+.sp-exam-dot,
+.sp-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.sp-cell .sp-exam-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.sp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sp-legend-dot {
+  vertical-align: middle;
+  margin: 0 5px 1px 0;
 }
 
 .sp-day-label {
@@ -700,8 +724,6 @@ button {
   justify-content: center;
 }
 
-/* Changed cells render as a <div role="button"> (tap opens the detail
-   sheet); regular cells stay a plain, non-interactive <div>. */
 .sp-cell {
   display: block;
   text-align: left;
@@ -712,6 +734,7 @@ button {
   min-height: 58px;
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .sp-cell[role="button"] {
@@ -758,28 +781,78 @@ button {
   white-space: nowrap;
 }
 
-/* Detail sheet (components/detail-sheet.js), opened by tapping a changed
-   Stundenplan cell or a truncated Termin / Anstehend entry. */
+/* Detail sheet (components/detail-sheet.js) */
 .detail-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .45);
+  z-index: 100;
+  background: rgba(26, 23, 20, .32);
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  animation: sheet-scrim-in 200ms ease-out;
 }
 
 .detail-sheet {
   width: 100%;
   max-width: 480px;
-  max-height: 80vh;
+  max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   background: var(--surface);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 20px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-radius: 24px 24px 0 0;
+  padding: 10px 24px calc(30px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 18px;
+  box-shadow: 0 -10px 30px rgba(26, 23, 20, .12);
+  animation: sheet-in 200ms ease-out;
+}
+
+.detail-backdrop.is-closing {
+  animation: sheet-scrim-out 200ms ease-in forwards;
+}
+
+.detail-backdrop.is-closing .detail-sheet {
+  animation: sheet-out 200ms ease-in forwards;
+}
+
+@keyframes sheet-scrim-in {
+  from { background-color: rgba(26, 23, 20, 0); }
+}
+
+@keyframes sheet-scrim-out {
+  to { background-color: rgba(26, 23, 20, 0); }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+}
+
+@keyframes sheet-out {
+  to { transform: translateY(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-backdrop,
+  .detail-sheet {
+    animation: none;
+  }
+}
+
+.detail-handle {
+  flex: none;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  align-self: center;
+}
+
+.detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .detail-header {
@@ -787,51 +860,99 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+}
+
+.detail-header-text {
+  min-width: 0;
 }
 
 .detail-title {
   font-family: var(--font-serif);
-  font-size: 26px;
-  margin: 2px 0 0;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
   color: var(--text-primary);
+  margin: 8px 0 2px;
+}
+
+.detail-title:first-child {
+  margin-top: 0;
+}
+
+.detail-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.detail-sheet .eyebrow {
+  color: var(--accent);
 }
 
 .detail-close {
+  flex: none;
   min-width: var(--touch-target);
   min-height: var(--touch-target);
   margin: -10px -10px 0 0;
-  font-size: 16px;
+  font-size: 20px;
   color: var(--text-secondary);
-  flex: none;
 }
 
 .detail-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 15px;
-  color: var(--text-primary);
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
+  gap: 16px;
+  min-height: 46px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .detail-label {
+  flex: none;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
-.detail-note {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  margin-top: 10px;
+.detail-value {
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
+.detail-note {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
 
-/* Termine ------------------------------------------------------------- */
+/* Test sheet (views/stundenplan.js) */
+.exam-when {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
 
-/* Two segments over one dataset, not two pages: the choice re-renders only
-   the body below, so the title and the control itself never flash. */
+.exam-pill {
+  background: var(--lk-badge-bg);
+  color: var(--lk-badge-text);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+
+.exam-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Termine */
+
 .segmented {
   display: flex;
   gap: 4px;
@@ -857,9 +978,6 @@ button {
   box-shadow: 0 1px 3px rgba(26, 23, 20, .12);
 }
 
-/* The inverted "Als nächstes" card. It reuses the LK-badge pair because
-   those are the only tokens that already flip with the theme — on a dark
-   theme the card has to invert too, or it stops being the emphatic one. */
 .next-card {
   background: var(--lk-badge-bg);
   color: var(--lk-badge-text);
@@ -883,8 +1001,7 @@ button {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  /* The grid/flex item itself has to be shrinkable for the title's ellipsis
-     to work — putting min-width on a child does nothing here. */
+  /* min-width:0 on the flex item itself, or the ellipsis never applies. */
   min-width: 0;
 }
 
@@ -916,7 +1033,6 @@ button {
   margin-top: 2px;
 }
 
-/* Date-led rows: a serif day number in a fixed gutter, details beside it. */
 .date-list {
   display: flex;
   flex-direction: column;
@@ -954,7 +1070,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  /* Same rule as above: this is the grid item, so this is where it belongs. */
+  /* min-width:0 on the grid item, as above. */
   min-width: 0;
 }
 
@@ -969,8 +1085,6 @@ button {
   color: var(--text-secondary);
 }
 
-/* Free text from the Klassenbuch — can be a sentence, so it wraps to two
-   lines and then clamps rather than pushing the row out of shape. */
 .date-row-note {
   font-size: 13px;
   color: var(--text-muted);
@@ -980,8 +1094,6 @@ button {
   overflow: hidden;
 }
 
-/* A row whose clamped text hides more; tapping opens the detail sheet.
-   Set by markTruncatedRows only when the clamp actually cuts something off. */
 .is-expandable {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -991,7 +1103,6 @@ button {
   opacity: .6;
 }
 
-/* Holidays sit in the same list as an orientation point, not as an event. */
 .date-row--muted .date-row-number,
 .date-row--muted .date-row-weekday {
   color: var(--text-disabled);
@@ -1028,8 +1139,6 @@ button {
   min-width: 0;
 }
 
-/* The date is the fixed part; a long holiday name wraps instead of shoving
-   it off the row. */
 .ferien-row-range {
   font-size: 13px;
   color: var(--text-secondary);
@@ -1053,8 +1162,6 @@ button {
 
 .mt-list .mt-row:last-child { border-bottom: none; }
 
-/* The same accent dot language as the Änderungen card: only unread rows
-   carry it; read rows keep the column so titles stay aligned. */
 .mt-dot {
   width: 8px;
   height: 8px;
@@ -1127,7 +1234,7 @@ button {
   color: var(--text-secondary);
 }
 
-/* Letter text: links must look like links here, unlike everywhere else. */
+/* Letter text: the only place links are underlined. */
 .mt-message {
   font-size: 16px;
   line-height: 1.55;

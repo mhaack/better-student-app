@@ -7,67 +7,108 @@ export function closeDetailSheet(container) {
 }
 
 /**
- * The bottom sheet behind every tap-for-details in the app: a changed
- * Stundenplan cell, a truncated Termin or Anstehend entry. All text is
- * escaped here, so callers pass plain API strings.
+ * The standard detail sheet. All text is escaped here, so callers pass plain
+ * API strings.
  *
  * @param {HTMLElement} container the view container the sheet mounts into
  * @param {{ eyebrow?: string, title: string, titleStyle?: string,
  *   subtitle?: string, rows?: {label: string, value: string}[], note?: string }} content
  */
 export function openDetailSheet(container, { eyebrow, title, titleStyle = "", subtitle, rows = [], note }) {
-  closeDetailSheet(container);
+  const rowsHtml = rows.map((r) => detailRow(r.label, r.value)).join("");
 
-  const rowsHtml = rows
-    .map(
-      (r) => `
-      <div class="detail-row">
-        <span class="detail-label">${escapeHtml(r.label)}</span>
-        <span>${escapeHtml(r.value)}</span>
-      </div>`
-    )
-    .join("");
+  mountSheet(container, {
+    html: `
+    <div class="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="detail-sheet-title">
+      <div class="detail-handle" aria-hidden="true"></div>
+      <div class="detail-header">
+        <div class="detail-header-text">
+          ${eyebrow ? `<div class="eyebrow">${escapeHtml(eyebrow)}</div>` : ""}
+          <h2 id="detail-sheet-title" class="detail-title" style="${titleStyle}">${escapeHtml(title)}</h2>
+          ${subtitle ? `<div class="detail-subtitle">${escapeHtml(subtitle)}</div>` : ""}
+        </div>
+        <button type="button" class="detail-close" aria-label="Schließen">✕</button>
+      </div>
+      ${rowsHtml ? `<div>${rowsHtml}</div>` : ""}
+      ${note ? `<div class="detail-note">${escapeHtml(note)}</div>` : ""}
+    </div>`,
+  });
+}
+
+/** One label/value row; empty when there is no value. */
+export function detailRow(label, value) {
+  return value
+    ? `<div class="detail-row"><span class="detail-label">${escapeHtml(label)}</span><span class="detail-value">${escapeHtml(value)}</span></div>`
+    : "";
+}
+
+const FOCUSABLE = 'button, [href], [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Mounts a sheet (`html` carries role="dialog"; callers escape their text):
+ * closes on backdrop tap, Escape or `.detail-close`, traps focus, and hands
+ * focus back to `opener` when it goes.
+ *
+ * @param {HTMLElement} container
+ * @param {{ html: string, opener?: Element | null }} options
+ * @returns {HTMLElement} the backdrop
+ */
+export function mountSheet(container, { html, opener = document.activeElement }) {
+  closeDetailSheet(container);
 
   const backdrop = document.createElement("div");
   backdrop.className = "detail-backdrop";
   backdrop.id = BACKDROP_ID;
-  backdrop.innerHTML = `
-    <div class="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="detail-sheet-title">
-      <div class="detail-header">
-        <div>
-          ${eyebrow ? `<div class="eyebrow" style="color:var(--accent)">${escapeHtml(eyebrow)}</div>` : ""}
-          <h2 id="detail-sheet-title" class="detail-title" style="${titleStyle}">${escapeHtml(title)}</h2>
-          ${subtitle ? `<div class="view-subtitle">${escapeHtml(subtitle)}</div>` : ""}
-        </div>
-        <button type="button" class="detail-close" aria-label="Schließen">✕</button>
-      </div>
-      ${rowsHtml}
-      ${note ? `<div class="detail-note">${escapeHtml(note)}</div>` : ""}
-    </div>`;
+  backdrop.innerHTML = html;
   container.appendChild(backdrop);
 
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  function close() {
+    if (!backdrop.isConnected || backdrop.classList.contains("is-closing")) return;
+    if (reducedMotion) {
+      backdrop.remove();
+      return;
+    }
+    backdrop.classList.add("is-closing");
+    backdrop.addEventListener("animationend", () => backdrop.remove(), { once: true });
+  }
+
   function onKeydown(e) {
-    if (e.key === "Escape") backdrop.remove();
+    if (e.key === "Escape") {
+      close();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const focusable = [...backdrop.querySelectorAll(FOCUSABLE)];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (e.shiftKey && (document.activeElement === first || !backdrop.contains(document.activeElement))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (document.activeElement === last || !backdrop.contains(document.activeElement))) {
+      e.preventDefault();
+      first.focus();
+    }
   }
   document.addEventListener("keydown", onKeydown);
 
-  // Tears the Escape listener down whenever the backdrop leaves the DOM —
-  // via its own close button/backdrop click/Escape, via closeDetailSheet,
-  // or via the whole view being replaced by a route change, which resets
-  // #view-container's innerHTML without ever calling any of the above.
-  // Covering every removal path through one observer is simpler than
-  // threading cleanup through each.
+  // One observer covers every removal path, including a route change that
+  // replaces the container's innerHTML without calling close().
   const observer = new MutationObserver(() => {
     if (backdrop.isConnected) return;
     document.removeEventListener("keydown", onKeydown);
     observer.disconnect();
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
   });
   observer.observe(container, { childList: true });
 
   backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) backdrop.remove();
+    if (e.target === backdrop || e.target.closest(".detail-close")) close();
   });
-  backdrop.querySelector(".detail-close").addEventListener("click", () => backdrop.remove());
+
+  backdrop.querySelector(".detail-close")?.focus({ preventScroll: true });
+  return backdrop;
 }
 
 /**

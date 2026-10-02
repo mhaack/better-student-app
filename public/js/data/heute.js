@@ -6,7 +6,7 @@ import {
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
-import { mergeDoublePeriods } from "./termine.js";
+import { withExamDetails } from "./termine.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
 
@@ -51,7 +51,8 @@ export async function getHeuteData(studentId, scale) {
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
   const [dayPlans, grades, notes] = await Promise.all([
-    fetchDayPlans(dayIso, dayIso),
+    // The whole Anstehend window, so a test's sheet shows its day's room.
+    fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
   ]);
@@ -74,10 +75,7 @@ export async function getHeuteData(studentId, scale) {
   const withinWindow =
     newest && (now - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
 
-  // A double period records the same Klassenbuch entry once per lesson;
-  // merged the same way as on Termine, so the detail sheet can say
-  // "5.-6. Stunde" here too.
-  const uniqueNotes = mergeDoublePeriods(notes);
+  const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now));
 
   return {
     // "Heute" / "Morgen" / "Montag" — the heading has to say which day this is.

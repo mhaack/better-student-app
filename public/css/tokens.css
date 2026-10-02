@@ -25,6 +25,8 @@
   --lk-badge-bg: #1A1714;
   --lk-badge-text: #F6F3EE;
 
+  --pressed: #EFEAE2;
+
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
@@ -55,6 +57,8 @@
 
   --lk-badge-bg: #F3F0EA;
   --lk-badge-text: #14120F;
+
+  --pressed: #26221D;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,5 +84,7 @@
 
     --lk-badge-bg: #F3F0EA;
     --lk-badge-text: #14120F;
+
+    --pressed: #26221D;
   }
 }
