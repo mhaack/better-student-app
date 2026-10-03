@@ -91,7 +91,7 @@ public/js/
 | Command | What it does |
 |---|---|
 | `npm run serve` | Serves `public/` locally for development |
-| `npm test` | Runs every `test/*.test.mjs` with Node's built-in `node:test` runner: grade parsing/averaging/trend geometry, PKCE against RFC 7636's test vectors, school days and holidays, and merging the day plan with the timetable. CI runs it on every PR |
+| `npm test` | Runs every `test/**/*.test.mjs` with Node's built-in `node:test` runner: grade parsing/averaging/trend geometry, PKCE against RFC 7636's test vectors, school days and holidays, and merging the day plan with the timetable. CI runs it on every PR |
 | `npm run test:watch` | Reruns the tests on every change |
 | `npm run test:coverage` | Tests plus a coverage table for `public/` |
 | `npm run discover` | Hits every known API route with a token from `.env` (`BESTE_SCHULE_TOKEN`) and saves raw responses to `fixtures/raw/` |
