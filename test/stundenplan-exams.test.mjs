@@ -1,21 +1,9 @@
 // Stundenplan test markers: which day and cell an exam lands on, and the
 // room, time and teacher its sheet shows. Names like the real ones.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { examsFromNotes, attachExams, withExamDetails } from "../public/js/data/termine.js";
 import { calendarDaysBetween, countdownLabel } from "../public/js/util/format.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 const MA = { subject: "Mathematik", subjectShort: "MA", subjectId: 11 };
 const EN = { subject: "Englisch", subjectShort: "EN", subjectId: 12 };
@@ -195,6 +183,3 @@ test("calendarDaysBetween counts calendar days across the October DST change", (
   assert.equal(calendarDaysBetween("2026-03-27", "2026-03-30"), 3);
   assert.equal(calendarDaysBetween("2026-09-18", "2026-09-16"), -2);
 });
-
-console.log(`\n${passed} test(s) passed.`);
-if (process.exitCode) console.error("Some tests failed.");

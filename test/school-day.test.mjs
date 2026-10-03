@@ -1,23 +1,11 @@
 // Plain-Node tests for the "which day does Heute show" rules.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import {
   resolveSchoolDay,
   schoolDayLabel,
   DEFAULT_CUTOFF_HOUR,
 } from "../public/js/domain/school-day.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 // 2026-09-14 is a Monday, so this week runs Mon 14th … Sun 20th.
 const at = (day, hour, minute = 0) => new Date(2026, 8, day, hour, minute, 0);
@@ -150,6 +138,3 @@ test("the heading still names the day after a holiday skip", () => {
   const thu = at(17, 18); // -> Fri closed -> Monday
   assert.equal(schoolDayLabel(resolveSchoolDay(thu, 17, ["2026-09-18"]), thu), "Montag");
 });
-
-console.log(`\n${passed} test(s) passed.`);
-if (process.exitCode) console.error("Some tests failed.");

@@ -2,6 +2,7 @@
 // exam source: which entries belong to the student, and that beste.schule's
 // own tests always win. Kurs and teacher codes like the real ones.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import {
   planFileName,
   klausurenForStudent,
@@ -9,19 +10,6 @@ import {
   fetchKlausurPlan,
 } from "../public/js/data/klausuren.js";
 import { examsFromNotes, attachExams, withExamDetails } from "../public/js/data/termine.js";
-
-let passed = 0;
-async function test(name, fn) {
-  try {
-    await fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 const MA = { id: 11, name: "Mathematik", short: "MA" };
 const PH = { id: 14, name: "Physik", short: "PH" };
@@ -84,7 +72,7 @@ const note = (date, period, subject, extra = {}) => ({
 
 // --- which file -----------------------------------------------------------
 
-await test("planFileName picks the Jahrgang and school year", () => {
+test("planFileName picks the Jahrgang and school year", () => {
   const year = { from: "2026-08-08", to: "2027-07-16" };
   assert.equal(planFileName("11er", year), "klausuren_11_2026_27.json");
   assert.equal(planFileName("12er", year), "klausuren_12_2026_27.json");
@@ -94,7 +82,7 @@ await test("planFileName picks the Jahrgang and school year", () => {
 
 // --- matching Kurse -------------------------------------------------------
 
-await test("MA1 matches 11MA1 and ma1 does not (LK and GK are different Kurse)", () => {
+test("MA1 matches 11MA1 and ma1 does not (LK and GK are different Kurse)", () => {
   const exams = klausurenForStudent(
     [entry("2026-11-03", "MA1"), entry("2026-11-03", "ma1", "SMM")],
     groups,
@@ -105,22 +93,22 @@ await test("MA1 matches 11MA1 and ma1 does not (LK and GK are different Kurse)",
   assert.equal(exams[0].subjectId, 11);
 });
 
-await test("la1 matches the 11-12la1 group", () => {
+test("la1 matches the 11-12la1 group", () => {
   const [exam] = klausurenForStudent([entry("2026-11-17", "la1", "RAP")], groups, timetable);
   assert.equal(exam.subject, "Latein");
 });
 
-await test("a Kurs the student doesn't take is ignored", () => {
+test("a Kurs the student doesn't take is ignored", () => {
   assert.deepEqual(klausurenForStudent([entry("2026-11-03", "bio1", "SCH")], groups, timetable), []);
 });
 
-await test("a group without subjects takes its subject from the timetable", () => {
+test("a group without subjects takes its subject from the timetable", () => {
   const [exam] = klausurenForStudent([entry("2026-11-26", "gh1", "GTH")], groups, timetable);
   assert.equal(exam.subject, "Geschichte");
   assert.equal(exam.subjectId, 16);
 });
 
-await test("a plan exam gets the Kurs's periods that day and the Dauer in its label", () => {
+test("a plan exam gets the Kurs's periods that day and the Dauer in its label", () => {
   const [exam] = klausurenForStudent([entry("2026-11-03", "MA1")], groups, timetable);
   assert.deepEqual(exam.periods, [3, 4]);
   assert.equal(exam.periodLabel, "3.–4. Stunde · 90 Min.");
@@ -129,7 +117,7 @@ await test("a plan exam gets the Kurs's periods that day and the Dauer in its la
   assert.equal(exam.text, "");
 });
 
-await test("on a day without a lesson of the Kurs the label is the Dauer alone", () => {
+test("on a day without a lesson of the Kurs the label is the Dauer alone", () => {
   // Monday: MA1 has no lesson.
   const [exam] = klausurenForStudent([entry("2026-11-02", "MA1", "KLH", 180)], groups, timetable);
   assert.deepEqual(exam.periods, []);
@@ -140,7 +128,7 @@ await test("on a day without a lesson of the Kurs the label is the Dauer alone",
 
 const planned = klausurenForStudent([entry("2026-11-03", "MA1"), entry("2026-11-03", "ph2", "RCD")], groups, timetable);
 
-await test("a KLA note on the same day and subject drops the file entry but takes its Dauer", () => {
+test("a KLA note on the same day and subject drops the file entry but takes its Dauer", () => {
   const noteExams = examsFromNotes([note("2026-11-03", 3, MA), note("2026-11-03", 4, MA)]);
   const before = structuredClone(noteExams);
   const exams = withPlannedKlausuren(noteExams, planned.filter((e) => e.subjectId === 11));
@@ -153,7 +141,7 @@ await test("a KLA note on the same day and subject drops the file entry but take
   });
 });
 
-await test("a small LEI test on the same day and subject drops it without taking the Dauer", () => {
+test("a small LEI test on the same day and subject drops it without taking the Dauer", () => {
   const noteExams = examsFromNotes([
     note("2026-11-03", 1, PH, { typeCode: "LEI", typeName: "Leistungskontrolle", text: "Test Optik", teacher: "RCD" }),
   ]);
@@ -166,13 +154,13 @@ await test("a small LEI test on the same day and subject drops it without taking
   assert.deepEqual(exams[0], before[0]);
 });
 
-await test("a note for another subject on that day keeps the file entry", () => {
+test("a note for another subject on that day keeps the file entry", () => {
   const exams = withPlannedKlausuren(examsFromNotes([note("2026-11-03", 3, PH, { teacher: "RCD" })]), planned);
   assert.equal(exams.filter((e) => e.source === "plan").length, 1);
   assert.equal(exams.find((e) => e.source === "plan").subject, "Mathematik");
 });
 
-await test("a note for the same subject on another day keeps the file entry", () => {
+test("a note for the same subject on another day keeps the file entry", () => {
   const exams = withPlannedKlausuren(examsFromNotes([note("2026-11-10", 3, MA)]), planned.slice(0, 1));
   assert.deepEqual(
     exams.map((e) => [e.date, e.source]),
@@ -180,7 +168,7 @@ await test("a note for the same subject on another day keeps the file entry", ()
   );
 });
 
-await test("without a subjectId the teacher code decides", () => {
+test("without a subjectId the teacher code decides", () => {
   const orphan = { ...planned[0], subjectId: undefined, teacherShort: "KLH" };
   const sameTeacher = examsFromNotes([note("2026-11-03", 3, { id: 99, name: "Mathe", short: "MA" }, { teacher: "KLH" })]);
   const otherTeacher = examsFromNotes([note("2026-11-03", 3, { id: 99, name: "Mathe", short: "MA" }, { teacher: "RTH" })]);
@@ -200,7 +188,7 @@ const lesson = (period, subject, extra = {}) => ({
   ...extra,
 });
 
-await test("a plan exam marks the Kurs's cells and shows the new room after a room change", () => {
+test("a plan exam marks the Kurs's cells and shows the new room after a room change", () => {
   const [exam] = klausurenForStudent([entry("2026-11-03", "MA1")], groups, timetable);
   const [day] = attachExams(
     [
@@ -223,7 +211,7 @@ await test("a plan exam marks the Kurs's cells and shows the new room after a ro
   assert.deepEqual(day.lessons.map((l) => Boolean(l.hasExam)), [false, true, true]);
 });
 
-await test("a day without a lesson of the Kurs keeps the exam but marks no cell", () => {
+test("a day without a lesson of the Kurs keeps the exam but marks no cell", () => {
   const [exam] = klausurenForStudent([entry("2026-11-02", "MA1")], groups, timetable);
   const [day] = attachExams([{ iso: "2026-11-02", lessons: [lesson(1, PH)] }], [exam], timetable, "2026-10-02");
   assert.equal(day.exams.length, 1);
@@ -232,7 +220,7 @@ await test("a day without a lesson of the Kurs keeps the exam but marks no cell"
   assert.equal(day.lessons.some((l) => l.hasExam), false);
 });
 
-await test("a KLA note's sheet shows the Dauer from the plan", () => {
+test("a KLA note's sheet shows the Dauer from the plan", () => {
   const [day] = attachExams(
     [{ iso: "2026-11-03", lessons: [lesson(3, MA), lesson(4, MA)] }],
     withPlannedKlausuren(examsFromNotes([note("2026-11-03", 3, MA), note("2026-11-03", 4, MA)]), planned),
@@ -244,7 +232,7 @@ await test("a KLA note's sheet shows the Dauer from the plan", () => {
   assert.equal(ma.timeLabel, "3.–4. Stunde · 09:25–11:00 · 90 Min.");
 });
 
-await test("a note exam's timeLabel is unchanged", () => {
+test("a note exam's timeLabel is unchanged", () => {
   const [day] = attachExams(
     [{ iso: "2026-11-03", lessons: [lesson(3, MA), lesson(4, MA)] }],
     examsFromNotes([note("2026-11-03", 3, MA), note("2026-11-03", 4, MA)]),
@@ -256,7 +244,7 @@ await test("a note exam's timeLabel is unchanged", () => {
 
 // --- Heute's Anstehend ----------------------------------------------------
 
-await test("withExamDetails adds uncovered plan exams with the sheet fields", () => {
+test("withExamDetails adds uncovered plan exams with the sheet fields", () => {
   const notes = [note("2026-11-03", 1, PH, { typeCode: "LEI", typeName: "Leistungskontrolle", teacher: "RCD" })];
   const out = withExamDetails(notes, [], timetable, "2026-10-02", planned);
   assert.deepEqual(
@@ -268,14 +256,14 @@ await test("withExamDetails adds uncovered plan exams with the sheet fields", ()
   assert.equal(plan.countdown, "In 32 Tagen");
 });
 
-await test("withExamDetails without plan exams returns the notes as before", () => {
+test("withExamDetails without plan exams returns the notes as before", () => {
   const notes = [note("2026-11-03", 3, MA), { ...note("2026-11-03", 3, MA), typeCode: "STU", text: "Thema" }];
   assert.equal(withExamDetails(notes, [], timetable, "2026-10-02").length, 2);
 });
 
 // --- the file ---------------------------------------------------------------
 
-await test("a missing or broken file gives no exams", async () => {
+test("a missing or broken file gives no exams", async () => {
   const realFetch = globalThis.fetch;
   try {
     globalThis.fetch = async () => new Response("", { status: 404 });
@@ -291,7 +279,7 @@ await test("a missing or broken file gives no exams", async () => {
   }
 });
 
-await test("the committed plans parse and every entry has the expected shape", async () => {
+test("the committed plans parse and every entry has the expected shape", async () => {
   const { readFileSync, readdirSync } = await import("node:fs");
   const dir = new URL("../public/data/", import.meta.url);
   const files = readdirSync(dir).filter((f) => /^klausuren_\d+_\d{4}_\d{2}\.json$/.test(f));
@@ -305,5 +293,3 @@ await test("the committed plans parse and every entry has the expected shape", a
     }
   }
 });
-
-console.log(`\n${passed} passed`);

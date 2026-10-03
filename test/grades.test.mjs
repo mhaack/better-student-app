@@ -1,5 +1,6 @@
 // Tests for js/domain/grades.js.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { toTrendPoints, SCALE_BOUNDS } from "../public/js/domain/trend.js";
 import {
   parseGrade,
@@ -8,19 +9,6 @@ import {
   evaluateCalculationRule,
   subjectAverage,
 } from "../public/js/domain/grades.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 test("parseGrade: Sek I plain grade", () => {
   assert.equal(parseGrade("2", "grade_1_6").numeric, 2);
@@ -158,8 +146,3 @@ test("toTrendPoints: insetX keeps end markers off the edges", () => {
   assert.equal(points.split(" ")[0].split(",")[0], "12");
   assert.equal(points.split(" ")[1].split(",")[0], "88");
 });
-
-console.log(`\n${passed} test(s) passed.`);
-if (process.exitCode) {
-  console.error("Some tests failed.");
-}

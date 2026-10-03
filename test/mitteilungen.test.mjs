@@ -2,22 +2,10 @@
 // extraction and the Heute/unread selection. Raw items mirror the shape the
 // live API returns (docs/api-notes.md); the texts are made up.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { mapAnnouncement, mapMe } from "../public/js/api/mappers.js";
 import { renderMessage, splitAttachments, messagePreview } from "../public/js/domain/markdown.js";
 import { prepareMitteilungen } from "../public/js/data/mitteilungen.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 function rawAnnouncement(overrides = {}) {
   return {
@@ -310,5 +298,3 @@ test("prepareMitteilungen: nothing new → empty fresh list", () => {
   assert.deepEqual(fresh, []);
   assert.equal(unreadCount, 0);
 });
-
-console.log(`\n${passed} passed`);

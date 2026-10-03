@@ -1,20 +1,8 @@
 // Merging the day plan with the timetable. Room cases mirror real plan data:
 // old and new room in one sorted array.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { refineChangedLessons } from "../public/js/data/timetable.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 // Thursday 2026-09-24.
 const THURSDAY = new Date(2026, 8, 24, 9, 0, 0);
@@ -121,6 +109,3 @@ test("lessons that weren't changed pass through untouched", () => {
   const plan = planLesson(["218"], { status: "regular" });
   assert.equal(refineOne(timetableWith(["218"]), plan), plan);
 });
-
-console.log(`\n${passed} test(s) passed.`);
-if (process.exitCode) console.error("Some tests failed.");

@@ -1,5 +1,6 @@
 // Plain-Node tests for grouping no_school_dates into named holiday blocks.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import {
   holidayBlocks,
   nameBlocks,
@@ -8,19 +9,6 @@ import {
   ferienStem,
   MIN_FERIEN_SCHOOL_DAYS,
 } from "../public/js/domain/holidays.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 /** Every weekday from `from` to `to`, which is the shape no_school_dates has. */
 function weekdaysBetween(from, to) {
@@ -210,5 +198,3 @@ test("nextHoliday skips a named single Feiertag and waits for real Ferien", () =
   assert.equal(named[0].name, "Buß- und Bettag");
   assert.equal(nextHoliday(named, "2026-10-26").name, "Weihnachtsferien");
 });
-
-console.log(`\n${passed} passed`);

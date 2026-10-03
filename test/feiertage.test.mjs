@@ -1,19 +1,7 @@
 // Plain-Node tests for the computed German public-holiday names.
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { easterSunday, holidayNames, feiertagName } from "../public/js/domain/feiertage.js";
-
-let passed = 0;
-function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
 
 const iso = (d) => d.toISOString().slice(0, 10);
 
@@ -67,5 +55,3 @@ test("the two Feiertage this school actually closes for are both covered", () =>
   assert.equal(feiertagName("2026-11-18"), "Buß- und Bettag");
   assert.equal(feiertagName("2027-05-06"), "Christi Himmelfahrt");
 });
-
-console.log(`\n${passed} passed`);

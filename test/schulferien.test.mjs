@@ -1,27 +1,15 @@
 // Tests for the schulferien-api.de client, with `fetch` stubbed. Every failure
 // must resolve to [], never reject.
 import assert from "node:assert/strict";
-
-let passed = 0;
-async function test(name, fn) {
-  try {
-    await fn();
-    passed++;
-    console.log(`ok - ${name}`);
-  } catch (err) {
-    console.error(`FAIL - ${name}`);
-    console.error(err);
-    process.exitCode = 1;
-  }
-}
+import { afterEach, mock, test } from "node:test";
 
 // The module caches per state, so each case uses a different one.
 const { fetchSchulferien, stateCodeFor } = await import("../public/js/api/schulferien.js");
 
-const realFetch = globalThis.fetch;
 function stubFetch(impl) {
-  globalThis.fetch = impl;
+  mock.method(globalThis, "fetch", impl);
 }
+afterEach(() => mock.restoreAll());
 function jsonOk(body) {
   return async () => ({ ok: true, status: 200, json: async () => body });
 }
@@ -33,7 +21,7 @@ const entry = (name, start, end) => ({
   end: `${end}T23:59Z`,
 });
 
-await test("the state-name map covers all 16 Länder", () => {
+test("the state-name map covers all 16 Länder", () => {
   const states = [
     "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", "Bremen", "Hamburg",
     "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", "Nordrhein-Westfalen",
@@ -47,7 +35,7 @@ await test("the state-name map covers all 16 Länder", () => {
   assert.equal(stateCodeFor("  Sachsen  "), "SN", "whitespace is tolerated");
 });
 
-await test("an unknown or missing state yields [] without fetching", async () => {
+test("an unknown or missing state yields [] without fetching", async () => {
   let called = false;
   stubFetch(async () => { called = true; });
   assert.deepEqual(await fetchSchulferien("Ruritanien"), []);
@@ -56,7 +44,7 @@ await test("an unknown or missing state yields [] without fetching", async () =>
   assert.equal(called, false, "no request should be made without a valid code");
 });
 
-await test("an inclusive 23:59Z end date is not rolled forward by the timezone", async () => {
+test("an inclusive 23:59Z end date is not rolled forward by the timezone", async () => {
   // The end is 23:59Z, which parsed as a local date in Berlin is the next
   // day. Explicit timeZone so it holds in any TZ.
   const berlin = new Intl.DateTimeFormat("en-CA", {
@@ -70,13 +58,13 @@ await test("an inclusive 23:59Z end date is not rolled forward by the timezone",
   assert.equal(row.to, "2027-08-20", "the client must keep the date the API meant");
 });
 
-await test("entries are normalised to plain dates", async () => {
+test("entries are normalised to plain dates", async () => {
   stubFetch(jsonOk([entry("Herbstferien", "2026-10-12", "2026-10-24")]));
   const rows = await fetchSchulferien("Bayern");
   assert.deepEqual(rows, [{ name: "Herbstferien", from: "2026-10-12", to: "2026-10-24" }]);
 });
 
-await test("the list is cut at the first Sommerferien, inclusive", async () => {
+test("the list is cut at the first Sommerferien, inclusive", async () => {
   // Anything after the summer break is next school year.
   stubFetch(
     jsonOk([
@@ -90,7 +78,7 @@ await test("the list is cut at the first Sommerferien, inclusive", async () => {
   assert.deepEqual(rows.map((r) => r.name), ["Herbstferien", "Sommerferien"]);
 });
 
-await test("late in the school year, Sommerferien may be the only entry kept", async () => {
+test("late in the school year, Sommerferien may be the only entry kept", async () => {
   stubFetch(
     jsonOk([
       entry("Sommerferien", "2027-07-10", "2027-08-20"),
@@ -101,13 +89,13 @@ await test("late in the school year, Sommerferien may be the only entry kept", a
   assert.deepEqual(rows.map((r) => r.name), ["Sommerferien"]);
 });
 
-await test("a response with no Sommerferien is kept whole", async () => {
+test("a response with no Sommerferien is kept whole", async () => {
   stubFetch(jsonOk([entry("Herbstferien", "2026-10-12", "2026-10-24")]));
   const rows = await fetchSchulferien("Bremen");
   assert.equal(rows.length, 1);
 });
 
-await test("entries arrive sorted by start date", async () => {
+test("entries arrive sorted by start date", async () => {
   stubFetch(
     jsonOk([
       entry("Winterferien", "2027-02-08", "2027-02-19"),
@@ -118,33 +106,33 @@ await test("entries arrive sorted by start date", async () => {
   assert.deepEqual(rows.map((r) => r.from), ["2026-10-12", "2027-02-08"]);
 });
 
-await test("a 500 resolves to [] rather than rejecting", async () => {
+test("a 500 resolves to [] rather than rejecting", async () => {
   // The real service already does this for year 2029.
   stubFetch(async () => ({ ok: false, status: 500, json: async () => ({}) }));
   assert.deepEqual(await fetchSchulferien("Saarland"), []);
 });
 
-await test("a 404 resolves to []", async () => {
+test("a 404 resolves to []", async () => {
   stubFetch(async () => ({ ok: false, status: 404, json: async () => ({}) }));
   assert.deepEqual(await fetchSchulferien("Thüringen"), []);
 });
 
-await test("a network failure resolves to []", async () => {
+test("a network failure resolves to []", async () => {
   stubFetch(async () => { throw new TypeError("Failed to fetch"); });
   assert.deepEqual(await fetchSchulferien("Brandenburg"), []);
 });
 
-await test("malformed JSON resolves to []", async () => {
+test("malformed JSON resolves to []", async () => {
   stubFetch(async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError("bad"); } }));
   assert.deepEqual(await fetchSchulferien("Niedersachsen"), []);
 });
 
-await test("an unexpected body shape resolves to []", async () => {
+test("an unexpected body shape resolves to []", async () => {
   stubFetch(jsonOk({ unexpected: true }));
   assert.deepEqual(await fetchSchulferien("Berlin".replace("Berlin", "Sachsen-Anhalt")), []);
 });
 
-await test("entries missing a name or dates are dropped, not rendered blank", async () => {
+test("entries missing a name or dates are dropped, not rendered blank", async () => {
   stubFetch(
     jsonOk([
       { name_cp: "", start: "2026-10-12T00:00Z", end: "2026-10-24T23:59Z" },
@@ -156,7 +144,7 @@ await test("entries missing a name or dates are dropped, not rendered blank", as
   assert.deepEqual(rows.map((r) => r.name), ["Herbstferien"]);
 });
 
-await test("a failure is not cached: the next call retries", async () => {
+test("a failure is not cached: the next call retries", async () => {
   stubFetch(async () => { throw new TypeError("Failed to fetch"); });
   assert.deepEqual(await fetchSchulferien("Schleswig-Holstein"), []);
   stubFetch(jsonOk([entry("Herbstferien", "2026-10-12", "2026-10-24")]));
@@ -164,5 +152,3 @@ await test("a failure is not cached: the next call retries", async () => {
   assert.deepEqual(rows.map((r) => r.name), ["Herbstferien"]);
 });
 
-globalThis.fetch = realFetch;
-console.log(`\n${passed} passed`);
