@@ -11,10 +11,7 @@ export function daysUntil(iso) {
   return iso ? daysFromToday(new Date(iso)) : null;
 }
 
-/**
- * Calendar days from one "YYYY-MM-DD" to another, negative if `toIso` is
- * earlier. Counted in UTC so a 23- or 25-hour DST day still counts as one.
- */
+/** Calendar days between two "YYYY-MM-DD" dates; in UTC so DST days count as one. */
 export function calendarDaysBetween(fromIso, toIso) {
   const utc = (iso) => {
     const [y, m, d] = iso.split("-").map(Number);
@@ -23,7 +20,6 @@ export function calendarDaysBetween(fromIso, toIso) {
   return Math.round((utc(toIso) - utc(fromIso)) / 86_400_000);
 }
 
-/** "Heute" / "Morgen" / "In 3 Tagen", and "Gestern" / "Vor 3 Tagen" looking back. */
 /** [3] -> "3. Stunde"; [1,2] -> "1.–2. Stunde"; [1,3] -> "1., 3. Stunde". */
 export function periodLabel(periods) {
   if (!periods.length) return "";
@@ -34,6 +30,7 @@ export function periodLabel(periods) {
     : `${periods.map((p) => `${p}.`).join(", ")} Stunde`;
 }
 
+/** "Heute" / "Morgen" / "In 3 Tagen", and "Gestern" / "Vor 3 Tagen" looking back. */
 export function countdownLabel(days) {
   if (days === 0) return "Heute";
   if (days === 1) return "Morgen";
@@ -53,9 +50,8 @@ export function weekdayOrDate(iso) {
 }
 
 /**
- * "23.09.2026" for a "YYYY-MM-DD" date. For dates that can be months old,
- * where weekdayOrDate's short form would drop the year. Read as a local
- * date: new Date("2026-09-23") is UTC midnight, the day before west of UTC.
+ * "23.09.2026", for dates that may be months old. Parsed as local time:
+ * new Date("2026-09-23") is UTC midnight.
  */
 export function formatFullDate(iso) {
   const [y, m, d] = String(iso ?? "").split("-").map(Number);
@@ -76,7 +72,7 @@ export function formatAverage(value, scale) {
     : value.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
 }
 
-/** The overall average always shows 2 decimals on the grade_1_6 scale, matching the design's "2,31". */
+/** The overall average: 2 decimals on grade_1_6 ("2,31"). */
 export function formatOverallAverage(value, scale) {
   if (value === null || value === undefined) return "–";
   return scale === "points_0_15"

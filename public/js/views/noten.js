@@ -72,8 +72,7 @@ export async function renderNoten(container) {
   try {
     const studentId = getSelectedStudentId();
     const context = await ensureContext();
-    // The Oberstufe list carries more rows, so the design tightens the
-    // vertical rhythm a little (2a: 20px vs 24px).
+    // The longer Oberstufe list is a little tighter.
     container.querySelector(".view").style.gap =
       context.scale === "points_0_15" ? "20px" : "24px";
     populateIntervalPicker(container, context);

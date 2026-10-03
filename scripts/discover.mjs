@@ -1,13 +1,6 @@
-// Phase 0 API discovery spike.
-//
-// Calls the beste.schule API routes a student account can read and saves each
-// raw response under fixtures/raw/<route>.json, so docs/api-notes.md and the
-// Zod-free JSDoc schemas in js/api/schemas.js can be written from real shapes
-// instead of guesses.
-//
-// Usage: add BESTE_SCHULE_TOKEN=... to .env (a beste.schule Personal Access
-// Token, from Benutzerkonto -> API -> Personal Access Token erstellen), then:
-//   node scripts/discover.mjs
+// Saves the raw response of every readable API route to fixtures/raw/ (real
+// student data, never commit). Needs BESTE_SCHULE_TOKEN (a Personal Access
+// Token) in .env. Usage: node scripts/discover.mjs
 import { mkdirSync, writeFileSync } from "node:fs";
 import { loadEnv } from "./lib/env.mjs";
 
@@ -151,8 +144,7 @@ async function run() {
   }
 
   async function reread(route) {
-    // Cheap re-fetch instead of threading the first result through — discovery
-    // scripts run once, clarity over micro-optimization.
+    // Re-fetch for simplicity; this runs once.
     const r = await getJson(route);
     return r.body;
   }

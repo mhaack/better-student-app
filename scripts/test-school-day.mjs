@@ -97,8 +97,7 @@ const AUTUMN_BREAK = ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2
 const oct = (day, hour) => new Date(2026, 9, day, hour, 0, 0);
 
 test("the Friday before a break skips to the Monday school resumes", () => {
-  // Fri 2026-10-16 after the cutoff: Mon the 19th is a holiday, so keep going
-  // to Mon the 26th rather than landing on an empty day.
+  // Fri 2026-10-16 after the cutoff: skip the break to Mon the 26th.
   assert.equal(iso(resolveSchoolDay(oct(16, 18), 17, AUTUMN_BREAK)), "2026-10-26");
 });
 
@@ -127,10 +126,8 @@ test("skipping never lands on a weekend", () => {
 });
 
 test("a real two-week break is cleared, weekends included", () => {
-  // This school's actual autumn break: Mon 12th - Fri 23rd October. Counting
-  // the weekends either side, the next day with lessons is 17 days past the
-  // Friday it starts on — a fortnight of lookahead is not enough, which is
-  // the bug this pins down.
+  // A real two-week break: the next school day is 17 days ahead, more than
+  // a fortnight of lookahead.
   const autumn = [
     "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16",
     "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23",

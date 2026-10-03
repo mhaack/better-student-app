@@ -16,7 +16,7 @@
 # Without this entry the CSP blocks it silently and the Ferien tab falls back
 # to guessed names while still looking like it works.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://api.pirsch.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://beste.schule https://api.pirsch.io https://schulferien-api.de; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://api.pirsch.io; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'self' https://beste.schule https://api.pirsch.io https://schulferien-api.de; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: geolocation=(), camera=(), microphone=()

@@ -4,10 +4,7 @@ import { beginLogin } from "../auth/oauth.js";
 import { isOAuthConfigured } from "../auth/oauth-config.js";
 import { escapeHtml } from "../util/dom.js";
 
-/**
- * Everything that has to happen once credentials are accepted: find the
- * student(s) this account can see and pick one.
- */
+/** After login: find the account's students and pick one. */
 export async function establishSession() {
   const students = await fetchStudents();
   if (students.length === 0) throw new Error("Zu diesem Konto wurde kein Schüler-Zugang gefunden.");
@@ -38,8 +35,8 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
       }
       <div id="login-error" class="login-error" role="alert" hidden></div>
       <div class="login-help">
-        Die Anmeldung läuft direkt über beste.schule — Bessere Schule bekommt
-        dein Passwort nie zu sehen. Bessere Schule ist eine inoffizielle App
+        Die Anmeldung läuft direkt über beste.schule — besere.schule bekommt
+        dein Passwort nie zu sehen. besere.schule ist eine inoffizielle App
         und nicht mit beste.schule verbunden.
       </div>
     </div>

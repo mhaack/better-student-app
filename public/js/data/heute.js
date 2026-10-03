@@ -14,7 +14,7 @@ import { getCutoffHour } from "../state/settings.js";
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
 const MAX_NOTES = 6;
-// "Stundenthema" records what a lesson covered — backward-looking, not a to-do.
+// Stundenthema looks back, it isn't a to-do.
 const BACKWARD_LOOKING_NOTE_TYPES = new Set(["STU"]);
 
 function germanWeekdayDate(date) {
@@ -23,8 +23,7 @@ function germanWeekdayDate(date) {
 
 function changeText(lesson) {
   if (lesson.status === "cancelled") return `${lesson.period}. Std ${lesson.subject} entfällt`;
-  // A note from the school ("Aufgaben im Raum bearbeiten") says more about
-  // what actually changed than a room or teacher diff does, so it wins.
+  // The school's note says more than a room or teacher diff.
   const note = lesson.notes?.[0];
   if (note) return `${lesson.period}. Std ${lesson.subject} · ${note}`;
   if (lesson.status === "room_change") {
@@ -34,18 +33,15 @@ function changeText(lesson) {
 }
 
 /**
- * Aggregates the "Heute" screen. Once the school day is over the screen rolls
- * forward to the next one (see domain/school-day.js), so "today" here is the
- * day being shown, which is not necessarily the current date.
+ * The "Heute" screen. "Today" is the day shown, which after the cutoff is the
+ * next school day.
  * @param {number} studentId
  * @param {import('../domain/grades.js').GradeScale} scale
  */
 export async function getHeuteData(studentId, scale) {
   const now = new Date();
 
-  // The timetable carries the holiday list, and which day to show depends on
-  // it — so it has to land before the day-specific calls can be made. It's
-  // cached for an hour, so this only costs a round trip on a cold load.
+  // The timetable's holidays decide the day, so it loads first.
   const timetable = await fetchCurrentTimetable();
   const day = resolveSchoolDay(now, getCutoffHour(), timetable.noSchoolDates);
   const dayIso = isoDate(day);
@@ -66,8 +62,7 @@ export async function getHeuteData(studentId, scale) {
     .filter((l) => l.status !== "regular")
     .map((l) => ({
       status: l.status,
-      // The design strikes through just the lesson itself and leaves
-      // "entfällt" upright, so the two parts stay separate.
+      // Kept apart: only the lesson is struck through, not "entfällt".
       label: `${l.period}. Std ${l.subject}`,
       text: changeText(l),
     }));
@@ -80,7 +75,6 @@ export async function getHeuteData(studentId, scale) {
   const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now), planned);
 
   return {
-    // "Heute" / "Morgen" / "Montag" — the heading has to say which day this is.
     title: schoolDayLabel(day, now),
     dateLabel: germanWeekdayDate(day),
     dayNotes,
@@ -88,7 +82,7 @@ export async function getHeuteData(studentId, scale) {
     changes,
     newestGrade: withinWindow ? newest : null,
     notes: uniqueNotes
-      // A plan Klausur has no text but is still a test.
+      // Plan Klausuren have no text.
       .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && (n.text || n.isExam))
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, MAX_NOTES),

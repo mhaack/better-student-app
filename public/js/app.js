@@ -1,6 +1,4 @@
-// Side-effect import: registers the beforeinstallprompt listener at boot.
-// Chromium fires that event once and early — too late if we wait for the
-// Mehr view to be opened.
+// Registers the beforeinstallprompt listener at boot; Chromium fires it once, early.
 import "./state/install.js";
 import { isAuthenticated, onAuthChange, clearSession } from "./state/auth-store.js";
 import { route, startRouter, currentBasePath, navigate } from "./router.js";
@@ -18,8 +16,7 @@ import { getMitteilungenData } from "./data/mitteilungen.js";
 
 const app = document.getElementById("app");
 
-// Set when an OAuth callback fails, so the login screen can say why instead
-// of silently showing an empty form.
+// Set when an OAuth callback fails, so the login screen can say why.
 let loginError = "";
 
 function ensureShell() {
@@ -40,7 +37,7 @@ function withShell(viewFn) {
     ensureShell();
     const navContainer = app.querySelector("#nav-container");
     navContainer.innerHTML = renderBottomNav(currentBasePath());
-    // Cached for a minute, so this doesn't refetch on every tab switch.
+    // Cached for a minute.
     getMitteilungenData()
       .then(({ unreadCount }) => setMehrDot(navContainer, unreadCount > 0))
       .catch(() => {});
@@ -54,8 +51,7 @@ route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFac
 route(/^\/stundenplan$/, withShell(renderStundenplan));
 route(/^\/termine$/, withShell(renderTermine));
 route(/^\/mehr$/, withShell(renderMehr));
-// Nested under /mehr so the Mehr tab stays highlighted (currentBasePath()
-// only looks at the first segment), same as /noten/:subjectId.
+// Under /mehr so the Mehr tab stays highlighted.
 route(/^\/mehr\/mitteilungen$/, withShell(renderMitteilungen));
 route(/^\/mehr\/mitteilungen\/(?<id>\d+)$/, withShell((container, params) => renderMitteilung(container, params)));
 
@@ -69,10 +65,7 @@ onAuthChange(() => {
   }
 });
 
-/**
- * An OAuth redirect lands back on the app with ?code=… in the URL, so the
- * exchange has to finish before the router decides whether we're logged in.
- */
+/** Finishes an OAuth redirect (?code=…) before the router checks the login. */
 async function boot() {
   if (isCallback()) {
     app.innerHTML = `<div class="view"><div class="empty-state">Anmeldung wird abgeschlossen …</div></div>`;
@@ -93,7 +86,7 @@ boot();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Offline app-shell caching is a nice-to-have; ignore registration failures.
+      // Offline shell caching is optional.
     });
   });
 }

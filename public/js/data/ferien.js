@@ -1,19 +1,7 @@
-// Aggregates the "Ferien" segment of the Termine screen.
-//
-// Three sources, each authoritative for a different question:
-//
-//   is there school on day X?   time-tables/current -> no_school_dates
-//   what is this break called,  schulferien-api.de (official state calendar)
-//     and how long is it?
-//   what is this one free day   domain/feiertage.js (computed, no network)
-//     called?
-//
-// The split is not academic. Cross-referencing every closed day of this
-// school year: 52 are covered by official Ferien, 2 by public holidays
-// (Buß- und Bettag, Christi Himmelfahrt -- which the Ferien service reports
-// as "not a holiday", correctly, since they are Feiertage), and 0 are
-// school-specific. And the school recorded only 15 of the 30 weekdays of the
-// 2027 summer break, so its own dates cannot be trusted for the ranges.
+// The "Ferien" segment of Termine. Three sources:
+//   school or not on a day     time-tables/current → no_school_dates
+//   name and range of a break  schulferien-api.de (the school's dates are incomplete)
+//   name of a single free day  domain/feiertage.js
 
 import { fetchCurrentTimetable, fetchSchool, isoDate } from "./repository.js";
 import { fetchSchulferien } from "../api/schulferien.js";
@@ -30,34 +18,28 @@ export async function getFerienData(context = {}) {
     fetchSchool().catch(() => null),
   ]);
 
-  // Without a state we simply have no official calendar; the heuristic in
-  // domain/holidays.js takes over and the screen still renders.
+  // No state, no official calendar; the heuristic takes over.
   const official = await fetchSchulferien(school?.state);
 
-  // The year record's own `from` is 2026-08-01, two weeks before school
-  // actually starts (2026-08-17, the earliest interval). Using it would let
-  // the tail of the *previous* summer break show up as this year's first
-  // holiday, so the intervals are the honest boundary.
+  // The year's `from` is two weeks before school starts and would include
+  // the end of last summer's break; the first interval is the real start.
   const intervalStarts = (context.year?.intervals ?? []).map((i) => i.from).filter(Boolean);
   const yearFrom = intervalStarts.length ? intervalStarts.sort()[0] : (context.year?.from ?? "");
 
-  // Deliberately no upper bound: the last school day is 2027-07-09 but the
-  // summer break starts 2027-07-12, so any `to` filter deletes it.
+  // No upper bound: the summer break starts after the year's last day.
   const blocks = holidayBlocks(timetable.noSchoolDates, official).filter((b) => b.from >= yearFrom);
 
   const named = nameBlocks(blocks, official);
-  // Local date, as in data/termine.js. The UTC date is still yesterday in
-  // Berlin until 01:00/02:00, which would put the two segments on different days.
+  // Local date: the UTC date lags in Berlin until 01:00/02:00.
   const today = isoDate(new Date());
 
   return {
     next: nextHoliday(named, today),
     ferien: named.filter((b) => b.isFerien),
-    // Single public holidays and Brückentage -- the design's "Einzelne freie
-    // Tage". Unnamed ones render as "Schulfrei" rather than as a guess.
+    // "Einzelne freie Tage"; unnamed ones render as "Schulfrei".
     freieTage: named.filter((b) => !b.isFerien && b.schoolDays < MIN_FERIEN_SCHOOL_DAYS),
     yearLabel: context.year?.name ? `Schuljahr ${context.year.name}` : "",
-    // Lets the view stay honest when the official calendar was unreachable.
+    // So the view can say when the official calendar was unreachable.
     source: official.length ? "official" : "derived",
   };
 }

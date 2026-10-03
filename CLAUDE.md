@@ -45,7 +45,9 @@ most likely to bite:
   data, and see it fail before fixing it. New test files named
   `scripts/test-*.mjs` are picked up automatically.
 - **Bigger features start as a plan** in `docs/plans/<feature>.md` (context,
-  API findings, approach), reviewed before building.
+  API findings, approach), reviewed before building. Plans are working
+  notes and stay local (`docs/plans/` is gitignored); anything worth keeping
+  goes into `docs/api-notes.md` or a code comment.
 - **Look for an existing helper before adding one.** Prefer one general
   function over several one-liners doing the same thing.
 
@@ -53,6 +55,8 @@ most likely to bite:
 
 - UI text is German; code, comments and commit messages are English.
 - Comments explain *why* (usually an API quirk or a design decision), not what.
+  Keep them short: one line where possible, a few at most. Measurements and
+  investigation stories go in `docs/api-notes.md`, not in the code.
 - Commit messages: imperative summary line, then prose on the cause and the fix.
 
 ## Never commit

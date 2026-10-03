@@ -1,11 +1,9 @@
-// Zero-dependency static file server for local development.
-// ES modules, the manifest and the service worker all need http(s), not file://.
+// Static file server for local development (modules and the SW need http).
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
-// Mirrors the Cloudflare Pages output directory, so local dev matches
-// what actually gets deployed.
+// The Cloudflare Pages output directory.
 const ROOT = join(process.cwd(), "public");
 const PORT = Number(process.env.PORT ?? 8080);
 
@@ -48,5 +46,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Bessere Schule served at http://localhost:${PORT}`);
+  console.log(`besere.schule served at http://localhost:${PORT}`);
 });

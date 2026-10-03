@@ -1,8 +1,5 @@
-// Plain-Node tests for the schulferien-api.de client.
-//
-// No network: `fetch` is stubbed per case. What matters here is that every
-// failure shape resolves to [] rather than rejecting — the Ferien screen has
-// to render whether or not a third-party service is reachable.
+// Tests for the schulferien-api.de client, with `fetch` stubbed. Every failure
+// must resolve to [], never reject.
 import assert from "node:assert/strict";
 
 let passed = 0;
@@ -18,8 +15,7 @@ async function test(name, fn) {
   }
 }
 
-// The module caches by state code, so each case uses a different state to
-// avoid one test's result being served to the next.
+// The module caches per state, so each case uses a different one.
 const { fetchSchulferien, stateCodeFor } = await import("../public/js/api/schulferien.js");
 
 const realFetch = globalThis.fetch;
@@ -61,11 +57,8 @@ await test("an unknown or missing state yields [] without fetching", async () =>
 });
 
 await test("an inclusive 23:59Z end date is not rolled forward by the timezone", async () => {
-  // The trap this guards: the end is 23:59Z, so reading LOCAL date parts off
-  // new Date() lands on the next day at any positive UTC offset — including
-  // Europe/Berlin, where this app actually runs. That would silently extend
-  // every holiday by a day. Simulated with an explicit timeZone so the
-  // assertion holds whatever TZ the test process happens to have.
+  // The end is 23:59Z, which parsed as a local date in Berlin is the next
+  // day. Explicit timeZone so it holds in any TZ.
   const berlin = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit",
   });
@@ -84,8 +77,7 @@ await test("entries are normalised to plain dates", async () => {
 });
 
 await test("the list is cut at the first Sommerferien, inclusive", async () => {
-  // `next/365` runs past the end of the school year; the summer break is the
-  // natural boundary, so anything after it belongs to the following year.
+  // Anything after the summer break is next school year.
   stubFetch(
     jsonOk([
       entry("Herbstferien", "2026-10-12", "2026-10-24"),

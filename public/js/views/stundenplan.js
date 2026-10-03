@@ -12,11 +12,7 @@ const STATUS_EYEBROW = {
   changed: "Geändert",
 };
 
-/**
- * The full-detail breakdown for the tap-to-open sheet: what changed (room,
- * teacher) shown as "vorher → nachher" where a diff is known, plain current
- * values otherwise, plus any free-text note the school attached.
- */
+/** The tap-to-open sheet: changes as "vorher → nachher", plus the school's note. */
 function describeChange(lesson) {
   const eyebrow = STATUS_EYEBROW[lesson.status] ?? "Geändert";
   const rows = [];
@@ -44,9 +40,7 @@ function cellContent(lesson, dayIndex) {
   let classes = "sp-cell";
   let title;
   let titleStyle = "";
-  // Room and teacher get their own line each; only their content changes
-  // per status (a substitution shows the teacher swap instead of the plain
-  // current teacher, cancelled has no room to anchor a teacher line to).
+  // One line each for room and teacher; the content depends on the status.
   let roomLine = lesson.room ?? "";
   let teacherLine = lesson.teacherShort ?? "";
 
@@ -62,18 +56,14 @@ function cellContent(lesson, dayIndex) {
   } else if (lesson.status === "substitution") {
     classes += " sp-cell--changed";
     title = `± ${lesson.subjectShort ?? ""}`;
-    // The teacher swap is the point of this cell; fall back to the plain
-    // current short code if either side's is missing.
+    // Show the swap; fall back to the current teacher if a side is missing.
     teacherLine =
       lesson.previousTeacherShort && lesson.teacherShort
         ? `${lesson.previousTeacherShort} → ${lesson.teacherShort}`
         : lesson.teacherShort ?? "";
   } else if (lesson.status === "changed") {
-    // The school published an amended plan for this period, but neither the
-    // room nor the teacher on record actually differs (usually a note like
-    // "Aufgaben von Frau X im Raum bearbeiten") — flag it without claiming
-    // a specific substitution or room change that didn't happen. The note,
-    // when there is one, is more useful here than the unchanged room.
+    // Changed in the plan, but room and teacher are the same (usually just a
+    // note): flag it without claiming a change; show the note if any.
     classes += " sp-cell--changed";
     title = lesson.subjectShort ?? "";
     if (lesson.notes?.[0]) roomLine = lesson.notes[0];
@@ -139,8 +129,7 @@ function openLessonDetail(container, day, lesson) {
   });
 }
 
-// Swipe forward up to 3 weeks past the default (today's/next week) — 4
-// navigable weeks in total.
+// Up to 3 weeks ahead of the default week.
 const MAX_WEEK_OFFSET = 3;
 const SWIPE_THRESHOLD_PX = 50;
 
@@ -167,16 +156,11 @@ export async function renderStundenplan(container) {
   const studentId = getSelectedStudentId();
   const student = getStudents().find((s) => s.id === studentId);
 
-  // Resets to 0 on every fresh mount — the screen always opens on the
-  // current week, never a previous session's navigation.
+  // Every mount opens on the current week.
   let weekOffset = 0;
-  // The days array from the most recent successful load, so the click
-  // delegate below can look up a cell's full lesson data without stuffing
-  // it into data attributes.
+  // Last loaded days, for the click delegate to look lessons up in.
   let currentDays = [];
-  // Bumped on every load; loadAndRender drops its result if a newer one has
-  // since started, so a slow response to an earlier week can't overwrite a
-  // faster one to a later week that was requested after it.
+  // Bumped per load, so a slow older response can't overwrite a newer one.
   const loadState = { seq: 0 };
 
   const prevBtn = container.querySelector("#sp-prev");
@@ -195,10 +179,8 @@ export async function renderStundenplan(container) {
   prevBtn.addEventListener("click", () => goToWeek(weekOffset - 1));
   nextBtn.addEventListener("click", () => goToWeek(weekOffset + 1));
 
-  // Swipe left → next week, swipe right → previous week. Listeners are
-  // attached once to the body node, which survives across re-renders
-  // (only its innerHTML is replaced), so this doesn't need to be redone
-  // per load.
+  // Swipe left/right changes the week. Bound once: the body node survives
+  // re-renders.
   const body = container.querySelector("#sp-body");
   let touchStartX = null;
   let touchStartY = null;
@@ -223,8 +205,8 @@ export async function renderStundenplan(container) {
     { passive: true }
   );
 
-  // Delegated, so it survives #sp-body re-renders. A test cell opens the test
-  // sheet even when also changed: its Raum row shows the changed room.
+  // Delegated, so it survives re-renders. A test cell opens the test sheet
+  // even when also changed; that sheet shows the new room.
   function openCellDetail(cellEl) {
     const day = currentDays[Number(cellEl.dataset.dayIndex)];
     const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
@@ -243,12 +225,7 @@ export async function renderStundenplan(container) {
   if (days) currentDays = days;
 }
 
-/**
- * Returns the loaded days, or null if a newer call (a later week request)
- * started before this one's fetch resolved — the caller should then leave
- * whatever that newer call already rendered alone instead of overwriting it
- * with this stale result.
- */
+/** The loaded days, or null if a newer load started meanwhile. */
 async function loadAndRender(container, studentId, student, weekOffset, loadState) {
   const seq = ++loadState.seq;
   const body = container.querySelector("#sp-body");
@@ -256,8 +233,7 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
 
   const prevBtn = container.querySelector("#sp-prev");
   const nextBtn = container.querySelector("#sp-next");
-  // visibility (not display) so the subtitle doesn't shift when an arrow
-  // disappears at either end of the navigable range.
+  // visibility, not display, so the subtitle doesn't shift.
   prevBtn.disabled = weekOffset === 0;
   prevBtn.style.visibility = weekOffset === 0 ? "hidden" : "visible";
   nextBtn.disabled = weekOffset === MAX_WEEK_OFFSET;

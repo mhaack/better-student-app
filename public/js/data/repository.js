@@ -1,10 +1,5 @@
-// Cached wrappers around the beste.schule routes this app uses.
-// Screen-level aggregation lives in heute.js / noten.js / fach-detail.js.
-//
-// Every query param here has been probed against the live API (2026-09) —
-// filter[student], filter[year], filter[interval], filter[subject] and
-// filter[range] all validate; `include` values are the ones the API's
-// allowlist actually accepts.
+// Cached wrappers around the beste.schule routes this app uses. Every filter
+// and include here was checked against the live API (2026-09).
 import { apiFetch, apiFetchAll } from "../api/client.js";
 import { cached, invalidate } from "./cache.js";
 import {
@@ -41,10 +36,7 @@ export async function fetchYears() {
   });
 }
 
-/**
- * The student's course groups — this is how we learn which subjects they
- * actually take. /api/subjects returns every subject the school offers.
- */
+/** The student's groups: the subjects they take (/api/subjects lists all). */
 export async function fetchGroups(studentId) {
   return cached(`groups:${studentId}`, async () => {
     const list = await apiFetchAll("groups", {
@@ -75,11 +67,8 @@ export async function fetchGrades(studentId, options) {
 }
 
 /**
- * Endnoten. For schools that let the system compute them these carry a value
- * or a calculation_rule; where the teacher decides (calculation_for:
- * "teacher") they carry neither, and subject averages stay our own estimate.
- * The detail route returns the same fields as the list, so there's no
- * per-id follow-up call.
+ * Endnoten: a value or calculation_rule, or neither when the teacher decides
+ * (calculation_for: "teacher"); then the average is our estimate.
  */
 export async function fetchFinalgrades(studentId, { yearId } = {}) {
   return cached(`finalgrades:${studentId}:${yearId ?? ""}`, async () =>
@@ -92,10 +81,7 @@ export async function fetchFinalgrades(studentId, { yearId } = {}) {
   );
 }
 
-/**
- * The published day plan: every lesson of the day with its status
- * ("initial" / "planned" / "canceled"), not just the changes.
- */
+/** The published day plan: every lesson of the day, not just the changes. */
 export async function fetchDayPlans(fromIso, toIso) {
   return cached(
     `dayplans:${fromIso}:${toIso}`,
@@ -125,7 +111,7 @@ export async function fetchCurrentTimetable() {
       return {
         validFrom: data.valid_from,
         validTo: data.valid_to,
-        // Maps ISO calendar weeks to A/B week types for alternating lessons.
+        // ISO week → A/B week.
         weeks: data.weeks ?? [],
         noSchoolDates: data.no_school_dates ?? [],
         lessons: (data.lessons ?? []).map(mapTimetableLesson),
@@ -151,10 +137,8 @@ export async function fetchJournalNotes(studentId, fromIso, toIso) {
 
 export async function fetchAnnouncements() {
   return cached("announcements", async () => {
-    // Author and read state only exist as includes. `guardians`/`students`
-    // would also be allowed but carry phone numbers and e-mail addresses,
-    // so they're deliberately not requested. No filter[student]: a guardian
-    // gets every child's announcements in one list.
+    // Not `guardians`/`students`: they carry personal data. No
+    // filter[student]: a guardian gets every child's in one list.
     const list = await apiFetchAll("announcements", {
       params: { include: "teacher,readGuardiansCount,readStudentsCount" },
     });
@@ -175,9 +159,8 @@ export async function fetchRole() {
 }
 
 /**
- * Sends the Lesebestätigung, for all of the user's children at once — the API
- * has no per-child variant. The 200 body is discarded: it embeds guardians and
- * students unrequested (phone, e-mail, birthday) and carries no read counts.
+ * Sends the Lesebestätigung (for all children; no per-child variant). The
+ * response is discarded: it embeds personal data and no read counts.
  */
 export async function respondToAnnouncement(id) {
   await apiFetch(`announcements/${id}/respond`, { method: "POST" });

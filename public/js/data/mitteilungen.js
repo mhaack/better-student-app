@@ -4,7 +4,7 @@ import { splitAttachments, messagePreview } from "../domain/markdown.js";
 // Unread alone isn't enough for Heute: a letter can stay visible for a year.
 const FRESH_DAYS = 14;
 
-/** The side of a guardian/student field pair that speaks for `role`; either, when unknown. */
+/** The guardian or student field for `role`; either when unknown. */
 function forRole(role, guardianValue, studentValue) {
   if (role === "guardian") return guardianValue;
   if (role === "student") return studentValue;
@@ -28,7 +28,7 @@ export function prepareMitteilungen(announcements, today = new Date(), role = nu
         attachments,
         read,
         needsConfirmation,
-        // Needs a known role: otherwise we can't tell whose confirmation we'd send.
+        // Needs a role: whose confirmation would we send?
         canConfirm: Boolean(role) && needsConfirmation && !read,
         preview: messagePreview(body),
       };

@@ -1,8 +1,6 @@
 import { ICONS } from "./icons.js";
 
-// The label is not always the screen's own title: at five tabs on a 390px
-// screen "Stundenplan" no longer fits, so the nav says "Plan" while the route
-// and the view's heading stay "Stundenplan".
+// "Stundenplan" doesn't fit five tabs at 390px, so the tab says "Plan".
 const TABS = [
   { path: "/heute", label: "Heute", icon: ICONS.house },
   { path: "/noten", label: "Noten", icon: ICONS.graduationCap },
@@ -14,9 +12,7 @@ const TABS = [
 export function renderBottomNav(activeBasePath) {
   const items = TABS.map((tab) => {
     const isActive = tab.path === activeBasePath;
-    // The icon+label pair switches color for the active tab (see
-    // .nav-item[aria-current="page"] in app.css) — that's the only active
-    // marker now, so no separate indicator element is needed.
+    // aria-current colors the active tab (app.css); no extra indicator.
     return `
       <a class="nav-item" href="#${tab.path}" data-path="${tab.path}" ${isActive ? 'aria-current="page"' : ""}>
         ${tab.icon}
@@ -27,11 +23,7 @@ export function renderBottomNav(activeBasePath) {
   return `<nav class="bottom-nav" aria-label="Hauptnavigation">${items}</nav>`;
 }
 
-/**
- * Unread announcements leave Heute after two weeks but can stay unread for
- * months, and they live under Mehr — a dot on that tab keeps them findable
- * without a sixth tab. Set after render because it needs a fetch.
- */
+/** A dot on Mehr for unread announcements older than Heute shows. Needs a fetch. */
 export function setMehrDot(nav, hasUnread) {
   const item = nav?.querySelector('[data-path="/mehr"]');
   if (!item) return;

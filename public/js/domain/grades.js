@@ -1,10 +1,6 @@
-// Grade parsing and averaging for both German school scales used by
-// beste.schule students:
-//   - Sek I: Noten 1-6, 1 is best, optional +/- modifiers, decimal averages.
-//   - Oberstufe: Punkte 0-15, 15 is best, no decimals in raw grades.
-//
-// The two scales run in opposite directions and must never be mixed in one
-// average or compared without going through pointsToGradeLabel (display only).
+// Grade parsing and averaging for Sek I (Noten 1-6, 1 best, +/-) and
+// Oberstufe (Punkte 0-15, 15 best). The scales run in opposite directions;
+// never mix them in one average.
 
 /** @typedef {'grade_1_6' | 'points_0_15'} GradeScale */
 
@@ -12,9 +8,7 @@ const PLUS_MINUS_OFFSET = 0.25;
 
 /**
  * @param {string} raw
- * @param {GradeScale} scale Which scale this value is on. Must come from the
- *   student's course/stage context (Sek I vs Oberstufe) — a bare "3" is a
- *   valid value on both scales, so the value alone can't disambiguate.
+ * @param {GradeScale} scale From the student's context: "3" is valid on both.
  * @returns {{ raw: string, scale: GradeScale, numeric: number | null }}
  */
 export function parseGrade(raw, scale) {
@@ -49,18 +43,13 @@ export function parseGrade(raw, scale) {
   return { raw: trimmed, scale, numeric: null };
 }
 
-/**
- * Oberstufe only: a course result under 5 points is an "Unterkurs", which
- * matters for Abitur admission.
- */
+/** Oberstufe: under 5 points is an "Unterkurs" (matters for the Abitur). */
 export function isUnterkurs(pointsValue) {
   return typeof pointsValue === "number" && pointsValue < 5;
 }
 
 /**
- * Presentation-only approximation of a points value as a Sek-I-style note,
- * e.g. 12 P ≈ 2+. Never used in calculations — only ever shown as a small
- * secondary hint (design requirement: never mix scales in one number).
+ * Points as an approximate Note (12 P ≈ 2+). Display only, never calculated with.
  * @param {number} points
  * @returns {string}
  */
@@ -75,11 +64,8 @@ export function pointsToGradeLabel(points) {
   return `${grade}${modifier}`;
 }
 
-// --- Safe arithmetic evaluator for a school's `calculation_rule` string ---
-//
-// Supports + - * / ( ) numbers and bare identifiers resolved from a
-// `variables` map (e.g. Ka_sum, Ka_count, So_sum, So_count). Deliberately not
-// `eval`/`Function` — this string comes from the API and shouldn't run as JS.
+// Evaluator for the API's `calculation_rule`: + - * / ( ), numbers and
+// variables (Ka_sum, So_count, ...). Not eval: the string comes from the API.
 
 function tokenize(expr) {
   const tokens = [];
@@ -181,8 +167,7 @@ export function subjectAverage(grades, finalgradeDetail, scale) {
       const value = evaluateCalculationRule(finalgradeDetail.calculation_rule, variables);
       return finish(value, "api_formula", finalgradeDetail.calculation_rule);
     } catch {
-      // Fall through to the estimate below — a malformed/unfamiliar rule
-      // shouldn't crash the screen, just downgrade to "geschätzt".
+      // An unknown rule falls back to the estimate ("geschätzt").
     }
   }
 

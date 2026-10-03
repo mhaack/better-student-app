@@ -16,18 +16,13 @@ const THEME_OPTIONS = [
   { value: "dark", label: "Dunkel" },
 ];
 
-/**
- * Four cases, because "install this app" means something different in each:
- * already installed, a browser that offered us a prompt, iOS (which never
- * does and needs the manual steps), and everything else — where the honest
- * answer is to show nothing rather than a button that can't work.
- */
+/** Installed, prompt available, iOS (manual steps), or nothing at all. */
 function installSection() {
   if (isStandalone()) {
     return `
       <div class="section">
         <div class="eyebrow">App</div>
-        <div style="font-size:14px;color:var(--text-secondary)">Bessere Schule ist auf diesem Gerät installiert.</div>
+        <div style="font-size:14px;color:var(--text-secondary)">besere.schule ist auf diesem Gerät installiert.</div>
       </div>`;
   }
 
@@ -50,7 +45,7 @@ function installSection() {
       </div>`;
   }
 
-  // Desktop Firefox and friends: no install path, so no dead end.
+  // e.g. desktop Firefox: no install path.
   return "";
 }
 
@@ -127,7 +122,7 @@ export async function renderMehr(container) {
       ${installSection()}
       <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
-        Bessere Schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        besere.schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>`;
 
@@ -136,8 +131,7 @@ export async function renderMehr(container) {
     button.disabled = true;
     const outcome = await promptInstall();
     if (outcome === "accepted") {
-      // The section can't re-evaluate to "installed" until the app is next
-      // opened standalone, so say so rather than leaving a dead button.
+      // Shows "installed" only once opened standalone; say so meanwhile.
       button.replaceWith(
         Object.assign(document.createElement("div"), {
           style: "font-size:14px;color:var(--text-secondary)",
@@ -146,14 +140,14 @@ export async function renderMehr(container) {
       );
       return;
     }
-    // Dismissed: the event is spent, so a retry needs a fresh page load.
+    // Dismissed: the event is spent until the next page load.
     button.disabled = false;
     button.textContent = "Zum Home-Bildschirm hinzufügen";
   });
 
   container.querySelector("#cutoff-picker").addEventListener("change", (e) => {
     setCutoffHour(Number(e.target.value));
-    // Heute is rendered from this on its next mount; nothing to refresh here.
+    // Heute reads it on its next mount.
   });
 
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
@@ -175,7 +169,7 @@ export async function renderMehr(container) {
       target.textContent = `${klasse}${school.name}`;
     })
     .catch(() => {
-      // The school name is decoration; the class from the student record is enough.
+      // The class from the student record is enough.
     });
 
   getMitteilungenData()
@@ -185,7 +179,7 @@ export async function renderMehr(container) {
       target.outerHTML = `<span class="pill pill--room">${unreadCount} ungelesen</span>`;
     })
     .catch(() => {
-      // The row still links to the list, which shows its own error state.
+      // The list shows its own error.
     });
 
   container.querySelector("#logout-button").addEventListener("click", () => {

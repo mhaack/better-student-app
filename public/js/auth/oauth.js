@@ -1,15 +1,10 @@
-// Authorization Code flow with PKCE, run entirely in the browser.
-//
-// This works without a server because beste.schule sends CORS headers on
-// /oauth/token (verified — see docs/api-notes.md), so the code exchange can
-// be a plain fetch. /oauth/authorize needs no CORS: it's a full-page
-// redirect, not a fetch.
+// Authorization Code flow with PKCE, entirely in the browser: /oauth/token
+// sends CORS headers, so no server is needed.
 import { generateVerifier, challengeFromVerifier, randomState } from "./pkce.js";
 import { CLIENT_ID, AUTHORIZE_URL, TOKEN_URL, redirectUri } from "./oauth-config.js";
 import { setOAuthSession, getRefreshToken, isRemembered } from "../state/auth-store.js";
 
-// The verifier must survive a full page navigation but must not outlive the
-// attempt, so it goes in sessionStorage regardless of "Angemeldet bleiben".
+// Survives the redirect but not the attempt: always sessionStorage.
 const PENDING_KEY = "schulblick.oauth.pending";
 
 export class OAuthError extends Error {
@@ -20,10 +15,7 @@ export class OAuthError extends Error {
   }
 }
 
-/**
- * Starts the flow: stashes a fresh verifier + state, then hands the browser
- * to beste.schule. Returns a promise that never resolves — the page is gone.
- */
+/** Starts the flow and redirects; the returned promise never resolves. */
 export async function beginLogin({ remember = false } = {}) {
   const verifier = generateVerifier();
   const state = randomState();
@@ -50,9 +42,8 @@ export function isCallback(search = location.search) {
 }
 
 /**
- * Completes the flow from the callback URL: verifies state, exchanges the
- * code, stores the session. Always strips the query string afterwards so a
- * reload can't replay a spent code and the token never lingers in history.
+ * Completes the flow from the callback URL. Always strips the query string so
+ * a reload can't replay the code.
  */
 export async function completeLogin(search = location.search) {
   const params = new URLSearchParams(search);
@@ -76,8 +67,7 @@ export async function completeLogin(search = location.search) {
   }
 
   const pending = JSON.parse(pendingRaw);
-  // Constant-time comparison isn't warranted here — state is single-use and
-  // compared against a value only this tab knows — but it must be compared.
+  // Single-use and tab-local, so no constant-time compare needed.
   if (!params.get("state") || params.get("state") !== pending.state) {
     throw new OAuthError("Die Anmeldung konnte nicht zugeordnet werden. Bitte erneut versuchen.");
   }
@@ -95,9 +85,8 @@ export async function completeLogin(search = location.search) {
 }
 
 /**
- * Exchanges the refresh token for a new access token. Single-flight: the app
- * fires many requests in parallel, and a 401 on each of them must not start
- * its own refresh — the first one to fail would invalidate the rest.
+ * Refreshes the access token. Single-flight: parallel 401s share one
+ * refresh, as each refresh invalidates the previous token.
  */
 let inFlightRefresh = null;
 

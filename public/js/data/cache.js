@@ -1,7 +1,4 @@
-// A small stale-while-revalidate cache so switching between screens doesn't
-// re-fetch everything, without pulling in a query library. Per-tab, in
-// memory only — offline/IndexedDB persistence is Phase 2 (docs/plan.md §7),
-// not part of this first build.
+// A small stale-while-revalidate cache, per tab and in memory only.
 const store = new Map(); // key -> { value, fetchedAt, promise }
 
 const DEFAULT_STALE_MS = 60_000;
@@ -29,8 +26,7 @@ export async function cached(key, fetcher, options = {}) {
       return value;
     })
     .catch((err) => {
-      // Keep serving the last good value's cache slot cleared so the next
-      // call retries instead of replaying the error forever.
+      // Drop the failure so the next call retries.
       if (entry) store.set(key, { ...entry, promise: null });
       else store.delete(key);
       throw err;

@@ -5,10 +5,8 @@ import { toTrendPoints, MINI_TREND_WIDTH } from "../domain/trend.js";
 const TREND_POINTS_COUNT = 4;
 
 /**
- * Aggregates the "Noten" screen for one student and Halbjahr.
- * `courses` comes from the school context (the student's actual course groups,
- * with the LK/GK hint), not from /api/subjects — that route lists every
- * subject the school offers, including ones the student doesn't take.
+ * The "Noten" screen for one Halbjahr. `courses` are the student's own groups
+ * from the context (/api/subjects lists every subject of the school).
  *
  * @param {number} studentId
  * @param {{ yearId?: number, intervalId?: number, scale: import('../domain/grades.js').GradeScale, courses: Array<object> }} options
@@ -44,8 +42,7 @@ export async function getNotenData(studentId, options) {
         chronological.length > 1
           ? toTrendPoints(
               chronological.map((g) => g.numeric),
-              // Axis-less by design: the mini trend shows direction only, so
-              // it normalises to this subject's own range.
+              // No axis: direction only, scaled to this subject's range.
               { width: MINI_TREND_WIDTH[scale], height: 30, betterIsHigher: scale === "points_0_15", insetX: 2 }
             )
           : null,
@@ -67,7 +64,7 @@ export async function getNotenData(studentId, options) {
   if (scale === "points_0_15") {
     result.lk = subjects.filter((s) => s.courseType === "LK");
     result.gk = subjects.filter((s) => s.courseType !== "LK");
-    // Without a trustworthy LK/GK split the view shows one flat list instead.
+    // Without a trustworthy LK/GK split: one flat list.
     result.hasCourseTypes = result.lk.length > 0;
   }
 

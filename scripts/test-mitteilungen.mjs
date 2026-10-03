@@ -249,8 +249,7 @@ function seenBy(role, overrides = {}) {
 }
 
 test("prepareMitteilungen: a guardian's read state ignores the student's", () => {
-  // Summing the counts marked a letter read once the child had opened it,
-  // hiding the guardian's outstanding Lesebestätigung.
+  // Summed counts hid the guardian's open Lesebestätigung once the child read it.
   const item = seenBy("guardian", { read_guardians_count: 0, read_students_count: 1 });
   assert.equal(item.read, false);
   assert.equal(item.canConfirm, true);

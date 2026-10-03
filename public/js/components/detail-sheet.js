@@ -93,8 +93,7 @@ export function mountSheet(container, { html, opener = document.activeElement })
   }
   document.addEventListener("keydown", onKeydown);
 
-  // One observer covers every removal path, including a route change that
-  // replaces the container's innerHTML without calling close().
+  // Also catches removal by a route change that never calls close().
   const observer = new MutationObserver(() => {
     if (backdrop.isConnected) return;
     document.removeEventListener("keydown", onKeydown);
@@ -112,13 +111,9 @@ export function mountSheet(container, { html, opener = document.activeElement })
 }
 
 /**
- * Wires tap and keyboard activation for `[role="button"]` descendants of
- * `root` that match `selector`, via delegated listeners that survive
- * re-renders of root's innerHTML. The targets are divs, not real buttons —
- * WebKit's native button content wrapper ignores appearance:none and
- * vertically centers short content — so Enter/Space are wired by hand:
- * Enter on keydown (ignoring OS key-repeat), Space on keyup, same as a
- * native button.
+ * Delegated tap and keyboard activation for `[role="button"]` matches of
+ * `selector`. They are divs because WebKit centers <button> content
+ * regardless of CSS, so Enter (keydown) and Space (keyup) are wired by hand.
  */
 export function bindActivate(root, selector, onActivate) {
   const target = (e) => e.target.closest(`${selector}[role="button"]`);
@@ -141,11 +136,8 @@ export function bindActivate(root, selector, onActivate) {
 }
 
 /**
- * Makes each `rowSelector` element under root tappable only when its
- * `clampSelector` child is actually cut off by its line clamp. Whether a
- * text overflows depends on the screen width, so this is measured after
- * rendering rather than guessed from a character count — a row whose text
- * fits in full has nothing more to show.
+ * Makes a row tappable only when its clamped text is actually cut off,
+ * measured after rendering since it depends on the screen width.
  */
 export function markTruncatedRows(root, rowSelector, clampSelector) {
   const mark = () => {
@@ -158,7 +150,6 @@ export function markTruncatedRows(root, rowSelector, clampSelector) {
     }
   };
   mark();
-  // The serif/sans web fonts can land after the first render and change
-  // where lines break, so measure once more when they have.
+  // Fonts loading later change line breaks; measure again.
   document.fonts?.ready.then(mark);
 }

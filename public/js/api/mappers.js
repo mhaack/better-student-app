@@ -1,22 +1,9 @@
-// Raw beste.schule API JSON -> the normalized domain shapes from docs/plan.md §3.
-//
-// VERIFIED against the live API (2026-09) with a guardian token at a Saxon
-// Gymnasium. Everything below reflects real responses, not guesses.
-// Notable differences from the original plan's assumptions:
-//   - people use `forename` + `name` (NOT firstname/lastname); `name` is the surname
-//   - a student's class is `meta_groups[]` (meta: 1 = Tutorenkurs/Klasse),
-//     and their courses are the groups they belong to (meta: 0)
-//   - `subject` is NOT an allowed include on /api/grades; it only exists as
-//     `collection.subject` (a grade belongs to a collection, which has the subject)
-//   - `rooms` and `teachers` are ARRAYS; a room's label is `local_id`, not `name`
-//   - a timetable lesson's period is `nr` and its day is `weekday` (1 = Monday),
-//     with A/B week alternation via `weeks` + the timetable's `weeks[]` calendar
-//   - substitution-plans/days returns the WHOLE day (every lesson), each with a
-//     `status`: "initial" | "planned" | "canceled" — not just the changes
-//   - interval carries `type`: "Sek I" | "11er" | "12er" — this is the grading
-//     scale signal (Sek I = Noten 1-6, 11er/12er = Oberstufe, Punkte 0-15)
-//   - finalgrades carry no value/formula for this school (calculation_for:
-//     "teacher"), so subject averages are our own estimate ("geschätzt")
+// Raw beste.schule API JSON -> flat domain objects. Verified against the live
+// API (2026-09); the quirks are in docs/api-notes.md. The ones shaping this file:
+//   - `name` on a person is the surname; `forename` is the first name
+//   - `rooms`/`teachers` are arrays, labelled by `local_id`
+//   - grades get their subject via `collection.subject`
+//   - interval `type` ("Sek I" | "11er" | "12er") decides the grading scale
 
 import { parseGrade } from "../domain/grades.js";
 
@@ -44,10 +31,9 @@ function joined(list) {
 }
 
 /**
- * Room and teacher fields shared by timetable and plan lessons. The lists are
- * kept alongside the joined strings because a changed lesson carries both the
- * original entry and the new one in the same array — so telling them apart is
- * a set operation against the timetable, not something a string can express.
+ * Room and teacher fields for timetable and plan lessons. The lists are kept
+ * because a changed lesson holds old and new entries in one array; telling
+ * them apart is a set difference against the timetable.
  */
 function roomsAndTeachers(raw) {
   const roomList = localIds(raw.rooms);
@@ -97,8 +83,7 @@ export function mapYear(raw) {
 }
 
 /**
- * The two grading scales are distinguished by the interval's `type`:
- * "Sek I" uses Noten 1-6 (1 best), "11er"/"12er" use Punkte 0-15 (15 best).
+ * "Sek I" → Noten 1-6, "11er"/"12er" → Punkte 0-15.
  * @returns {import('../domain/grades.js').GradeScale}
  */
 export function scaleForIntervalType(intervalType) {
@@ -113,10 +98,7 @@ export function mapSubject(raw) {
   };
 }
 
-/**
- * Course groups. meta === 1 marks the Tutorenkurs/Klasse rather than a taught
- * course, so those are filtered out when listing a student's courses.
- */
+/** Course groups. meta === 1 is the Klasse/Tutorenkurs, not a taught course. */
 export function mapGroup(raw) {
   return {
     id: raw.id,
@@ -129,13 +111,9 @@ export function mapGroup(raw) {
 }
 
 /**
- * Leistungskurs detection. The API exposes no LK/GK field anywhere, so this
- * falls back to this school's naming convention: course groups are named
- * "<Jahrgang><subject code><nr>" with the subject code in UPPERCASE for
- * Leistungskurse and lowercase for Grundkurse (e.g. "11MA1" = LK Mathe,
- * "11ph2" = GK Physik). Verified against a Jahrgang-11 student who has
- * exactly the expected two uppercase groups. Callers must treat the result as
- * a hint: see resolveCourseTypes(), which discards it when it looks wrong.
+ * The API has no LK/GK field, so this uses the school's naming: uppercase
+ * subject code = LK ("11MA1"), lowercase = GK ("11ph2"). Only a hint —
+ * resolveCourseTypes() discards it when it looks wrong.
  */
 export function looksLikeLeistungskurs(group) {
   const code = String(group.localId ?? "").replace(/^[0-9-]+/, "").replace(/[0-9]+$/, "");
@@ -145,7 +123,7 @@ export function looksLikeLeistungskurs(group) {
 export function mapGradeCollection(raw) {
   return {
     id: raw.id,
-    // Free-text, school-configured label: "Sonstige", "Klausur", "Klassenarbeit", ...
+    // School-configured label: "Sonstige", "Klausur", ...
     type: raw.type ?? "Sonstige",
     name: raw.name,
     weighting: Number(raw.weighting ?? 1),
@@ -183,9 +161,8 @@ const PLAN_STATUS = {
 };
 
 /**
- * One lesson from substitution-plans/days. `status` here is only "regular" /
- * "changed" / "cancelled"; distinguishing a room change from a teacher
- * substitution needs the base timetable, which js/data/heute.js layers on top.
+ * One lesson from substitution-plans/days. What exactly changed needs the
+ * timetable; js/data/ works that out.
  */
 export function mapPlanLesson(raw) {
   return {
@@ -209,7 +186,7 @@ export function mapTimetableLesson(raw) {
     subjectId: raw.subject?.id,
     subject: raw.subject?.name,
     subjectShort: raw.subject?.local_id,
-    // The Kurs ("11MA1"), which the school's Klausur plan names.
+    // The Kurs ("11MA1"); the Klausur plan refers to it.
     groupLocalId: raw.group?.local_id,
     ...roomsAndTeachers(raw),
     from: raw.time?.from,
@@ -218,12 +195,8 @@ export function mapTimetableLesson(raw) {
 }
 
 /**
- * Klassenbuch notes hanging off a lesson. Four types exist, verified against
- * the live API: KLA (Klassenarbeit/Klausur), LEI (Leistungskontrolle), HAU
- * (Hausaufgabe) and STU (Stundenthema, which is backward-looking and filtered
- * out by the data layer). KLA and LEI are what the Termine screen shows;
- * teachers enter them months ahead, so they reach much further into the
- * future than the other two.
+ * Klassenbuch notes of a lesson: KLA (Klausur), LEI (Leistungskontrolle),
+ * HAU (Hausaufgabe), STU (Stundenthema, dropped by the data layer).
  */
 export function mapJournalNotes(rawLesson) {
   const date = rawLesson.day?.date;
@@ -252,12 +225,8 @@ export function mapAbsence(raw) {
 }
 
 /**
- * An announcement has no created_at: `read_from`/`read_to` (the visibility
- * window) are its only dates, so `read_from` stands in for the publish date.
- * There's no read flag either — the read counts (from
- * include=readGuardiansCount,readStudentsCount) are scoped to the viewer,
- * so a count above zero means "this account has read it". The author only
- * exists with include=teacher.
+ * No created_at: `read_from` stands in for the publish date. No read flag
+ * either: the read counts are scoped to the viewer, so > 0 means "read".
  */
 export function mapAnnouncement(raw) {
   return {
@@ -268,8 +237,7 @@ export function mapAnnouncement(raw) {
     visibleUntil: raw.read_to,
     type: raw.type?.name,
     author: personName(raw.teacher) ?? null,
-    // Kept apart, not summed: a letter asks one role to confirm, and summing
-    // marks it read as soon as the other side opens it.
+    // Not summed: a letter asks one role to confirm.
     needsGuardianConfirmation: Boolean(raw.need_confirmation_from_guardian),
     needsStudentConfirmation: Boolean(raw.need_confirmation_from_student),
     readByGuardian: (raw.read_guardians_count ?? 0) > 0,
@@ -277,7 +245,7 @@ export function mapAnnouncement(raw) {
   };
 }
 
-/** `/api/me` reduced to the role. The rest is e-mail, phone numbers and birthdays. */
+/** `/api/me` reduced to the role; the rest is personal data. */
 export function mapMe(raw) {
   return { role: raw?.role ?? null };
 }

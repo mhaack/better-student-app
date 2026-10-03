@@ -1,11 +1,6 @@
-// The small Markdown subset beste.schule announcement bodies actually use
-// (docs/api-notes.md): paragraphs, line breaks, **bold** and links — links
-// often relative to beste.schule. Everything else stays literal text.
-//
-// Safety model: nothing from the API is ever parsed as HTML. The raw text is
-// split into tokens first, every piece of text is escaped on its own, and
-// the only tags emitted are the fixed ones built here. A link survives only
-// if it resolves to http(s); anything else is shown as the literal text.
+// The Markdown subset announcements use: paragraphs, line breaks, **bold**
+// and links. Nothing from the API is parsed as HTML: text is tokenized, each
+// piece escaped, and only http(s) links survive.
 import { escapeHtml } from "../util/dom.js";
 
 const BASE_URL = "https://beste.schule";
@@ -17,7 +12,7 @@ const ATTACHMENT_PATH = /^\/attachments\/(\d+)$/;
 const SALUTATION = /^(liebe|lieber|sehr geehrte|hallo|guten tag)\b.*,$/i;
 const PREVIEW_LENGTH = 160;
 
-/** The absolute URL for an http(s) link, relative ones against beste.schule; null for anything else. */
+/** Absolute http(s) URL (relative ones against beste.schule), else null. */
 function safeUrl(href) {
   try {
     const url = new URL(href, BASE_URL);
@@ -70,11 +65,7 @@ export function renderMessage(markdown) {
     .join("");
 }
 
-/**
- * Attachments aren't a field of their own — they're links to
- * /attachments/:id inside the body. Pull them out so the detail screen can
- * show them as rows instead of a link in the middle of the letter.
- */
+/** Attachments are only /attachments/:id links in the body; pulled out as rows. */
 export function splitAttachments(markdown) {
   const attachments = [];
   const body = String(markdown ?? "")
@@ -94,10 +85,7 @@ export function splitAttachments(markdown) {
   return { body, attachments };
 }
 
-/**
- * One line of plain text for list rows. Letters open with "Liebe Eltern," —
- * true of nearly all of them, so it says nothing; the preview starts after it.
- */
+/** One line for list rows, skipping the "Liebe Eltern," every letter opens with. */
 export function messagePreview(markdown) {
   const parts = paragraphs(markdown).map((p) =>
     p.replace(LINK, "$1").replace(/\*\*([^*\n]+?)\*\*/g, "$1").replace(/\s+/g, " ").trim()

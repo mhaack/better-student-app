@@ -1,13 +1,6 @@
-// Copies fixtures/raw/*.json -> fixtures/*.json with names, other people's
-// ids, and free text replaced by fakes, so the anonymized fixtures can be
-// committed (fixtures/raw/ stays gitignored).
-//
-// This is best-effort, not a privacy guarantee: review fixtures/ by hand
-// before committing, especially announcement/note bodies, which are replaced
-// with placeholder text but whose *presence* and rough length still leaks
-// something about the original.
-//
-// Usage: node scripts/anonymize.mjs
+// Copies fixtures/raw/*.json -> fixtures/*.json with names, other people's ids
+// and free text faked. Best-effort only: review fixtures/ by hand before
+// committing. Usage: node scripts/anonymize.mjs
 import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 const SRC_DIR = "fixtures/raw";
@@ -117,8 +110,7 @@ function run() {
     process.exit(1);
   }
 
-  // The logged-in student's own id(s) are left untouched everywhere so the
-  // fixtures stay internally consistent (grades.subjectId <-> subjects, etc).
+  // The student's own ids stay, keeping the fixtures consistent.
   const primaryIds = new Set();
   try {
     const students = JSON.parse(readFileSync(`${SRC_DIR}/students.json`, "utf8"));

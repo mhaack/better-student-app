@@ -1,14 +1,6 @@
-// Holds the beste.schule credentials and the resolved student list.
-//
-// Sessions come from the OAuth PKCE flow: an access token plus a refresh
-// token and an expiry, which js/api/client.js uses to refresh when the API
-// says 401. Anything stored without that metadata is a leftover Personal
-// Access Token session from before OAuth — still a usable bearer token, but
-// with nothing to refresh, so getSessionKind() reports it as "pat" and the
-// client leaves it alone.
-//
-// "Angemeldet bleiben" unchecked (default): sessionStorage, gone when the tab
-// closes. Checked: localStorage, persists across restarts. Never both at once.
+// Credentials and the student list. A token without refresh metadata is an
+// old Personal Access Token session ("pat"), which the client won't refresh.
+// "Angemeldet bleiben" picks localStorage, otherwise sessionStorage; never both.
 const TOKEN_KEY = "schulblick.token";
 // Kept separate from TOKEN_KEY so sessions predating OAuth keep working.
 const SESSION_KEY = "schulblick.session";
@@ -40,11 +32,7 @@ export function isAuthenticated() {
   return Boolean(getToken());
 }
 
-/**
- * Stores an OAuth session. `expiresIn` is the API's seconds-from-now; it's
- * converted to an absolute timestamp because a duration stops being true the
- * moment it's written to storage.
- */
+/** Stores an OAuth session, with `expiresIn` turned into an absolute time. */
 export function setOAuthSession({ accessToken, refreshToken, expiresIn }, remember) {
   memoryToken = accessToken;
   const store = storageFor(remember);
@@ -98,7 +86,7 @@ export function clearSession() {
   notify();
 }
 
-/** Which storage the current session chose, so later writes stay consistent. */
+/** The storage the current session uses, so later writes go there too. */
 export function isRemembered() {
   try {
     return Boolean(window.localStorage.getItem(TOKEN_KEY));

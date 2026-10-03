@@ -1,19 +1,14 @@
-// Names for German public holidays, computed rather than fetched.
-//
-// The Schulferien service (api/schulferien.js) covers Ferien but not
-// Feiertage, so a single free day like Buß- und Bettag comes back from it as
-// "not a holiday" even though school is shut. Measured against this school's
-// calendar, two of its 54 closed days are exactly that case.
-//
-// Every movable German holiday hangs off Easter, and Easter is computable, so
-// this needs no network, no table to maintain, and works for any year —
-// which matters for an offline-capable app.
-//
-// The list is *national*. A few entries here are state-specific
-// (Fronleichnam, Reformationstag, Buß- und Bettag), but these names only ever
-// label days the school has already told us are free, so a holiday that
-// doesn't apply locally is simply never looked up. The failure mode is a
-// mislabel, never a phantom day off.
+// Names for German public holidays, computed from Easter (no network). The
+// Ferien API doesn't cover Feiertage. The list is national, but it only ever
+// labels days the school says are free, so it can't invent a day off.
+
+function isoUtc(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function plusDays(date, days) {
+  return isoUtc(new Date(date.getTime() + days * 86_400_000));
+}
 
 /** Gauss's Easter algorithm. Returns Easter Sunday as a UTC date. */
 export function easterSunday(year) {
@@ -34,18 +29,7 @@ export function easterSunday(year) {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function isoUtc(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function plusDays(date, days) {
-  return isoUtc(new Date(date.getTime() + days * 86_400_000));
-}
-
-/**
- * Buß- und Bettag: the Wednesday before 23 November. When the 23rd is itself
- * a Wednesday the holiday is the *previous* week, hence the `|| 7`.
- */
+/** Buß- und Bettag: the Wednesday before 23 November (`|| 7`: strictly before). */
 function bussUndBettag(year) {
   const nov23 = new Date(Date.UTC(year, 10, 23));
   const backToWednesday = ((nov23.getUTCDay() - 3) + 7) % 7 || 7;
@@ -76,9 +60,7 @@ export function holidayNames(year) {
 }
 
 /**
- * The name for one date, or undefined. Undefined is a real answer here —
- * a Brückentag has no national name and must render as "Schulfrei" rather
- * than as a guess.
+ * The name for one date, or undefined (a Brückentag has none).
  * @param {string} iso YYYY-MM-DD
  */
 export function feiertagName(iso) {

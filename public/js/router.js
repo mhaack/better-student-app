@@ -1,4 +1,4 @@
-// Minimal hash router — no framework, matches the rest of this project.
+// Minimal hash router.
 const routes = [];
 
 /**

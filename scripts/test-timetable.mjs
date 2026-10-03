@@ -1,7 +1,5 @@
-// Tests for merging the published day plan with the base timetable.
-// The room cases come from real plan data (Sept/Oct 2026): a relocated lesson
-// lists the original room *and* the new one in one alphabetically sorted
-// array, so the new room has to be derived by difference.
+// Merging the day plan with the timetable. Room cases mirror real plan data:
+// old and new room in one sorted array.
 import assert from "node:assert/strict";
 import { refineChangedLessons } from "../public/js/data/timetable.js";
 
@@ -85,8 +83,7 @@ test("a stand-in teacher outranks a room move", () => {
 });
 
 test("a stand-in joining the regular teacher: only the stand-in after the arrow", () => {
-  // Real case: ["Sandra Kaiser", "Ulrike Raupach"] for a lesson normally
-  // held by Ulrike Raupach alone.
+  // Real case: the regular teacher is listed beside the stand-in.
   const out = refineOne(
     timetableWith(["312"], teachers(["Ulrike Raupach"], ["RAP"])),
     planLesson(["312"], teachers(["Sandra Kaiser", "Ulrike Raupach"], ["KSR", "RAP"]))
