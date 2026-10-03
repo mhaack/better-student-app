@@ -3,7 +3,7 @@
 // network-first, so the shell loads offline without a precache list.
 const CACHE_NAME = "schulblick-shell-v1";
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 

@@ -92,5 +92,5 @@ export function messagePreview(markdown) {
   );
   if (parts.length > 1 && SALUTATION.test(parts[0])) parts.shift();
   const text = parts.join(" ");
-  return text.length > PREVIEW_LENGTH ? text.slice(0, PREVIEW_LENGTH - 1).trimEnd() + "…" : text;
+  return text.length > PREVIEW_LENGTH ? `${text.slice(0, PREVIEW_LENGTH - 1).trimEnd()}…` : text;
 }

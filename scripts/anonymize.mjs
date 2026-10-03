@@ -41,7 +41,7 @@ function fakeFreeText(original) {
   if (typeof original !== "string" || original.length === 0) return original;
   const words = Math.max(3, Math.round(original.split(/\s+/).length));
   const lorem = "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore".split(" ");
-  return Array.from({ length: words }, (_, i) => lorem[i % lorem.length]).join(" ") + ".";
+  return `${Array.from({ length: words }, (_, i) => lorem[i % lorem.length]).join(" ")}.`;
 }
 
 function looksLikePersonObject(obj) {
@@ -65,7 +65,7 @@ function anonymizeValue(key, value, primaryIds) {
       return fakeNameFor(value, LAST_NAMES);
     }
     if (key === "name" && typeof value === "string" && value.includes(" ")) {
-      return fakeNameFor(value, FIRST_NAMES) + " " + fakeNameFor(value + ":last", LAST_NAMES);
+      return `${fakeNameFor(value, FIRST_NAMES)} ${fakeNameFor(`${value}:last`, LAST_NAMES)}`;
     }
     if (FREE_TEXT_FIELDS.has(key)) return fakeFreeText(value);
     if (TITLE_FIELDS.has(key)) return fakeFreeText(value);

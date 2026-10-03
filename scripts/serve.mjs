@@ -31,7 +31,7 @@ const server = createServer(async (req, res) => {
     }
 
     const fileStat = await stat(filePath).catch(() => null);
-    if (!fileStat || !fileStat.isFile()) {
+    if (!fileStat?.isFile()) {
       res.writeHead(404).end("Not found");
       return;
     }
@@ -40,7 +40,7 @@ const server = createServer(async (req, res) => {
     const type = MIME_TYPES[extname(filePath)] ?? "application/octet-stream";
     res.writeHead(200, { "Content-Type": type });
     res.end(body);
-  } catch (err) {
+  } catch {
     res.writeHead(500).end("Internal error");
   }
 });

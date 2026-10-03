@@ -12,6 +12,10 @@ deployed app (Cloudflare Pages). See `README.md` for the full picture.
 - `npm run test:watch` / `npm run test:coverage` — rerun on change / coverage
   of `public/`. Mock with `mock` from `node:test` (e.g. `mock.method(globalThis,
   "fetch", …)`, `mock.timers` for dates) instead of reassigning globals.
+- `npm run lint` — Biome's recommended rules over `public/`, `scripts/` and
+  `test/` (run `npm ci` once; Biome is the only dev dependency). CI runs it
+  before the tests. Fix the finding rather than disabling the rule; a rule
+  that's wrong for this codebase gets turned off in `biome.json` with a reason.
 - `npm run serve` — static server on `http://localhost:8080`.
 
 ## Where things go
