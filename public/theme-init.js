@@ -2,14 +2,14 @@
 // light. Must stay a render-blocking classic script (modules defer) and
 // can't be inline (CSP). Keep THEME_KEY and the colors in sync with
 // js/state/theme.js.
-(function () {
+(() => {
   var THEME_KEY = "schulblick.theme";
   var THEME_COLOR = { light: "#F6F3EE", dark: "#14120F" };
 
   var stored;
   try {
     stored = window.localStorage.getItem(THEME_KEY);
-  } catch (e) {
+  } catch {
     stored = null;
   }
 

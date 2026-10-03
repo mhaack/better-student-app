@@ -2,12 +2,19 @@
   "name": "bessere-schule",
   "private": true,
   "type": "module",
-  "description": "Unofficial student app for beste.schule. Static browser-only PWA, no build step; package.json exists only for `type: module` (Node ESM in scripts/) and npm scripts.",
+  "description": "Unofficial app for beste.schule: grades, timetable, substitutions, homework, exams and announcements for students and parents.",
   "scripts": {
     "discover": "node scripts/discover.mjs",
     "cors-check": "node scripts/cors-check.mjs",
     "anonymize": "node scripts/anonymize.mjs",
-    "test": "node scripts/test.mjs",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "test:watch": "node --test --watch \"test/**/*.test.mjs\"",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"public/**\" \"test/**/*.test.mjs\"",
+    "lint": "biome lint --error-on-warnings",
+    "lint:fix": "biome lint --write",
     "serve": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15"
   }
 }

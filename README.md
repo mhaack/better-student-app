@@ -70,7 +70,8 @@ A zero-dependency static server on `http://localhost:8080`, serving `public/`.
 
 ## Stack
 
-Plain HTML/CSS/JS, ES modules, no build step, no framework, no dependencies.
+Plain HTML/CSS/JS, ES modules, no build step, no framework, no runtime
+dependencies. The only dev dependency is the linter ([Biome](https://biomejs.dev)).
 `public/` is the entire deployable app, served as-is by any static host.
 
 ```
@@ -91,7 +92,10 @@ public/js/
 | Command | What it does |
 |---|---|
 | `npm run serve` | Serves `public/` locally for development |
-| `npm test` | Runs every `scripts/test-*.mjs`: grade parsing/averaging/trend geometry, PKCE against RFC 7636's test vectors, school days and holidays, and merging the day plan with the timetable. CI runs it on every PR |
+| `npm test` | Runs every `test/**/*.test.mjs` with Node's built-in `node:test` runner: grade parsing/averaging/trend geometry, PKCE against RFC 7636's test vectors, school days and holidays, and merging the day plan with the timetable. CI runs it on every PR |
+| `npm run test:watch` | Reruns the tests on every change |
+| `npm run test:coverage` | Tests plus a coverage table for `public/` |
+| `npm run lint` | Lints `public/`, `scripts/` and `test/` with Biome (`npm ci` first). `lint:fix` applies the safe fixes |
 | `npm run discover` | Hits every known API route with a token from `.env` (`BESTE_SCHULE_TOKEN`) and saves raw responses to `fixtures/raw/` |
 | `npm run cors-check` | Checks which routes send CORS headers for a foreign origin |
 | `npm run anonymize` | Copies `fixtures/raw/` → `fixtures/` with names and free text replaced by fakes, safe to commit |

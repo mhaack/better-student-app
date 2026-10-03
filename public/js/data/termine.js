@@ -69,7 +69,7 @@ export function attachExams(days, exams, timetable, todayIso) {
       const lessons = exam.periods
         .map((p) => day.lessons.find((l) => l.period === p))
         .filter((l) => l && (exam.subjectId == null || l.subjectId == null || l.subjectId === exam.subjectId));
-      lessons.forEach((l) => examLessons.add(l));
+      for (const l of lessons) examLessons.add(l);
       const present = lessons.filter((l) => l.status !== "cancelled");
 
       const start = bell.get(exam.periods[0])?.from;

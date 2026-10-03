@@ -2,7 +2,6 @@ import { setStudents, setSelectedStudentId } from "../state/auth-store.js";
 import { fetchStudents } from "../data/repository.js";
 import { beginLogin } from "../auth/oauth.js";
 import { isOAuthConfigured } from "../auth/oauth-config.js";
-import { escapeHtml } from "../util/dom.js";
 
 /** After login: find the account's students and pick one. */
 export async function establishSession() {

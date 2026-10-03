@@ -1,0 +1,115 @@
+// Grade parsing, labels and averages on both scales.
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
+import {
+  parseGrade,
+  isUnterkurs,
+  pointsToGradeLabel,
+  evaluateCalculationRule,
+  subjectAverage,
+} from "../../public/js/domain/grades.js";
+
+describe("parseGrade", () => {
+  test("Sek I plain grade", () => {
+    assert.equal(parseGrade("2", "grade_1_6").numeric, 2);
+  });
+
+  test("Sek I plus/minus modifiers", () => {
+    assert.equal(parseGrade("2+", "grade_1_6").numeric, 1.75);
+    assert.equal(parseGrade("2-", "grade_1_6").numeric, 2.25);
+  });
+
+  test("Sek I decimal comma", () => {
+    assert.equal(parseGrade("1,5", "grade_1_6").numeric, 1.5);
+  });
+
+  test("Oberstufe points", () => {
+    assert.equal(parseGrade("12", "points_0_15").numeric, 12);
+    assert.equal(parseGrade("12 P", "points_0_15").numeric, 12);
+  });
+
+  test("out-of-range points rejected", () => {
+    assert.equal(parseGrade("17", "points_0_15").numeric, null);
+  });
+
+  test("same raw value on both scales does not cross-contaminate", () => {
+    assert.equal(parseGrade("3", "grade_1_6").numeric, 3);
+    assert.equal(parseGrade("3", "points_0_15").numeric, 3);
+  });
+});
+
+describe("isUnterkurs", () => {
+  test("below 5 points", () => {
+    assert.equal(isUnterkurs(4), true);
+    assert.equal(isUnterkurs(5), false);
+  });
+});
+
+describe("pointsToGradeLabel", () => {
+  test("matches the design's 12 P ~= 2+ example", () => {
+    assert.equal(pointsToGradeLabel(12), "2+");
+  });
+
+  test("boundary values", () => {
+    assert.equal(pointsToGradeLabel(15), "1+");
+    assert.equal(pointsToGradeLabel(14), "1");
+    assert.equal(pointsToGradeLabel(13), "1-");
+    assert.equal(pointsToGradeLabel(0), "6");
+  });
+});
+
+describe("evaluateCalculationRule", () => {
+  test("basic arithmetic with variables", () => {
+    const value = evaluateCalculationRule("(Ka_sum / Ka_count + So_sum / So_count) / 2", {
+      Ka_sum: 3.3,
+      Ka_count: 2,
+      So_sum: 2.7,
+      So_count: 2,
+    });
+    assert.ok(Math.abs(value - 1.5) < 1e-9, `expected ~1.5, got ${value}`);
+  });
+
+  test("rejects unknown variables instead of throwing a JS error type mismatch", () => {
+    assert.throws(() => evaluateCalculationRule("Foo_sum + 1", {}), /Unknown variable/);
+  });
+
+  test("does not eval arbitrary JS", () => {
+    assert.throws(() => evaluateCalculationRule("require('fs')", {}));
+  });
+});
+
+describe("subjectAverage", () => {
+  test("falls back to weighted mean and labels it estimated", () => {
+    const grades = [
+      { numeric: 2, scale: "grade_1_6", collection: { type: "KA", weighting: 2 } },
+      { numeric: 1, scale: "grade_1_6", collection: { type: "So", weighting: 1 } },
+    ];
+    const result = subjectAverage(grades, null, "grade_1_6");
+    assert.equal(result.source, "estimated");
+    assert.ok(Math.abs(result.value - 1.6667) < 1e-3, `expected ~1.6667, got ${result.value}`);
+  });
+
+  test("uses api_value when the school provides a student-level final grade", () => {
+    const result = subjectAverage([], { calculation_for: "student", value: 1.8 }, "grade_1_6");
+    assert.equal(result.source, "api_value");
+    assert.equal(result.value, 1.8);
+  });
+
+  test("never mixes scales into one average", () => {
+    const grades = [
+      { numeric: 2, scale: "grade_1_6", collection: { type: "KA", weighting: 1 } },
+      { numeric: 12, scale: "points_0_15", collection: { type: "Klausur", weighting: 1 } },
+    ];
+    const result = subjectAverage(grades, null, "grade_1_6");
+    assert.equal(result.value, 2); // the points_0_15 grade must be excluded, not blended in
+  });
+
+  test("flags Unterkurs on the Oberstufe scale", () => {
+    const result = subjectAverage(
+      [{ numeric: 4, scale: "points_0_15", collection: { type: "Klausur", weighting: 1 } }],
+      null,
+      "points_0_15"
+    );
+    assert.equal(result.unterkurs, true);
+  });
+});

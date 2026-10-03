@@ -148,7 +148,7 @@ export async function renderHeute(container) {
     const klasse = student?.className ?? "";
     // After the cutoff this shows the next school day; say which.
     container.querySelector("#heute-title").textContent = data.title;
-    container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? " · " + klasse : ""}`;
+    container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? ` · ${klasse}` : ""}`;
 
     const body = container.querySelector("#heute-body");
     body.innerHTML = `
