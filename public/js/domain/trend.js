@@ -1,17 +1,7 @@
-// Turns a series of grade values into SVG polyline points for the mini-trend
-// (Noten list) and the larger Fach-Detail trend chart.
-//
-// Design requirement: a trend line must only ever
-// show *direction*, and "up" must mean "better" on both scales even though
-// grade_1_6 (1 best) and points_0_15 (15 best) run in opposite directions.
-// Callers pass `betterIsHigher` so this module can flip the y-axis instead of
-// baking scale assumptions into chart code.
+// Grade values → SVG polyline points for the trend charts. "Up" means
+// "better" on both scales; callers pass `betterIsHigher` to flip the y-axis.
 
-/**
- * Width of the mini trend line in the Noten list: the Oberstufe list is
- * denser than the Noten 1-6 one (design 2a, B1 vs B2). Shared so the SVG the
- * view draws and the points the data layer computes can't drift apart.
- */
+/** Mini trend width per scale, shared by the view's SVG and the data layer. */
 export const MINI_TREND_WIDTH = { grade_1_6: 84, points_0_15: 76 };
 
 /** The absolute bounds of each grading scale, for axis-bearing charts. */
@@ -21,9 +11,7 @@ export const SCALE_BOUNDS = {
 };
 
 /**
- * Pass `min`/`max` to plot against the absolute scale (0-15 or 1-6). Leave
- * them out only where the chart shows direction alone and carries no axis —
- * otherwise the axis labels would describe a range the line doesn't use.
+ * Pass `min`/`max` for charts with an axis; omit them for direction only.
  *
  * @param {number[]} values chronological, oldest first
  * @param {{ width: number, height: number, betterIsHigher: boolean, min?: number, max?: number, padding?: number, insetX?: number }} options

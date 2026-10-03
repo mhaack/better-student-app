@@ -1,5 +1,4 @@
-// Plain-Node tests for the PKCE helpers, checked against RFC 7636's own
-// test vectors. btoa exists in Node 16+; crypto.subtle in Node 18+.
+// PKCE helpers against RFC 7636's test vectors.
 import assert from "node:assert/strict";
 import {
   base64UrlEncode,
@@ -62,8 +61,7 @@ await test("generateVerifier: does not repeat itself", () => {
 });
 
 await test("generateVerifier: no character is disproportionately likely", () => {
-  // Rejection sampling should keep the distribution flat; a modulo bias would
-  // make the first 40-ish characters of the alphabet noticeably heavier.
+  // A modulo bias would make the first ~40 characters heavier.
   const counts = new Map();
   for (let i = 0; i < 400; i++) {
     for (const ch of generateVerifier(128)) counts.set(ch, (counts.get(ch) ?? 0) + 1);

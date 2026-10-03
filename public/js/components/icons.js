@@ -1,8 +1,5 @@
-// Icon markup from Lucide (https://lucide.dev, ISC licence) — self-hosted as
-// inline SVG strings so the app never loads a third-party script or image
-// (see public/_headers: script-src 'self', img-src 'self'). stroke uses
-// currentColor so each icon just inherits its nav-item's text color for the
-// active/inactive state, no extra CSS needed.
+// Lucide icons (https://lucide.dev, ISC licence) as inline SVG, so nothing
+// third-party loads. stroke is currentColor to follow the text color.
 const ATTRS = 'width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 
 export const ICONS = {

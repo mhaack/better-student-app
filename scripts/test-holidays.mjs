@@ -44,8 +44,7 @@ test("a single closed day is one block of one school day", () => {
 });
 
 test("a two-week break bridges its weekend into ONE block", () => {
-  // The real 2026 autumn break. Grouping by consecutive calendar days would
-  // split this into two five-day blocks, which is the bug this exists for.
+  // The 2026 autumn break must not split at the weekend.
   const blocks = holidayBlocks(weekdaysBetween("2026-10-12", "2026-10-23"));
   assert.equal(blocks.length, 1);
   assert.equal(blocks[0].from, "2026-10-12");
@@ -80,9 +79,7 @@ test("a block crossing new year stays one block", () => {
 });
 
 test("adjacent days of different kinds are not merged into one block", () => {
-  // The real 2027 case: 6 May is Christi Himmelfahrt (a public holiday), 7 May
-  // is officially Pfingstferien. Merging them loses both names and leaves a
-  // two-day block that nothing can label.
+  // 6 May 2027 is Christi Himmelfahrt, 7 May Pfingstferien: keep them apart.
   const official = [{ name: "Pfingstferien", from: "2027-05-07", to: "2027-05-07" }];
   const blocks = holidayBlocks(["2027-05-06", "2027-05-07"], official);
   assert.equal(blocks.length, 2, "the official boundary must split the block");
@@ -109,8 +106,7 @@ test("without an official calendar, block grouping is unchanged", () => {
 // --- naming -------------------------------------------------------------
 
 test("an official range supplies the name AND replaces the block's dates", () => {
-  // The real case: the school recorded 15 of the 30 weekdays of the 2027
-  // summer break, so trusting its own `to` would understate it by three weeks.
+  // The school recorded only 15 of the 30 weekdays of the 2027 summer break.
   const blocks = holidayBlocks(weekdaysBetween("2027-07-12", "2027-07-30"));
   const named = nameBlocks(blocks, [
     { name: "Sommerferien", from: "2027-07-10", to: "2027-08-20" },
@@ -136,8 +132,7 @@ test("a gap in the school's list does not duplicate the official break", () => {
 });
 
 test("a short official Ferien block is named, where the heuristic could not", () => {
-  // 2027 Pfingstferien is a single day — under the 5-school-day threshold,
-  // so only the official calendar can name it.
+  // Too short for the heuristic; only the official calendar names it.
   const blocks = holidayBlocks(["2027-05-07"]);
   assert.equal(heuristicName("2027-05-07", 1), null);
   const named = nameBlocks(blocks, [
@@ -183,15 +178,13 @@ test("the heuristic table", () => {
 });
 
 test("the G2 list uses the season name, not a suffix trim", () => {
-  // A naive .slice(-"ferien") yields "Weihnachts", "Oster" and "Pfingst" —
-  // none of which is a German word. All six known breaks are checked.
+  // Stripping "-ferien" would give "Weihnachts", "Oster", "Pfingst".
   assert.equal(ferienStem("Herbstferien"), "Herbst");
   assert.equal(ferienStem("Weihnachtsferien"), "Weihnachten");
   assert.equal(ferienStem("Winterferien"), "Winter");
   assert.equal(ferienStem("Osterferien"), "Ostern");
   assert.equal(ferienStem("Pfingstferien"), "Pfingsten");
   assert.equal(ferienStem("Sommerferien"), "Sommer");
-  // Anything else passes through untouched rather than being mangled.
   assert.equal(ferienStem("Buß- und Bettag"), "Buß- und Bettag");
   assert.equal(ferienStem("Bewegliche Ferientage"), "Bewegliche Ferientage");
   assert.equal(ferienStem(null), null);
@@ -209,8 +202,7 @@ test("nextHoliday skips unnamed blocks and anything already started", () => {
 });
 
 test("nextHoliday skips a named single Feiertag and waits for real Ferien", () => {
-  // After Herbstferien 2026 the next closed day is Buß- und Bettag. It has a
-  // name, but "bis zu den Buß- und Bettag" is not a break to count down to.
+  // Buß- und Bettag is named but isn't a break to count down to.
   const named = nameBlocks(
     holidayBlocks(["2026-11-18", ...weekdaysBetween("2026-12-23", "2027-01-01")]),
     []

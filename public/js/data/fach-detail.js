@@ -2,11 +2,7 @@ import { fetchGrades, fetchFinalgrades } from "./repository.js";
 import { subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 
-/**
- * Collection types are free text configured per school ("Sonstige",
- * "Klausur", "Klassenarbeit", …), so the detail screen groups by whatever
- * types actually occur rather than forcing the design's two fixed buckets.
- */
+/** Collection types are school-configured free text, so group by what occurs. */
 function groupByType(grades) {
   const byType = new Map();
   for (const grade of grades) {
@@ -57,8 +53,7 @@ function describeFormula(average, groups, scale) {
 export async function getFachDetailData(studentId, subjectId, options) {
   const { yearId, intervalId, scale } = options;
 
-  // Shares the cache key with the Noten screen, so opening a subject costs
-  // no extra request.
+  // Same cache key as Noten: no extra request.
   const [allGrades, finalgrades] = await Promise.all([
     fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
@@ -88,8 +83,7 @@ export async function getFachDetailData(studentId, subjectId, options) {
             width: 260,
             height: 60,
             betterIsHigher: scale === "points_0_15",
-            // This chart has an axis (15…0 / 1…6), so it plots against the
-            // full scale rather than against the spread of these grades.
+            // Has an axis, so plot against the full scale.
             ...SCALE_BOUNDS[scale],
             padding: 4,
             insetX: 12,

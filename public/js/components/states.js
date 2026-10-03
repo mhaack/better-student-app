@@ -15,7 +15,7 @@ export function renderErrorState(message) {
     </div>`;
 }
 
-/** Call once after inserting renderErrorState's HTML — CSP blocks inline onclick. */
+/** Call after inserting renderErrorState's HTML; CSP blocks inline onclick. */
 export function bindErrorState(container) {
   container.querySelector("[data-reload]")?.addEventListener("click", () => location.reload());
 }

@@ -1,6 +1,4 @@
-// Runs every scripts/test-*.mjs, so a new test file can't be forgotten in
-// package.json. Each file is its own process (they set process.exitCode on
-// failure); the run fails if any of them does.
+// Runs every scripts/test-*.mjs, each in its own process; fails if any does.
 import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 

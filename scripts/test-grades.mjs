@@ -1,5 +1,4 @@
-// Plain-Node sanity tests for js/domain/grades.js (no test framework, no
-// build step — matches the rest of this project).
+// Tests for js/domain/grades.js.
 import assert from "node:assert/strict";
 import { toTrendPoints, SCALE_BOUNDS } from "../public/js/domain/trend.js";
 import {

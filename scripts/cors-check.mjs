@@ -1,8 +1,4 @@
-// Checks whether beste.schule sends CORS headers on preflight (OPTIONS)
-// requests for a foreign Origin. Node's fetch doesn't enforce CORS itself
-// (that's a browser thing), so this just inspects the response headers the
-// server sends back — which is exactly what a real browser preflight would see.
-//
+// Checks beste.schule's CORS preflight headers for a foreign Origin.
 // Usage: node scripts/cors-check.mjs
 const ORIGIN = "https://example.com";
 

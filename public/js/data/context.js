@@ -23,11 +23,8 @@ function intervalTypeFromJahrgang(jahrgang) {
 }
 
 /**
- * The API exposes no LK/GK flag, so looksLikeLeistungskurs() reads this
- * school's group-naming convention. A Kurshalbjahr has a small, fixed number
- * of Leistungskurse — if the heuristic flags none or implausibly many, we
- * don't trust it and treat every course as a Grundkurs, which makes the Noten
- * screen fall back to one flat list instead of inventing LK/GK groups.
+ * LK/GK from group names. If that flags none or implausibly many LKs,
+ * everything is a Grundkurs and Noten shows one flat list.
  */
 function resolveCourseTypes(courses) {
   const flagged = courses.filter(looksLikeLeistungskurs);
@@ -38,12 +35,7 @@ function resolveCourseTypes(courses) {
   }));
 }
 
-/**
- * Resolves everything the screens need to know about "which student, which
- * half-year, which grading scale": the current year and its intervals, the
- * student's actual courses (subject + group + LK/GK), and the scale implied
- * by the interval type ("Sek I" -> Noten 1-6, "11er"/"12er" -> Punkte 0-15).
- */
+/** Current year and intervals, the student's courses (with LK/GK) and grading scale. */
 export async function getSchoolContext(studentId) {
   const today = new Date();
   const [years, groups] = await Promise.all([fetchYears(), fetchGroups(studentId)]);
@@ -51,8 +43,7 @@ export async function getSchoolContext(studentId) {
   const year = pickCurrentOrLast(years, today);
   const courseGroups = groups.filter((g) => !g.isClass && g.subjects.length > 0);
 
-  // Prefer the interval the student's own Endnoten sit in; fall back to the
-  // Jahrgang encoded in their group names.
+  // The interval of the student's Endnoten, else the Jahrgang from group names.
   let intervalType = null;
   try {
     const finalgrades = await fetchFinalgrades(studentId, { yearId: year?.id });

@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 
-// Minimal .env loader (no dependency) so scripts/*.mjs work with `node scripts/x.mjs`.
+// Minimal .env loader for scripts/*.mjs.
 export function loadEnv(path = ".env") {
   if (!existsSync(path)) return;
   const text = readFileSync(path, "utf8");

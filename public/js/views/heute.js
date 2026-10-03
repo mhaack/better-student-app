@@ -73,19 +73,12 @@ function newGradeSection(grade) {
     </div>`;
 }
 
-/**
- * Klassenbuch entries due in the next two weeks. The design called this
- * "Hausaufgaben", but the API models homework, announced tests and lesson
- * topics as one note type per school — so the heading stays generic and each
- * row names its own type ("Leistungskontrolle", "Hausaufgabe", …).
- */
+/** Klassenbuch entries of the next two weeks; each row names its type. */
 function notesSection(items) {
   if (items.length === 0) return "";
   const rows = items
     .map((n, index) => {
-      // Due today or tomorrow gets the same accent-pill treatment as a
-      // room/substitution change elsewhere in the app — a reminder that
-      // this one needs attention now, not just another list entry.
+      // Due today or tomorrow: accent pill.
       const isUrgent = (daysUntil(n.date) ?? 99) <= 1;
       const dueLabel = escapeHtml(weekdayOrDate(n.date));
       const due = isUrgent
@@ -108,11 +101,7 @@ function notesSection(items) {
     </div>`;
 }
 
-/**
- * New announcements go last: the day's plan is what Heute is for. Loaded on
- * its own so a failing announcements call just leaves the section out
- * instead of replacing the whole screen with an error.
- */
+/** New announcements, last and loaded separately so a failure only drops them. */
 async function fillMitteilungen(container) {
   let fresh;
   try {
@@ -157,8 +146,7 @@ export async function renderHeute(container) {
     const data = await getHeuteData(studentId, scale);
 
     const klasse = student?.className ?? "";
-    // After the cutoff this screen shows the next school day, so the heading
-    // says which one rather than claiming "Heute" for tomorrow's plan.
+    // After the cutoff this shows the next school day; say which.
     container.querySelector("#heute-title").textContent = data.title;
     container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? " · " + klasse : ""}`;
 

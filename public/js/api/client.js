@@ -1,9 +1,5 @@
-// Thin fetch wrapper around https://beste.schule/api.
-//
-// Shapes here follow the API's Laravel conventions (resource routes,
-// `filter[x]`/`include`/`sort`/`per_page` query params, `{ data, meta }`
-// pagination). Re-check against docs/api-notes.md once Phase 0 discovery has
-// run and adjust if the real API disagrees.
+// Thin fetch wrapper around https://beste.schule/api (Laravel conventions:
+// `filter[x]`/`include`/`per_page` params, `{ data, meta }` pagination).
 import { getToken, clearSession, getSessionKind } from "../state/auth-store.js";
 import { refreshAccessToken } from "../auth/oauth.js";
 
@@ -52,8 +48,7 @@ export async function apiFetch(path, options = {}) {
   const url = buildUrl(path, params);
 
   let lastError;
-  // An expired OAuth access token is worth exactly one refresh per call; a
-  // second 401 after a fresh token means the session is genuinely gone.
+  // One refresh per call; a second 401 means the session is gone.
   let refreshAttempted = false;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
@@ -79,8 +74,7 @@ export async function apiFetch(path, options = {}) {
 
         if (res.status === 401 && !refreshAttempted && getSessionKind() === "oauth") {
           refreshAttempted = true;
-          // Doesn't consume a retry attempt: the request never really failed,
-          // it just needs a current token.
+          // Not counted as a retry.
           attempt -= 1;
           if (await refreshAccessToken()) continue;
         }
@@ -132,11 +126,7 @@ async function safeJson(res) {
   }
 }
 
-/**
- * Fetches every page of a paginated collection route and returns the
- * combined `data` array. Follows Laravel-style `meta.current_page` /
- * `meta.last_page`.
- */
+/** Fetches every page of a collection route and returns the combined `data`. */
 export async function apiFetchAll(path, options = {}) {
   const perPage = options.params?.per_page ?? 250;
   const all = [];
@@ -149,10 +139,8 @@ export async function apiFetchAll(path, options = {}) {
     const data = Array.isArray(response?.data) ? response.data : [];
     all.push(...data);
 
-    // Terminate on the page we asked for, not on the one the response claims
-    // to be: a server that echoes a stale current_page (or ignores `page`
-    // entirely) would otherwise loop forever, leaving the screen stuck on its
-    // skeleton with no error to show.
+    // Count our own page, not the response's: a stale current_page would
+    // loop forever.
     const lastPage = response?.meta?.last_page;
     if (!lastPage || page >= lastPage) break;
   }

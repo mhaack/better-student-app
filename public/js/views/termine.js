@@ -91,12 +91,6 @@ function ferienRow(block) {
 
 const MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long" });
 
-/**
- * Exams and holidays share one chronological stream. The design puts the
- * break in the list as an orientation point ("this Klausur is the week after
- * Herbstferien"), which only reads correctly if it sits in date order rather
- * than being appended at the end.
- */
 /** The full entry behind a row whose Klassenbuch text was clamped. */
 function openExamDetail(container, exam) {
   openDetailSheet(container, {
@@ -115,8 +109,7 @@ function termineBody(termine, ferien) {
   const lastExam = termine.exams.at(-1)?.date ?? "";
   const entries = [
     ...termine.exams.map((exam, i) => ({ date: exam.date, html: examRow(exam, i) })),
-    // Only breaks the exam list actually spans; a holiday after the last exam
-    // would dangle with nothing to orient.
+    // Breaks sit in date order as orientation, only within the exams' span.
     ...(ferien?.ferien ?? [])
       .filter((block) => block.from > termine.exams[0].date && block.from < lastExam)
       .map((block) => ({ date: block.from, html: ferienRow(block) })),
@@ -132,15 +125,12 @@ function termineBody(termine, ferien) {
     })
     .join("");
 
-  // The design keeps the next exam in the list as well as in the card above,
-  // so this is a repeat, not a move.
+  // The next exam stays in the list too, by design.
   return `${examNextCard(termine.exams[0])}<div class="date-list">${rows}</div>`;
 }
 
 function ferienListRow(block) {
-  // A one-day break ("Pfingsten 7.5.2027") must not read as a range.
-  // The year is shown on the end date, and on the start only when the two
-  // differ — a break crossing New Year has to say so on both sides.
+  // One day isn't a range; the start shows the year only across New Year.
   const crossesYear = block.from.slice(0, 4) !== block.to.slice(0, 4);
   const range =
     block.from === block.to
@@ -208,8 +198,7 @@ function segmentedControl(active) {
 }
 
 export async function renderTermine(container) {
-  // View-local, deliberately not persisted: which segment you looked at last
-  // is a glance, not a preference.
+  // Deliberately not persisted.
   let segment = "termine";
 
   container.innerHTML = `
@@ -227,7 +216,7 @@ export async function renderTermine(container) {
   const body = container.querySelector("#termine-body");
   let exams = [];
 
-  // Bound once on #termine-body, which survives every segment re-render.
+  // Bound once: #termine-body survives re-renders.
   bindActivate(body, "[data-exam-index]", (row) => {
     const exam = exams[Number(row.dataset.examIndex)];
     if (exam) openExamDetail(container, exam);
@@ -237,7 +226,7 @@ export async function renderTermine(container) {
     const studentId = getSelectedStudentId();
     const context = await ensureContext();
 
-    // Both segments load once, in parallel — switching never hits the network.
+    // Both segments load up front; switching never fetches.
     const [termine, ferien] = await Promise.all([
       getTermineData(studentId, { yearEnd: context.year?.to }),
       getFerienData(context),
@@ -247,8 +236,7 @@ export async function renderTermine(container) {
     const render = () => {
       segments.innerHTML = segmentedControl(segment);
       if (segment === "termine") {
-        // "4 Termine bis zu den Herbstferien" counts the exams before that
-        // break, not every exam on file — the phrase has to be true.
+        // "4 Termine bis zu den Herbstferien" counts only exams before it.
         const upTo = ferien.next
           ? termine.exams.filter((e) => e.date < ferien.next.from).length
           : termine.count;

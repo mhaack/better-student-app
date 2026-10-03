@@ -55,6 +55,8 @@ most likely to bite:
 
 - UI text is German; code, comments and commit messages are English.
 - Comments explain *why* (usually an API quirk or a design decision), not what.
+  Keep them short: one line where possible, a few at most. Measurements and
+  investigation stories go in `docs/api-notes.md`, not in the code.
 - Commit messages: imperative summary line, then prose on the cause and the fix.
 
 ## Never commit

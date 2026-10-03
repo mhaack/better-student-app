@@ -4,10 +4,7 @@ import { beginLogin } from "../auth/oauth.js";
 import { isOAuthConfigured } from "../auth/oauth-config.js";
 import { escapeHtml } from "../util/dom.js";
 
-/**
- * Everything that has to happen once credentials are accepted: find the
- * student(s) this account can see and pick one.
- */
+/** After login: find the account's students and pick one. */
 export async function establishSession() {
   const students = await fetchStudents();
   if (students.length === 0) throw new Error("Zu diesem Konto wurde kein Schüler-Zugang gefunden.");

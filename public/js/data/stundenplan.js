@@ -13,22 +13,14 @@ function mondayOf(date) {
   return d;
 }
 
-/**
- * Calendar-based day addition (via setDate, not raw millisecond math) so
- * this stays correct across a DST transition — Germany's clocks moving back
- * an hour means a given day can be 23 or 25 hours long, which
- * `date.getTime() + n * 86_400_000` doesn't account for.
- */
+/** setDate, not milliseconds: days are 23 or 25 hours long across DST. */
 function addDays(date, days) {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
 }
 
-/**
- * Always Mo-Fr — this week while today is a school day, next week once the
- * weekend starts, so the grid never shows a week that's already over.
- */
+/** This week's Monday, or next week's once the weekend starts. */
 export function resolveWeekStart(today) {
   const monday = mondayOf(today);
   const weekday = apiWeekday(today);
@@ -48,14 +40,8 @@ async function fetchWeekExams(studentId, fromIso, toIso) {
 const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });
 
 /**
- * Aggregates the Mo-Fr grid: one column per weekday, one row per period that
- * occurs on any of the five days, each cell either a lesson (with status) or
- * empty. Weeks are fetched as a whole because a single substitution-plan
- * call for the range is cheaper than five separate day calls.
- *
- * `weekOffset` moves forward in whole weeks from `resolveWeekStart`'s
- * default (this week, or next week once it's the weekend) — the caller is
- * responsible for clamping it to the navigable range.
+ * The Mo-Fr grid: a row per period used on any day, cells are lessons or
+ * empty. One plan call per week. The caller clamps `weekOffset`.
  */
 export async function getStundenplanData(weekOffset = 0, studentId = null) {
   const today = new Date();
@@ -98,10 +84,7 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
   const changeCount = days.reduce((sum, d) => sum + d.lessons.filter((l) => l.status !== "regular").length, 0);
   const testCount = days.reduce((sum, d) => sum + d.exams.length, 0);
 
-  // How many whole weeks the shown week is ahead of the actual current
-  // calendar week — 0 even when resolveWeekStart already auto-jumped to next
-  // week over the weekend, so the view can phrase both that and manual
-  // forward navigation the same way.
+  // Weeks ahead of the calendar week, counting the weekend auto-jump.
   const weeksFromNow = Math.round((weekStart.getTime() - mondayOf(today).getTime()) / (7 * 86_400_000));
 
   return {

@@ -44,9 +44,8 @@ export async function renderMitteilungen(container) {
 }
 
 function attachmentRow(attachment) {
-  // A plain navigation to beste.schule's web route: the app can't fetch the
-  // file itself (the S3 bucket behind the API sends no CORS headers — see
-  // docs/api-notes.md), and a navigation needs no CSP change.
+  // A plain link: the file's S3 bucket sends no CORS headers, and a
+  // navigation needs no CSP change.
   return `
     <a class="card mt-attachment" href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer">
       <span class="mt-attachment-icon">${ICONS.fileText}</span>
@@ -82,8 +81,7 @@ function confirmCard(item) {
     </div>`;
 }
 
-/** `write_from`/`write_to` look like a response window but don't gate it, so
- *  failures aren't predicted — they fall back to the beste.schule link. */
+/** `write_from`/`write_to` don't gate confirming; failures fall back to the link. */
 function bindConfirm(container, body, item) {
   const button = body.querySelector("#mt-confirm-button");
   if (!button) return;
@@ -116,8 +114,7 @@ export async function renderMitteilung(container, { id }) {
     const { items } = await getMitteilungenData();
     const item = items.find((i) => i.id === Number(id));
     if (!item) {
-      // The API only lists announcements inside their visibility window, so
-      // an old link (e.g. from a bookmark) can point at one that's gone.
+      // An old link can point past the visibility window.
       body.innerHTML = renderEmptyState("Diese Mitteilung ist nicht mehr verfügbar.");
       return;
     }

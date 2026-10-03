@@ -1,12 +1,7 @@
-// The school's fixed Klausur plan for Jahrgang 11 and 12, published for the
-// whole year up front (public/data/klausuren_<Jahrgang>_<YYYY>_<YY>.json).
-// Not every teacher enters these in beste.schule, so the plan fills the gaps:
-// beste.schule's own tests always win, and a plan entry only shows when
-// beste.schule has no test for that day and Kurs.
-//
-// The plan names Kurse the way groups are named, minus the Jahrgang prefix:
-// "MA1" is the group "11MA1", "la1" is "11-12la1". Case matters -- "MA1" (LK)
-// and "ma1" (GK) are different Kurse with different dates.
+// The school's Klausur plan for Jahrgang 11/12 (public/data/klausuren_*.json)
+// fills gaps where teachers didn't enter a test; beste.schule's tests win.
+// Kurse are group names minus the Jahrgang ("11MA1" → "MA1"), case-sensitive:
+// "MA1" (LK) ≠ "ma1" (GK).
 
 import { cached } from "./cache.js";
 import { fetchGroups, fetchCurrentTimetable } from "./repository.js";
@@ -45,11 +40,9 @@ export async function fetchKlausurPlan(file) {
 }
 
 /**
- * The plan entries for the student's own Kurse, shaped like the exams
- * `examsFromNotes()` returns. Periods are the Kurs's lessons that day in the
- * base timetable; the plan itself has none. Some groups come back with an
- * empty `subjects[]` ("11gh1"), so the subject falls back to the timetable
- * lesson of that group, then to the Kurs code.
+ * Plan entries for the student's Kurse, shaped like `examsFromNotes()`.
+ * Periods come from the timetable. Some groups have empty `subjects[]`, so
+ * the subject falls back to the timetable lesson, then the Kurs code.
  */
 export function klausurenForStudent(entries, groups, timetable) {
   const groupByKurs = new Map(groups.filter((g) => !g.isClass).map((g) => [kursOf(g.localId), g]));
@@ -99,13 +92,9 @@ const sameDayAndKurs = (exam, plan) =>
     : String(exam.teacher ?? "").split(", ").includes(plan.teacherShort));
 
 /**
- * Notes' exams, plus every plan Klausur that no beste.schule test covers.
- * "Covers" is the same day and subject; a plan entry without a subject falls
- * back to the teacher code (journal notes carry codes). beste.schule's
- * details win, but the plan's Dauer is added to a covering Klausur (KLA),
- * which the Klassenbuch never records. A smaller test (LEI) on that day
- * still hides the plan entry without taking its Dauer: it is a different,
- * shorter test.
+ * Notes' exams plus plan Klausuren no test covers (same day and subject, or
+ * teacher code). A covering KLA gains the plan's Dauer; a LEI hides the
+ * entry but doesn't take it, being a shorter test.
  */
 export function withPlannedKlausuren(noteExams, planExams) {
   const withDauer = noteExams.map((exam) => {
