@@ -45,7 +45,9 @@ most likely to bite:
   data, and see it fail before fixing it. New test files named
   `scripts/test-*.mjs` are picked up automatically.
 - **Bigger features start as a plan** in `docs/plans/<feature>.md` (context,
-  API findings, approach), reviewed before building.
+  API findings, approach), reviewed before building. Plans are working
+  notes and stay local (`docs/plans/` is gitignored); anything worth keeping
+  goes into `docs/api-notes.md` or a code comment.
 - **Look for an existing helper before adding one.** Prefer one general
   function over several one-liners doing the same thing.
 

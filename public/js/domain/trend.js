@@ -1,7 +1,7 @@
 // Turns a series of grade values into SVG polyline points for the mini-trend
 // (Noten list) and the larger Fach-Detail trend chart.
 //
-// Design requirement (docs/plan.md, chat1.md): a trend line must only ever
+// Design requirement: a trend line must only ever
 // show *direction*, and "up" must mean "better" on both scales even though
 // grade_1_6 (1 best) and points_0_15 (15 best) run in opposite directions.
 // Callers pass `betterIsHigher` so this module can flip the y-axis instead of

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/icons/icon-192.png" alt="Bessere Schule" width="120" height="120">
+  <img src="public/icons/icon-192.png" alt="besere.schule" width="120" height="120">
 </p>
 
-<h1 align="center">Bessere Schule</h1>
+<h1 align="center">besere.schule</h1>
 
 <p align="center">
   An unofficial, client-only PWA for <a href="https://beste.schule">beste.schule</a>:<br>
@@ -114,8 +114,6 @@ or login will work locally and fail in production.
 
 ## Docs
 
-- [`docs/plan.md`](docs/plan.md) — architecture, data model, and the phased
-  build plan this project follows.
 - [`docs/api-notes.md`](docs/api-notes.md) — what the beste.schule API actually
   returns: routes, filters, includes, and the quirks worth knowing before
   touching the data layer.

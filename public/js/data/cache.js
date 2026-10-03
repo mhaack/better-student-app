@@ -1,6 +1,6 @@
 // A small stale-while-revalidate cache so switching between screens doesn't
 // re-fetch everything, without pulling in a query library. Per-tab, in
-// memory only — offline/IndexedDB persistence is Phase 2 (docs/plan.md §7),
+// memory only — offline/IndexedDB persistence is deliberately
 // not part of this first build.
 const store = new Map(); // key -> { value, fetchedAt, promise }
 

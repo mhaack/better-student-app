@@ -1,6 +1,6 @@
 // Thin fetch wrapper around https://beste.schule/api.
 //
-// Shapes here are based on docs/plan.md §1/§2 (Laravel resource routes,
+// Shapes here follow the API's Laravel conventions (resource routes,
 // `filter[x]`/`include`/`sort`/`per_page` query params, `{ data, meta }`
 // pagination). Re-check against docs/api-notes.md once Phase 0 discovery has
 // run and adjust if the real API disagrees.

@@ -1,4 +1,4 @@
-// Raw beste.schule API JSON -> the normalized domain shapes from docs/plan.md §3.
+// Raw beste.schule API JSON -> the normalized domain shapes the data layer uses.
 //
 // VERIFIED against the live API (2026-09) with a guardian token at a Saxon
 // Gymnasium. Everything below reflects real responses, not guesses.

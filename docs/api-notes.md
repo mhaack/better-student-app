@@ -132,7 +132,7 @@ inherits the subject of its collection.
   `GET /announcements/{id}` also takes **`append=stat`**, which returns
   per-group read stats: `{ group, students_read_count, guardians_read_count,
   students_count, guardians_count, read_by_any_guardian_count,
-  read_by_all_guardians_count }`. Details in `docs/plans/mitteilungen.md`.
+  read_by_all_guardians_count }`.
 
 ## Sending a Lesebestätigung (verified 2026-09-30)
 
@@ -244,7 +244,7 @@ Not every teacher enters Klausuren in the Klassenbuch, so KLA notes miss
 some. The school publishes the Jahrgang 11/12 Klausur dates for the whole
 year; they ship as `public/data/klausuren_<Jahrgang>_<YYYY>_<YY>.json`
 (`{ date, kurs, teacher, duration }`) and fill the gaps — beste.schule's own
-tests always win (`js/data/klausuren.js`, `docs/plans/klausuren.md`).
+tests always win (`js/data/klausuren.js`).
 
 - `kurs` is the group `local_id` minus the Jahrgang prefix: `11MA1` → `MA1`,
   `11-12la1` → `la1`. **Case-sensitive**: `MA1` (LK) ≠ `ma1` (GK).

@@ -1,35 +1,28 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bessere Schule</title>
-<meta name="description" content="Inoffizielle Bessere-Schule-App für beste.schule: Noten, Stundenplan, Vertretungen und Hausaufgaben.">
-<meta name="theme-color" id="theme-color-meta" content="#F6F3EE">
-<!-- Sets [data-theme] and the meta tag above before first paint, so a saved
-     dark-mode preference never flashes light first. Must stay a render-blocking
-     classic script (no type="module"/defer/async) and must come after the
-     meta tag above (see public/theme-init.js). -->
-<script src="/theme-init.js"></script>
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-<link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="apple-touch-icon" href="/icons/icon-180.png">
-<!-- TODO(hardening): self-host Instrument Sans/Serif instead of Google Fonts (docs/plan.md §6). -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/app.css">
-<!-- Pirsch: cookieless, no cross-site profile. The data-code is a public site
-     identifier, not a secret. Allowed explicitly in public/_headers' CSP —
-     script-src is otherwise 'self' only. -->
-<script defer src="https://api.pirsch.io/pa.js"
-    id="pianjs"
-    data-code="8R1Osjoe6ea3bBtIfRgqGXnVoAZrhWU3"></script>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+     <title>besere.schule</title>
+     <meta name="description"
+          content="Inoffizielle besere.schule-App für beste.schule: Noten, Stundenplan, Vertretungen und Hausaufgaben.">
+     <meta name="theme-color" id="theme-color-meta" content="#F6F3EE">
+     <script src="/theme-init.js"></script>
+     <link rel="manifest" href="/manifest.json">
+     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+     <link rel="icon" href="/favicon.ico" sizes="48x48">
+     <link rel="apple-touch-icon" href="/icons/icon-180.png">
+     <link rel="preload" href="/fonts/instrument-sans-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+     <link rel="stylesheet" href="/css/fonts.css">
+     <link rel="stylesheet" href="/css/tokens.css">
+     <link rel="stylesheet" href="/css/app.css">
+     <script defer src="https://api.pirsch.io/pa.js" id="pianjs" data-code="8R1Osjoe6ea3bBtIfRgqGXnVoAZrhWU3"></script>
 </head>
+
 <body>
-<div id="app" role="application" aria-label="Bessere Schule"></div>
-<script type="module" src="/js/app.js"></script>
+     <div id="app" role="application" aria-label="besere.schule"></div>
+     <script type="module" src="/js/app.js"></script>
 </body>
+
 </html>

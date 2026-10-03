@@ -1,6 +1,6 @@
 // App-shell service worker. Deliberately does NOT touch beste.schule/api
 // requests — those must always hit the network so a student never sees
-// stale or cross-account grade data (docs/plan.md §6). Same-origin static
+// stale or cross-account grade data. Same-origin static
 // assets are cached at runtime (network-first, cache fallback) so the shell
 // still loads offline; there's no fixed precache list to keep in sync by hand.
 const CACHE_NAME = "schulblick-shell-v1";

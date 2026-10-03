@@ -10,7 +10,7 @@
 // against the official state calendar, this school recorded 15 of the 30
 // weekdays of the 2027 summer break. So names *and* true ranges come from
 // api/schulferien.js where available, with a local heuristic as the offline
-// fallback. See docs/plans/termine.md for the measurements.
+// fallback.
 //
 // Pure date arithmetic, no storage, no network.
 

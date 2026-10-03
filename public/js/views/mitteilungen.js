@@ -46,7 +46,7 @@ export async function renderMitteilungen(container) {
 function attachmentRow(attachment) {
   // A plain navigation to beste.schule's web route: the app can't fetch the
   // file itself (the S3 bucket behind the API sends no CORS headers — see
-  // docs/plans/mitteilungen.md), and a navigation needs no CSP change.
+  // docs/api-notes.md), and a navigation needs no CSP change.
   return `
     <a class="card mt-attachment" href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer">
       <span class="mt-attachment-icon">${ICONS.fileText}</span>

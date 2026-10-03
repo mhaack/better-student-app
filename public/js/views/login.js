@@ -38,8 +38,8 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
       }
       <div id="login-error" class="login-error" role="alert" hidden></div>
       <div class="login-help">
-        Die Anmeldung läuft direkt über beste.schule — Bessere Schule bekommt
-        dein Passwort nie zu sehen. Bessere Schule ist eine inoffizielle App
+        Die Anmeldung läuft direkt über beste.schule — besere.schule bekommt
+        dein Passwort nie zu sehen. besere.schule ist eine inoffizielle App
         und nicht mit beste.schule verbunden.
       </div>
     </div>
