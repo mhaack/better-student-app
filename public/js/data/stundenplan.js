@@ -1,6 +1,7 @@
 import { fetchDayPlans, fetchCurrentTimetable, fetchJournalNotes, isoDate } from "./repository.js";
 import { apiWeekday, lessonsForDate } from "./timetable.js";
 import { examsFromNotes, attachExams } from "./termine.js";
+import { getPlannedKlausuren, withPlannedKlausuren } from "./klausuren.js";
 
 const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr"];
 
@@ -37,11 +38,11 @@ export function resolveWeekStart(today) {
 /** A failed journal call costs the markers, never the grid. */
 async function fetchWeekExams(studentId, fromIso, toIso) {
   if (!studentId) return [];
-  try {
-    return examsFromNotes(await fetchJournalNotes(studentId, fromIso, toIso));
-  } catch {
-    return [];
-  }
+  const [noteExams, planned] = await Promise.all([
+    fetchJournalNotes(studentId, fromIso, toIso).then(examsFromNotes, () => []),
+    getPlannedKlausuren(studentId, fromIso, toIso),
+  ]);
+  return withPlannedKlausuren(noteExams, planned);
 }
 
 const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });

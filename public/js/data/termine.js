@@ -18,7 +18,8 @@
 
 import { fetchJournalNotes, isoDate } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
-import { calendarDaysBetween, countdownLabel } from "../util/format.js";
+import { calendarDaysBetween, countdownLabel, periodLabel } from "../util/format.js";
+import { getPlannedKlausuren, withPlannedKlausuren } from "./klausuren.js";
 
 // Klassenarbeit/Klausur and Leistungskontrolle. HAU (Hausaufgabe) is
 // deliberately excluded: measured on live data it is entered on or near the
@@ -27,6 +28,9 @@ import { calendarDaysBetween, countdownLabel } from "../util/format.js";
 const EXAM_TYPE_CODES = new Set(["KLA", "LEI"]);
 
 const noteKey = (note) => `${note.date}|${note.subjectId}|${note.text}`;
+
+// A plan Klausur has no text, so its id keeps it apart.
+const examKey = (exam) => (exam.source === "plan" ? exam.id : noteKey(exam));
 
 const isExamNote = (note) => EXAM_TYPE_CODES.has(note.typeCode) && Boolean(note.text);
 
@@ -52,16 +56,6 @@ export function mergeDoublePeriods(notes) {
     const periods = [...new Set(note.periods.filter((p) => p != null))].sort((a, b) => a - b);
     return { ...note, periods, periodLabel: periodLabel(periods) };
   });
-}
-
-/** [3] -> "3. Stunde"; [1,2] -> "1.–2. Stunde"; [1,3] -> "1., 3. Stunde". */
-function periodLabel(periods) {
-  if (!periods.length) return "";
-  if (periods.length === 1) return `${periods[0]}. Stunde`;
-  const isRun = periods.at(-1) - periods[0] === periods.length - 1;
-  return isRun
-    ? `${periods[0]}.–${periods.at(-1)}. Stunde`
-    : `${periods.map((p) => `${p}.`).join(", ")} Stunde`;
 }
 
 /** KLA/LEI notes as exams, double periods merged, ordered by date and period. */
@@ -101,7 +95,9 @@ export function attachExams(days, exams, timetable, todayIso) {
 
       return {
         ...exam,
-        timeLabel: [exam.periodLabel, start && end ? `${start}–${end}` : ""].filter(Boolean).join(" · "),
+        timeLabel: [periodLabel(exam.periods), start && end ? `${start}–${end}` : "", exam.durationLabel]
+          .filter(Boolean)
+          .join(" · "),
         room: joinUnique(present.map((l) => l.room)),
         teacher: joinUnique(present.map((l) => l.teacher)),
         countdown: countdownLabel(calendarDaysBetween(todayIso, exam.date)),
@@ -119,10 +115,12 @@ export function attachExams(days, exams, timetable, todayIso) {
 /**
  * Notes merged by double period, with every exam among them carrying the
  * test sheet's fields (`isExam`, room, time, countdown) for its own day.
+ * Plan Klausuren no note covers are appended, with the same fields.
  */
-export function withExamDetails(notes, dayPlans, timetable, todayIso) {
+export function withExamDetails(notes, dayPlans, timetable, todayIso, planExams = []) {
   const merged = mergeDoublePeriods(notes);
-  const exams = merged.filter(isExamNote);
+  const exams = withPlannedKlausuren(merged.filter(isExamNote), planExams);
+  const added = exams.filter((e) => e.source === "plan");
   const days = [...new Set(exams.map((e) => e.date))].map((iso) => ({
     iso,
     lessons: lessonsForDate(new Date(`${iso}T00:00:00`), dayPlans, timetable),
@@ -130,9 +128,9 @@ export function withExamDetails(notes, dayPlans, timetable, todayIso) {
   const detailed = new Map(
     attachExams(days, exams, timetable, todayIso)
       .flatMap((d) => d.exams)
-      .map((e) => [noteKey(e), { ...e, isExam: true }])
+      .map((e) => [examKey(e), { ...e, isExam: true }])
   );
-  return merged.map((n) => detailed.get(noteKey(n)) ?? n);
+  return [...merged, ...added].map((n) => detailed.get(examKey(n)) ?? n);
 }
 
 /**
@@ -147,9 +145,12 @@ export async function getTermineData(studentId, options = {}) {
       ? options.yearEnd
       : isoDate(new Date(Date.now() + 365 * 86_400_000));
 
-  const notes = await fetchJournalNotes(studentId, today, until);
+  const [notes, planned] = await Promise.all([
+    fetchJournalNotes(studentId, today, until),
+    getPlannedKlausuren(studentId, today, until),
+  ]);
 
-  const exams = examsFromNotes(notes);
+  const exams = withPlannedKlausuren(examsFromNotes(notes), planned);
 
   return {
     // Flat and date-sorted. The view does the month grouping itself, because

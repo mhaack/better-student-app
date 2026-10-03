@@ -209,6 +209,8 @@ export function mapTimetableLesson(raw) {
     subjectId: raw.subject?.id,
     subject: raw.subject?.name,
     subjectShort: raw.subject?.local_id,
+    // The Kurs ("11MA1"), which the school's Klausur plan names.
+    groupLocalId: raw.group?.local_id,
     ...roomsAndTeachers(raw),
     from: raw.time?.from,
     to: raw.time?.to,

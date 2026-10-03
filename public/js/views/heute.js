@@ -94,7 +94,7 @@ function notesSection(items) {
       return `
       <div class="hw-row${n.isExam ? " is-expandable" : ""}" data-note-index="${index}"${n.isExam ? ' role="button" tabindex="0"' : ""}>
         <div class="hw-text">
-          <div class="hw-title">${escapeHtml(n.subject ?? "")} · ${escapeHtml(n.text)}</div>
+          <div class="hw-title">${escapeHtml([n.subject, n.text].filter(Boolean).join(" · "))}</div>
           ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
         </div>
         ${due}
