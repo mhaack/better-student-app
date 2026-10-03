@@ -6,6 +6,8 @@ on:
     branches: [main]
 
 jobs:
+  # Lint and tests share the "test" job: it's the check main's branch
+  # protection requires, so both have to pass before a PR can merge.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -13,5 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # No dependencies to install: the tests are plain Node against public/js.
+          cache: npm
+      # The linter is the only dependency; the tests themselves need none.
+      - run: npm ci
+      - run: npm run lint
       - run: npm test

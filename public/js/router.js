@@ -39,5 +39,5 @@ export function startRouter() {
 }
 
 export function currentBasePath() {
-  return "/" + currentPath().split("/")[1];
+  return `/${currentPath().split("/")[1]}`;
 }
