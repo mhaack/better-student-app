@@ -22,7 +22,7 @@ function installSection() {
     return `
       <div class="section">
         <div class="eyebrow">App</div>
-        <div style="font-size:14px;color:var(--text-secondary)">besere.schule ist auf diesem Gerät installiert.</div>
+        <div style="font-size:14px;color:var(--text-secondary)">bessere.schule ist auf diesem Gerät installiert.</div>
       </div>`;
   }
 
@@ -122,7 +122,7 @@ export async function renderMehr(container) {
       ${installSection()}
       <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
-        besere.schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        bessere.schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
       </div>
     </div>`;
 

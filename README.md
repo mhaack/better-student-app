@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/icons/icon-192.png" alt="besere.schule" width="120" height="120">
+  <img src="public/icons/icon-192.png" alt="bessere.schule" width="120" height="120">
 </p>
 
-<h1 align="center">besere.schule</h1>
+<h1 align="center">bessere.schule</h1>
 
 <p align="center">
   An unofficial, client-only PWA for <a href="https://beste.schule">beste.schule</a>:<br>
