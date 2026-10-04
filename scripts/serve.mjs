@@ -46,5 +46,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`besere.schule served at http://localhost:${PORT}`);
+  console.log(`bessere.schule served at http://localhost:${PORT}`);
 });
