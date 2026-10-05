@@ -12,6 +12,7 @@ import { renderStundenplan } from "./views/stundenplan.js";
 import { renderTermine } from "./views/termine.js";
 import { renderMehr } from "./views/mehr.js";
 import { renderMitteilungen, renderMitteilung } from "./views/mitteilungen.js";
+import { renderRechtliches } from "./views/rechtliches.js";
 import { getMitteilungenData } from "./data/mitteilungen.js";
 
 const app = document.getElementById("app");
@@ -54,6 +55,12 @@ route(/^\/mehr$/, withShell(renderMehr));
 // Under /mehr so the Mehr tab stays highlighted.
 route(/^\/mehr\/mitteilungen$/, withShell(renderMitteilungen));
 route(/^\/mehr\/mitteilungen\/(?<id>\d+)$/, withShell((container, params) => renderMitteilung(container, params)));
+// The Impressum must be reachable without logging in, so it skips withShell's login gate.
+route(/^\/mehr\/rechtliches$/, (params) => {
+  if (isAuthenticated()) return withShell(renderRechtliches)(params);
+  app.innerHTML = "";
+  renderRechtliches(app);
+});
 
 onAuthChange(() => {
   if (!isAuthenticated()) {

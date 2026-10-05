@@ -123,6 +123,7 @@ export async function renderMehr(container) {
       <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
       <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
         bessere.schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
+        <br><a class="legal-link" href="#/mehr/rechtliches">Impressum &amp; Datenschutz</a>
       </div>
     </div>`;
 

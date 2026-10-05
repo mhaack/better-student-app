@@ -1276,3 +1276,47 @@ button {
   color: var(--text-muted);
   margin-left: auto;
 }
+
+/* Rechtliches */
+.legal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.legal > * {
+  margin: 0;
+}
+
+.legal h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.legal h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 8px;
+}
+
+.legal h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.legal a,
+.legal-link {
+  text-decoration: underline;
+}
+
+.legal-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
