@@ -37,6 +37,7 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
         Die Anmeldung läuft direkt über beste.schule — bessere.schule bekommt
         dein Passwort nie zu sehen. bessere.schule ist eine inoffizielle App
         und nicht mit beste.schule verbunden.
+        <br><a class="legal-link" href="#/mehr/rechtliches">Impressum &amp; Datenschutz</a>
       </div>
     </div>
   `;
