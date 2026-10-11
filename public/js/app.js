@@ -4,6 +4,7 @@ import { isAuthenticated, onAuthChange, clearSession } from "./state/auth-store.
 import { route, startRouter, currentBasePath, navigate } from "./router.js";
 import { isCallback, completeLogin } from "./auth/oauth.js";
 import { renderBottomNav, setMehrDot } from "./components/bottom-nav.js";
+import { initSplash } from "./components/splash.js";
 import { renderLogin, establishSession } from "./views/login.js";
 import { renderHeute } from "./views/heute.js";
 import { renderNoten } from "./views/noten.js";
@@ -16,6 +17,8 @@ import { renderRechtliches } from "./views/rechtliches.js";
 import { getMitteilungenData } from "./data/mitteilungen.js";
 
 const app = document.getElementById("app");
+
+initSplash();
 
 // Set when an OAuth callback fails, so the login screen can say why.
 let loginError = "";

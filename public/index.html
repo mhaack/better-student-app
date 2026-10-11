@@ -14,6 +14,8 @@
      <link rel="icon" href="/favicon.ico" sizes="48x48">
      <link rel="apple-touch-icon" href="/icons/icon-180.png">
      <link rel="preload" href="/fonts/instrument-sans-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+     <link rel="preload" href="/fonts/instrument-serif-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+     <link rel="preload" href="/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
      <link rel="stylesheet" href="/css/fonts.css">
      <link rel="stylesheet" href="/css/tokens.css">
      <link rel="stylesheet" href="/css/app.css">
@@ -21,6 +23,23 @@
 </head>
 
 <body>
+     <!-- Intro, in the markup so it paints before the modules load; CSS ends it even if JS never runs. -->
+     <div id="splash" class="splash" aria-hidden="true">
+          <svg class="splash-mark" viewBox="-5 0 310 170">
+               <defs><clipPath id="splash-clip"><rect x="122" y="76" width="56" height="56" rx="14"/></clipPath></defs>
+               <path class="rainbow-arc splash-arc" style="--i:0;stroke:#CDB8F0" pathLength="1" d="M68 162a82 82 0 0 1 164 0"/>
+               <path class="rainbow-arc splash-arc" style="--i:1;stroke:#A9D3F0" pathLength="1" d="M55 162a95 95 0 0 1 190 0"/>
+               <path class="rainbow-arc splash-arc" style="--i:2;stroke:#BFE3B4" pathLength="1" d="M42 162a108 108 0 0 1 216 0"/>
+               <path class="rainbow-arc splash-arc" style="--i:3;stroke:#F7E39C" pathLength="1" d="M29 162a121 121 0 0 1 242 0"/>
+               <path class="rainbow-arc splash-arc" style="--i:4;stroke:#F9CBA7" pathLength="1" d="M16 162a134 134 0 0 1 268 0"/>
+               <path class="rainbow-arc splash-arc" style="--i:5;stroke:#F4B6C2" pathLength="1" d="M3 162a147 147 0 0 1 294 0"/>
+               <g class="rainbow-logo splash-logo">
+                    <rect x="120" y="74" width="60" height="60" rx="16" fill="#fff"/>
+                    <image href="/icons/icon-192.png" x="122" y="76" width="56" height="56" clip-path="url(#splash-clip)"/>
+               </g>
+          </svg>
+          <div class="splash-word"><span style="--i:0">b</span><span style="--i:1">e</span><span style="--i:2">s</span><span style="--i:3">s</span><span style="--i:4">e</span><span style="--i:5">r</span><span style="--i:6">e</span><em><span style="--i:7">.</span><span style="--i:8">s</span><span style="--i:9">c</span><span style="--i:10">h</span><span style="--i:11">u</span><span style="--i:12">l</span><span style="--i:13">e</span></em></div>
+     </div>
      <div id="app" role="application" aria-label="bessere.schule"></div>
      <script type="module" src="/js/app.js"></script>
 </body>
