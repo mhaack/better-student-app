@@ -547,6 +547,12 @@ button {
 }
 
 /* Login */
+.login-mark {
+  align-self: center;
+  width: min(56vw, 220px);
+  overflow: visible;
+}
+
 .login-view {
   flex: 1;
   display: flex;
@@ -1319,4 +1325,108 @@ button {
 .legal-date {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Intro splash: the promo video's rainbow intro, about 2 s, tap to skip. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--bg);
+  animation: splash-out 300ms ease-in 1800ms forwards;
+}
+
+.splash.is-skipping {
+  animation: splash-out 180ms ease-in forwards;
+}
+
+.splash-mark {
+  width: min(78vw, 320px);
+  overflow: visible;
+}
+
+.rainbow-arc {
+  fill: none;
+  stroke-width: 10.5;
+  stroke-linecap: round;
+}
+
+.rainbow-logo {
+  filter: drop-shadow(0 8px 14px rgba(60, 30, 10, .25));
+}
+
+.splash-arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform-box: view-box;
+  transform-origin: 150px 162px;
+  animation:
+    splash-draw 900ms cubic-bezier(.16, 1, .3, 1) calc(var(--i) * 60ms) forwards,
+    splash-burst 450ms cubic-bezier(.7, 0, .84, 0) calc(1650ms + (5 - var(--i)) * 30ms) forwards;
+}
+
+.splash-logo {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  animation: splash-pop 800ms linear 250ms forwards;
+}
+
+.splash-word {
+  font-family: var(--font-serif);
+  font-size: 46px;
+  line-height: 1;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.splash-word em {
+  color: var(--accent);
+}
+
+.splash-word span {
+  display: inline-block;
+  opacity: 0;
+  animation: splash-letter 650ms cubic-bezier(.16, 1, .3, 1) calc(550ms + var(--i) * 35ms) forwards;
+}
+
+@keyframes splash-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes splash-burst {
+  to { transform: scale(1.6); opacity: 0; }
+}
+
+/* A damped overshoot, so the dino springs in like in the video. */
+@keyframes splash-pop {
+  0% { transform: scale(0) rotate(-25deg); }
+  45% { transform: scale(1.12) rotate(3deg); }
+  65% { transform: scale(.95) rotate(-1deg); }
+  82% { transform: scale(1.02) rotate(0); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes splash-letter {
+  from { opacity: 0; transform: translateY(.6em) rotate(12deg); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes splash-out {
+  to { opacity: 0; visibility: hidden; }
+}
+
+:root:not([data-splash="on"]) .splash {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    display: none;
+  }
 }

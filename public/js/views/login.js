@@ -2,6 +2,7 @@ import { setStudents, setSelectedStudentId } from "../state/auth-store.js";
 import { fetchStudents } from "../data/repository.js";
 import { beginLogin } from "../auth/oauth.js";
 import { isOAuthConfigured } from "../auth/oauth-config.js";
+import { rainbowMark } from "../components/rainbow-mark.js";
 
 /** After login: find the account's students and pick one. */
 export async function establishSession() {
@@ -14,6 +15,7 @@ export async function establishSession() {
 export function renderLogin(container, { error: initialError = "" } = {}) {
   container.innerHTML = `
     <div class="login-view">
+      ${rainbowMark("login-mark")}
       <div>
         <div class="view-title" style="font-size:32px">Anmelden</div>
         <div class="view-subtitle">Mit deinem beste.schule-Konto</div>
