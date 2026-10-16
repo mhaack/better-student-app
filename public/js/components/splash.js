@@ -6,7 +6,9 @@ export function initSplash() {
   if (!splash) return;
   // theme-init.js only turns it on when signed in.
   const skipped = document.documentElement.dataset.splash !== "on";
-  if (skipped || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  // On a slow load the CSS fade can finish before this runs, and animationend never comes.
+  const finished = getComputedStyle(splash).visibility === "hidden";
+  if (skipped || finished || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     splash.remove();
     return;
   }
