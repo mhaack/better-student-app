@@ -1341,8 +1341,9 @@ button {
   animation: splash-out 300ms ease-in 1800ms forwards;
 }
 
+/* Its own keyframes: re-timing splash-out would apply retroactively and cut instead of fade. */
 .splash.is-skipping {
-  animation: splash-out 180ms ease-in forwards;
+  animation: splash-skip 180ms ease-in forwards;
 }
 
 .splash-mark {
@@ -1418,6 +1419,10 @@ button {
 }
 
 @keyframes splash-out {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes splash-skip {
   to { opacity: 0; visibility: hidden; }
 }
 
