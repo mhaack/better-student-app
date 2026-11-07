@@ -60,16 +60,19 @@ function changesCard(changes) {
 
 function newGradeSection(grade) {
   if (!grade) return "";
+  // Same target as a subject row in the Noten tab.
+  const tag = grade.subjectId != null ? "a" : "div";
+  const link = tag === "a" ? ` href="#/noten/${encodeURIComponent(grade.subjectId)}"` : "";
   return `
     <div class="section" style="gap:12px">
       <div class="eyebrow">Letzte Note</div>
-      <div class="card-row" style="min-height:48px">
+      <${tag} class="card-row${tag === "a" ? " is-expandable" : ""}"${link} style="min-height:48px;text-decoration:none;color:inherit">
         <div>
           <div style="font-size:16px;color:var(--text-primary);font-weight:500">${escapeHtml(grade.subjectName ?? "")}</div>
           <div style="font-size:13px;color:var(--text-muted)">${escapeHtml(grade.collection?.name || grade.collection?.type || "")}</div>
         </div>
         <span class="grade-capsule grade-capsule--new">${escapeHtml(grade.raw)}</span>
-      </div>
+      </${tag}>
     </div>`;
 }
 
