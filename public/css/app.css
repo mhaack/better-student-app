@@ -491,19 +491,19 @@ button {
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  /* Just enough to clear the iPhone home indicator. */
-  padding: 4px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  /* Labels may sit in the upper part of the home-indicator inset, as iOS tab bars do. */
+  padding: 2px 4px max(6px, calc(env(safe-area-inset-bottom, 0px) - 12px));
   flex: none;
 }
 
 .nav-item {
   flex: 1;
-  min-height: var(--touch-target);
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 3px;
   font-size: 11px;
   color: var(--text-muted);
 }
