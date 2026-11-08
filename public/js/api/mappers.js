@@ -156,6 +156,15 @@ export function mapGrade(raw, scale) {
   };
 }
 
+/** A grade's bell entry; drops the embedded user (email, phone). */
+export function mapGradeNotification(raw) {
+  return {
+    gradeId: raw.grade?.id ?? null,
+    action: raw.action,
+    createdAt: raw.created_at,
+  };
+}
+
 const PLAN_STATUS = {
   initial: "regular",
   planned: "changed",

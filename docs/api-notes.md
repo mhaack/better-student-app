@@ -225,15 +225,29 @@ of them to confirm. Summing them conflates the roles: a letter would look read
 as soon as the child opened it, hiding the guardian's outstanding
 Lesebestätigung. Pick the side that matches `role`.
 
-## Notifications (not used by the app)
+## Notifications: when a grade was entered
 
 `GET /api/notifications` is the bell feed — one entry per event, shaped
 `{ id (uuid), notification_type: "grade" | "announcement", action: "created" |
-"updated", read_at, redirect_url, data, … }`. `POST /api/notifications/read`
-and `POST /api/notifications/{id}/read` mark them read.
+"updated", created_at, read_at, redirect_url, data, grade, notifiable }`.
+`POST /api/notifications/read` and `POST /api/notifications/{id}/read` mark
+them read; the app never calls those (it's an inbox marker, **not** a
+Lesebestätigung).
 
-This is an inbox marker, **not** a Lesebestätigung, and it duplicates what the
-app already derives from grades and announcements — so nothing calls it.
+It is the only source for *when* a grade was entered: `given_at` is the
+Leistung's date, so a Klausur graded weeks later looks old. Heute's "Letzte
+Note" uses each grade's latest `created_at` (`newestGrade` in
+`data/heute.js`), falling back to `given_at`.
+
+- No filters and no paging in the spec; a guardian gets every child's
+  entries. `grade` is embedded (with `student_id`); `notifiable` is the
+  signed-in user with email and phone, so the mapper drops it.
+- `created_at` was a plain date (`"2026-09-03"`) in the one recorded entry;
+  `read_at` had a time. Same-day ties go to the higher grade id, which grows
+  in entry order.
+- Retention is unknown: the recorded feed had 2 entries while the student
+  already had more grades. Grades stay the source of truth; the feed only
+  dates them.
 
 ## No LK/GK anywhere
 

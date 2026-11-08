@@ -7,6 +7,7 @@ import {
   mapYear,
   mapGroup,
   mapGrade,
+  mapGradeNotification,
   mapPlanLesson,
   mapTimetableLesson,
   mapJournalNotes,
@@ -143,6 +144,18 @@ export async function fetchAnnouncements() {
       params: { include: "teacher,readGuardiansCount,readStudentsCount" },
     });
     return list.map(mapAnnouncement);
+  });
+}
+
+/**
+ * The bell feed's grade entries: when a grade was entered or changed. The
+ * route takes no filters or paging and covers every child of the account.
+ */
+export async function fetchGradeNotifications() {
+  return cached("notifications:grades", async () => {
+    const res = await apiFetch("notifications");
+    const list = Array.isArray(res?.data) ? res.data : [];
+    return list.filter((n) => n.notification_type === "grade").map(mapGradeNotification);
   });
 }
 
