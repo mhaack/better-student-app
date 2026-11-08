@@ -27,6 +27,14 @@
 
   --pressed: #EFEAE2;
 
+  /* The logo's rainbow, innermost arc first; same in dark mode. */
+  --rainbow-1: #CDB8F0;
+  --rainbow-2: #A9D3F0;
+  --rainbow-3: #BFE3B4;
+  --rainbow-4: #F7E39C;
+  --rainbow-5: #F9CBA7;
+  --rainbow-6: #F4B6C2;
+
   /* Grade capsule and its Kenntnisnahme state (design: schulblick-neu-sticker). */
   --capsule-bg: var(--surface);
   --capsule-border: var(--border-strong);

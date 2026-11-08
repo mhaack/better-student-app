@@ -1,17 +1,11 @@
 // Static rainbow-and-dino mark. The animated splash in index.html draws the
 // same thing (it has to be plain markup to paint before JS); keep both in sync.
-const ARCS = [
-  [82, "#CDB8F0"],
-  [95, "#A9D3F0"],
-  [108, "#BFE3B4"],
-  [121, "#F7E39C"],
-  [134, "#F9CBA7"],
-  [147, "#F4B6C2"],
-];
+// Innermost first; colours are --rainbow-1…6 in tokens.css.
+const RADII = [82, 95, 108, 121, 134, 147];
 
 export function rainbowMark(className) {
-  const arcs = ARCS.map(
-    ([r, color]) => `<path class="rainbow-arc" style="stroke:${color}" d="M${150 - r} 162a${r} ${r} 0 0 1 ${2 * r} 0"/>`
+  const arcs = RADII.map(
+    (r, i) => `<path class="rainbow-arc rainbow-arc--${i + 1}" d="M${150 - r} 162a${r} ${r} 0 0 1 ${2 * r} 0"/>`
   ).join("");
   return `
     <svg class="${className}" viewBox="-5 0 310 170" aria-hidden="true">

@@ -1465,6 +1465,37 @@ button {
   stroke-linecap: round;
 }
 
+/* Colour per arc; --i staggers the splash animation, innermost first. */
+.rainbow-arc--1 {
+  --i: 0;
+  stroke: var(--rainbow-1);
+}
+
+.rainbow-arc--2 {
+  --i: 1;
+  stroke: var(--rainbow-2);
+}
+
+.rainbow-arc--3 {
+  --i: 2;
+  stroke: var(--rainbow-3);
+}
+
+.rainbow-arc--4 {
+  --i: 3;
+  stroke: var(--rainbow-4);
+}
+
+.rainbow-arc--5 {
+  --i: 4;
+  stroke: var(--rainbow-5);
+}
+
+.rainbow-arc--6 {
+  --i: 5;
+  stroke: var(--rainbow-6);
+}
+
 .rainbow-logo {
   filter: drop-shadow(0 8px 14px rgba(60, 30, 10, .25));
 }
