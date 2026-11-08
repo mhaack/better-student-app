@@ -17,15 +17,15 @@ export function renderLogin(container, { error: initialError = "" } = {}) {
     <div class="login-view">
       ${rainbowMark("login-mark")}
       <div>
-        <div class="view-title" style="font-size:32px">Anmelden</div>
+        <div class="view-title login-title">Anmelden</div>
         <div class="view-subtitle">Mit deinem beste.schule-Konto</div>
       </div>
       ${
         isOAuthConfigured()
-          ? `<div class="section" style="gap:14px">
+          ? `<div class="section">
                <button type="button" id="oauth-login" class="button-primary">Mit beste.schule anmelden</button>
                <label class="login-checkbox">
-                 <input id="remember" type="checkbox" style="width:20px;height:20px" />
+                 <input id="remember" type="checkbox" />
                  Angemeldet bleiben
                </label>
              </div>`

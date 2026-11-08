@@ -30,7 +30,7 @@ function lessonRow(lesson) {
   return `
     <div class="lesson-row">
       <div class="lesson-period">${escapeHtml(lesson.period)}</div>
-      <div style="display:flex;flex-direction:column;gap:3px">
+      <div class="lesson-text">
         <div class="${isCancelled ? "lesson-subject lesson-subject--cancelled" : "lesson-subject"}">${escapeHtml(lesson.subject ?? "–")}</div>
         <div class="lesson-meta">${escapeHtml(lessonMeta(lesson))}</div>
       </div>
@@ -44,17 +44,17 @@ function changesCard(changes) {
     .map((c) => {
       const cancelled = c.status === "cancelled";
       return `
-      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:${cancelled ? "var(--text-secondary)" : "var(--text-primary)"}">
-        <span style="width:20px;text-align:center;${cancelled ? "" : "color:var(--accent)"}">${cancelled ? "✕" : "→"}</span>
-        ${cancelled ? `<span style="text-decoration:line-through">${escapeHtml(c.label)}</span> entfällt` : escapeHtml(c.text)}
+      <div class="change-row${cancelled ? " change-row--cancelled" : ""}">
+        <span class="change-icon">${cancelled ? "✕" : "→"}</span>
+        ${cancelled ? `<span class="strike">${escapeHtml(c.label)}</span> entfällt` : escapeHtml(c.text)}
       </div>`;
     })
     .join("");
   return `
-    <div class="card card--accent" style="display:flex;flex-direction:column;gap:8px">
+    <div class="card card--accent changes-card">
       <div class="card-row">
-        <span class="eyebrow" style="color:var(--accent)">Änderungen heute</span>
-        <span style="font-family:var(--font-serif);font-size:20px;color:var(--accent)">${changes.length}</span>
+        <span class="eyebrow">Änderungen heute</span>
+        <span class="changes-count">${changes.length}</span>
       </div>
       ${rows}
     </div>`;
@@ -68,11 +68,11 @@ function newGradeSection(newest) {
   const tag = grade.subjectId != null ? "a" : "div";
   const link = tag === "a" ? ` href="#/noten/${encodeURIComponent(grade.subjectId)}"` : "";
   return `
-    <div class="section" style="gap:12px">
+    <div class="section section--snug">
       <div class="eyebrow">Letzte Note (vom ${escapeHtml(formatFullDate(date))})</div>
-      <${tag} class="card-row${tag === "a" ? " is-expandable" : ""}"${link} style="min-height:48px;text-decoration:none;color:inherit">
+      <${tag} class="card-row newest-grade-row link-reset${tag === "a" ? " is-expandable" : ""}"${link}>
         <div>
-          <div style="font-size:16px;color:var(--text-primary);font-weight:500">${escapeHtml(grade.subjectName ?? "")}</div>
+          <div class="row-title row-title--strong">${escapeHtml(grade.subjectName ?? "")}</div>
           ${gradeMeta(grade, [grade.collection?.name || grade.collection?.type])}
         </div>
         ${gradeCapsule(grade)}
@@ -102,7 +102,7 @@ function notesSection(items) {
     })
     .join("");
   return `
-    <div class="section" style="gap:10px">
+    <div class="section section--tight">
       <div class="eyebrow">Anstehend</div>
       ${rows}
     </div>`;
@@ -119,7 +119,7 @@ async function fillMitteilungen(container) {
   const slot = container.querySelector("#heute-mitteilungen");
   if (!slot || fresh.length === 0) return;
   slot.outerHTML = `
-    <div class="section" style="gap:10px">
+    <div class="section section--tight">
       <div class="eyebrow">Mitteilungen</div>
       <div class="mt-list">${fresh.map((item) => mitteilungRow(item, weekdayOrDate(item.date))).join("")}</div>
     </div>`;

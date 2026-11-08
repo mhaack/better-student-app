@@ -3,7 +3,7 @@ import { ensureContext } from "../state/session.js";
 import { getFachDetailData } from "../data/fach-detail.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatAverage } from "../util/format.js";
+import { formatAverage, scaleUnit } from "../util/format.js";
 import { gradeMeta } from "../components/grade-meta.js";
 import { gradeCapsule } from "../components/grade-capsule.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
@@ -39,8 +39,8 @@ function trendMarkers(trendPoints) {
       const [x, y] = pair.split(",");
       const isLatest = index === points.length - 1;
       return isLatest
-        ? `<circle cx="${x}" cy="${y}" r="3.5" style="fill:var(--text-primary)" />`
-        : `<circle cx="${x}" cy="${y}" r="3.5" style="fill:var(--surface);stroke:var(--text-primary)" stroke-width="2" />`;
+        ? `<circle class="chart-dot chart-dot--latest" cx="${x}" cy="${y}" r="3.5" />`
+        : `<circle class="chart-dot" cx="${x}" cy="${y}" r="3.5" stroke-width="2" />`;
     })
     .join("");
 }
@@ -50,20 +50,20 @@ function trendChart(trendPoints, scale) {
   const [top, bottom] = scale === "points_0_15" ? ["15", "0"] : ["1", "6"];
   const betterLabel = scale === "points_0_15" ? "oben = besser (15 P)" : "oben = besser (1)";
   return `
-    <div class="card card--chart" style="display:flex;flex-direction:column;gap:10px">
+    <div class="card card--chart trend-card">
       <div class="card-row">
         <span class="eyebrow">Verlauf</span>
-        <span style="font-size:11px;color:var(--text-muted)">${betterLabel}</span>
+        <span class="trend-hint">${betterLabel}</span>
       </div>
-      <div style="display:flex;gap:10px;align-items:stretch">
-        <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--text-muted);padding:2px 0">
+      <div class="trend-body">
+        <div class="trend-axis">
           <span>${top}</span><span>${bottom}</span>
         </div>
-        <svg viewBox="0 0 260 60" width="100%" height="60" preserveAspectRatio="none" style="overflow:visible">
-          <line x1="0" y1="1" x2="260" y2="1" style="stroke:var(--chart-grid)" />
-          <line x1="0" y1="30" x2="260" y2="30" style="stroke:var(--chart-grid)" />
-          <line x1="0" y1="59" x2="260" y2="59" style="stroke:var(--chart-grid)" />
-          <polyline points="${trendPoints}" fill="none" style="stroke:var(--text-primary)" stroke-width="2" stroke-linejoin="round" />
+        <svg viewBox="0 0 260 60" width="100%" height="60" preserveAspectRatio="none" class="trend-chart">
+          <line class="chart-grid-line" x1="0" y1="1" x2="260" y2="1" />
+          <line class="chart-grid-line" x1="0" y1="30" x2="260" y2="30" />
+          <line class="chart-grid-line" x1="0" y1="59" x2="260" y2="59" />
+          <polyline class="chart-line" points="${trendPoints}" fill="none" stroke-width="2" stroke-linejoin="round" />
           ${trendMarkers(trendPoints)}
         </svg>
       </div>
@@ -72,7 +72,7 @@ function trendChart(trendPoints, scale) {
 
 export async function renderFachDetail(container, { subjectId }) {
   container.innerHTML = `
-    <div class="view view--detail">
+    <div class="view view--detail view--fach">
       <a class="back-link" href="#/noten">‹ Noten</a>
       <div id="fach-body" class="view-body">${renderSkeleton(8)}</div>
     </div>`;
@@ -91,11 +91,12 @@ export async function renderFachDetail(container, { subjectId }) {
     });
 
     const isPoints = scale === "points_0_15";
-    container.querySelector(".view").style.gap = isPoints ? "15px" : "18px";
+    container.querySelector(".view").classList.toggle("view--points", isPoints);
 
+    const headerUnit = scaleUnit(scale, data.average.value);
     const noteEquivalent =
       isPoints && data.average.value !== null
-        ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px">entspricht etwa ${escapeHtml(pointsToGradeLabel(data.average.value))}</div>`
+        ? `<div class="grade-equivalent">entspricht etwa ${escapeHtml(pointsToGradeLabel(data.average.value))}</div>`
         : "";
 
     container.querySelector("#fach-body").innerHTML = `
@@ -103,17 +104,17 @@ export async function renderFachDetail(container, { subjectId }) {
         <div>
           ${
             isPoints && course?.courseType
-              ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              ? `<div class="subject-header-badges">
                    <span class="badge-lk">${escapeHtml(course.courseType)}</span>
-                   <span style="font-size:12px;color:var(--text-muted)">${escapeHtml(context.interval?.name ?? "")}</span>
+                   <span class="text-meta">${escapeHtml(context.interval?.name ?? "")}</span>
                  </div>`
               : ""
           }
           <div class="subject-header-title">${escapeHtml(course?.name ?? "")}</div>
           <div class="subject-header-weighting">${escapeHtml(data.weightingSummary || "Noch keine Gewichtung")}</div>
         </div>
-        <div style="text-align:right">
-          <div class="subject-header-value">${formatAverage(data.average.value, scale)}${isPoints && data.average.value !== null ? '<span style="font-size:26px"> P</span>' : ""}</div>
+        <div class="subject-header-aside">
+          <div class="subject-header-value">${formatAverage(data.average.value, scale)}${headerUnit ? `<span class="subject-header-unit">${headerUnit}</span>` : ""}</div>
           ${noteEquivalent}
         </div>
       </div>

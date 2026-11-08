@@ -180,7 +180,7 @@ function ferienBody(ferien) {
     : "";
 
   const freieTage = ferien.freieTage.length
-    ? `<div class="eyebrow" style="padding-top:3px">Einzelne freie Tage</div>
+    ? `<div class="eyebrow freie-tage-title">Einzelne freie Tage</div>
        ${ferien.freieTage.map(freierTagRow).join("")}`
     : "";
 

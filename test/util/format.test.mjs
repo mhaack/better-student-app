@@ -1,7 +1,7 @@
 // German date and countdown wording.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { calendarDaysBetween, countdownLabel, formatFullDate } from "../../public/js/util/format.js";
+import { calendarDaysBetween, countdownLabel, formatFullDate, scaleUnit } from "../../public/js/util/format.js";
 
 describe("countdownLabel", () => {
   test("says Heute, Morgen, In n Tagen, Gestern, Vor n Tagen", () => {
@@ -37,5 +37,21 @@ describe("formatFullDate", () => {
 
   test("returns an empty string for a missing date", () => {
     assert.equal(formatFullDate(undefined), "");
+  });
+});
+
+describe("scaleUnit", () => {
+  test("puts P after Oberstufe points", () => {
+    assert.equal(scaleUnit("points_0_15", 14), " P");
+    assert.equal(scaleUnit("points_0_15", 0), " P");
+  });
+
+  test("adds nothing to a Sek I grade", () => {
+    assert.equal(scaleUnit("grade_1_6", 2.3), "");
+  });
+
+  test("adds nothing to a missing value, which shows as a dash", () => {
+    assert.equal(scaleUnit("points_0_15", null), "");
+    assert.equal(scaleUnit("points_0_15", undefined), "");
   });
 });

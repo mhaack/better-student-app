@@ -22,7 +22,7 @@ function installSection() {
     return `
       <div class="section">
         <div class="eyebrow">App</div>
-        <div style="font-size:14px;color:var(--text-secondary)">bessere.schule ist auf diesem Gerät installiert.</div>
+        <div class="text-note">bessere.schule ist auf diesem Gerät installiert.</div>
       </div>`;
   }
 
@@ -38,7 +38,7 @@ function installSection() {
     return `
       <div class="section">
         <div class="eyebrow">App</div>
-        <div class="card" style="font-size:14px;line-height:1.5;color:var(--text-secondary)">
+        <div class="card text-note text-note--long">
           Zum Home-Bildschirm hinzufügen: in Safari auf <strong>Teilen</strong>
           tippen und dann <strong>Zum Home-Bildschirm</strong> wählen.
         </div>
@@ -58,7 +58,7 @@ export async function renderMehr(container) {
       ? `
       <div class="section">
         <div class="eyebrow">Schüler:in</div>
-        <select id="student-switcher" class="interval-picker" style="border:1px solid var(--border);appearance:none">
+        <select id="student-switcher" class="interval-picker student-switcher">
           ${students
             .map(
               (s) =>
@@ -77,20 +77,20 @@ export async function renderMehr(container) {
       ${
         current
           ? `<div class="card">
-               <div style="font-size:16px;font-weight:500;color:var(--text-primary)">${escapeHtml(current.firstName)} ${escapeHtml(current.lastName)}</div>
-               <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="mehr-school">${escapeHtml(current.className ?? "")}</div>
+               <div class="row-title row-title--strong">${escapeHtml(current.firstName)} ${escapeHtml(current.lastName)}</div>
+               <div class="student-class" id="mehr-school">${escapeHtml(current.className ?? "")}</div>
              </div>`
           : ""
       }
       ${switcher}
-      <a class="card card-row" href="#/mehr/mitteilungen" style="min-height:52px">
-        <span style="font-size:16px;color:var(--text-primary)">Mitteilungen</span>
-        <span style="display:flex;align-items:center;gap:10px">
+      <a class="card card-row mehr-link" href="#/mehr/mitteilungen">
+        <span class="row-title">Mitteilungen</span>
+        <span class="mehr-link-end">
           <span id="mehr-unread"></span>
           <span class="mt-chevron" aria-hidden="true">›</span>
         </span>
       </a>
-      <div class="section" style="gap:10px">
+      <div class="section section--tight">
         <div class="eyebrow">Einstellungen</div>
         <div class="card settings-group">
           <label class="settings-row">
@@ -121,7 +121,7 @@ export async function renderMehr(container) {
       </div>
       ${installSection()}
       <button id="logout-button" class="button-primary button-primary--ghost">Abmelden</button>
-      <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">
+      <div class="app-disclaimer">
         bessere.schule ist eine inoffizielle App und nicht mit beste.schule verbunden.
         <br><a class="legal-link" href="#/mehr/rechtliches">Impressum &amp; Datenschutz</a>
       </div>

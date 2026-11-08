@@ -538,7 +538,7 @@ button {
   min-height: 52px;
 }
 
-.grade-entry-row--points .grade-capsule {
+.grade-capsule--points {
   min-width: 58px;
 }
 
@@ -604,6 +604,7 @@ button {
 @keyframes shimmer { 0% { opacity: .45 } 50% { opacity: .9 } 100% { opacity: .45 } }
 
 .skeleton {
+  height: 20px;
   background: var(--border);
   border-radius: 8px;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -1508,4 +1509,322 @@ button {
   .splash {
     display: none;
   }
+}
+
+/* ── Formerly inline styles. Last in the file so they still win over the base
+   classes they used to override. ── */
+
+/* Shared */
+.view-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Hidden but keeps its space, e.g. the week arrows at either end. */
+.is-invisible {
+  visibility: hidden;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.section--snug {
+  gap: 12px;
+}
+
+.section--tight {
+  gap: 10px;
+}
+
+.link-reset {
+  text-decoration: none;
+  color: inherit;
+}
+
+.strike {
+  text-decoration: line-through;
+}
+
+.row-title {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.row-title--strong {
+  font-weight: 500;
+}
+
+.text-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.text-note {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.text-note--long {
+  line-height: 1.5;
+}
+
+/* "entspricht etwa 2+" under an Oberstufe average */
+.grade-equivalent {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.skeleton--tall {
+  height: 48px;
+}
+
+.error-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--text-primary);
+}
+
+.button-primary.error-reload {
+  margin-top: 8px;
+}
+
+/* Charts */
+.chart-grid-line {
+  stroke: var(--chart-grid);
+}
+
+.chart-line {
+  stroke: var(--text-primary);
+}
+
+.chart-line--soft {
+  stroke: var(--text-secondary);
+}
+
+.chart-dot {
+  fill: var(--surface);
+  stroke: var(--text-primary);
+}
+
+.chart-dot--latest {
+  fill: var(--text-primary);
+  stroke: none;
+}
+
+/* Heute */
+.lesson-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.changes-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.changes-card .eyebrow,
+.changes-count {
+  color: var(--accent);
+}
+
+.changes-count {
+  font-family: var(--font-serif);
+  font-size: 20px;
+}
+
+.change-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.change-row--cancelled {
+  color: var(--text-secondary);
+}
+
+.change-icon {
+  width: 20px;
+  text-align: center;
+  color: var(--accent);
+}
+
+.change-row--cancelled .change-icon {
+  color: inherit;
+}
+
+.newest-grade-row {
+  min-height: 48px;
+}
+
+/* Noten */
+.view.view--noten {
+  gap: 24px;
+}
+
+/* The longer Oberstufe list is a little tighter. */
+.view.view--noten.view--points {
+  gap: 20px;
+}
+
+.subject-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.picker-wrap {
+  position: relative;
+  align-self: flex-start;
+}
+
+.interval-picker.interval-picker--caret {
+  padding-right: 32px;
+}
+
+.picker-caret {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.average-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.average-unit {
+  font-size: 30px;
+}
+
+.noten-footnote {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.noten-footnote strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Fach detail */
+.view.view--fach {
+  gap: 18px;
+}
+
+.view.view--fach.view--points {
+  gap: 15px;
+}
+
+.trend-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trend-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.trend-body {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.trend-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 2px 0;
+}
+
+.trend-chart {
+  overflow: visible;
+}
+
+.subject-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.subject-header-aside {
+  text-align: right;
+}
+
+.subject-header-unit {
+  font-size: 26px;
+}
+
+/* Stundenplan */
+.sp-cell--cancelled .sp-cell-title {
+  text-decoration: line-through;
+}
+
+.sp-change-count {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Termine */
+.freie-tage-title {
+  padding-top: 3px;
+}
+
+/* Login */
+.view-title.login-title {
+  font-size: 32px;
+}
+
+.login-checkbox input {
+  width: 20px;
+  height: 20px;
+}
+
+/* Mehr */
+.interval-picker.student-switcher {
+  border: 1px solid var(--border);
+  appearance: none;
+}
+
+.student-class {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.mehr-link {
+  min-height: 52px;
+}
+
+.mehr-link-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-disclaimer {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
 }

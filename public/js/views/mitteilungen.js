@@ -129,7 +129,7 @@ export async function renderMitteilung(container, { id }) {
       <div class="mt-message">${renderMessage(item.body)}</div>
       ${
         item.attachments.length
-          ? `<div class="section" style="gap:10px">
+          ? `<div class="section section--tight">
                <div class="eyebrow">${item.attachments.length === 1 ? "Anhang" : "Anhänge"}</div>
                ${item.attachments.map(attachmentRow).join("")}
              </div>`
