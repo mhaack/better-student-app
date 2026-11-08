@@ -26,7 +26,7 @@ let loginError = "";
 function ensureShell() {
   if (app.querySelector("#view-container")) return;
   app.innerHTML = `
-    <div id="view-container" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>
+    <div id="view-container" class="view-container"></div>
     <div id="nav-container"></div>`;
 }
 

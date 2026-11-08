@@ -11,10 +11,10 @@ export function closeDetailSheet(container) {
  * API strings.
  *
  * @param {HTMLElement} container the view container the sheet mounts into
- * @param {{ eyebrow?: string, title: string, titleStyle?: string,
+ * @param {{ eyebrow?: string, title: string, titleStruck?: boolean,
  *   subtitle?: string, rows?: {label: string, value: string}[], note?: string }} content
  */
-export function openDetailSheet(container, { eyebrow, title, titleStyle = "", subtitle, rows = [], note }) {
+export function openDetailSheet(container, { eyebrow, title, titleStruck = false, subtitle, rows = [], note }) {
   const rowsHtml = rows.map((r) => detailRow(r.label, r.value)).join("");
 
   mountSheet(container, {
@@ -24,7 +24,7 @@ export function openDetailSheet(container, { eyebrow, title, titleStyle = "", su
       <div class="detail-header">
         <div class="detail-header-text">
           ${eyebrow ? `<div class="eyebrow">${escapeHtml(eyebrow)}</div>` : ""}
-          <h2 id="detail-sheet-title" class="detail-title" style="${titleStyle}">${escapeHtml(title)}</h2>
+          <h2 id="detail-sheet-title" class="detail-title${titleStruck ? " strike" : ""}">${escapeHtml(title)}</h2>
           ${subtitle ? `<div class="detail-subtitle">${escapeHtml(subtitle)}</div>` : ""}
         </div>
         <button type="button" class="detail-close" aria-label="Schließen">✕</button>

@@ -1,4 +1,5 @@
 import { escapeHtml } from "../util/dom.js";
+import { scaleUnit } from "../util/format.js";
 
 const CHECK_PATH = "M6.6 11.3l3 3 5.8-6.4";
 
@@ -8,10 +9,13 @@ function seenCheck(label) {
 
 /** The grade box with its state: a NEU sticker while unseen, otherwise a check to its left. */
 export function gradeCapsule(grade) {
-  const value = escapeHtml(grade.raw ?? "");
+  // Points read "14 P"; Sek I keeps "2-" as typed, as does a value that didn't parse.
+  const unit = scaleUnit(grade.scale, grade.numeric);
+  const value = escapeHtml(unit ? `${grade.numeric}${unit}` : (grade.raw ?? ""));
+  const capsuleClass = unit ? "grade-capsule grade-capsule--points" : "grade-capsule";
   if (grade.isNew) {
-    return `<div class="grade-capsule-wrap"><span class="grade-capsule">${value}<span class="grade-sticker" aria-hidden="true">NEU</span><span class="sr-only">, neu, noch nicht gesehen</span></span></div>`;
+    return `<div class="grade-capsule-wrap"><span class="${capsuleClass}">${value}<span class="grade-sticker" aria-hidden="true">NEU</span><span class="sr-only">, neu, noch nicht gesehen</span></span></div>`;
   }
   const label = grade.readByGuardian ? "Von den Eltern gesehen" : "Gesehen";
-  return `<div class="grade-capsule-wrap">${seenCheck(label)}<span class="grade-capsule">${value}</span></div>`;
+  return `<div class="grade-capsule-wrap">${seenCheck(label)}<span class="${capsuleClass}">${value}</span></div>`;
 }

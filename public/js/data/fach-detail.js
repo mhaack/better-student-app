@@ -1,6 +1,7 @@
 import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
 import { gradeTypeLabel, markNewGrades, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
+import { scaleUnit } from "../util/format.js";
 
 /** Groups by normalised type label, so "SO" and "so" land together. */
 export function groupByType(grades) {
@@ -41,9 +42,10 @@ function describeFormula(average, groups, scale) {
   if (average.source === "api_value") return "Von der Schule berechnet und direkt übernommen.";
   if (average.source === "api_formula") return `Formel der Schule: ${average.formula}`;
 
-  const unit = scale === "points_0_15" ? " P" : "";
-  const parts = groups.map((g) => `Ø ${g.type} ${formatNumber(g.average)}${unit} (${g.weightingPct} %)`);
-  return `${parts.join(" · ")} → ${formatNumber(average.value)}${unit}. Eigene Hochrechnung, keine offizielle Note.`;
+  const parts = groups.map(
+    (g) => `Ø ${g.type} ${formatNumber(g.average)}${scaleUnit(scale, g.average)} (${g.weightingPct} %)`
+  );
+  return `${parts.join(" · ")} → ${formatNumber(average.value)}${scaleUnit(scale, average.value)}. Eigene Hochrechnung, keine offizielle Note.`;
 }
 
 /**

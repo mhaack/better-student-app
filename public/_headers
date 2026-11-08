@@ -1,10 +1,10 @@
 # Cloudflare Pages headers file: https://developers.cloudflare.com/pages/configuration/headers/
 #
-# style-src needs 'unsafe-inline': every view renders inline style="..."
-# attributes (no CSS-in-JS build step), so a strict style-src would break
-# the entire UI. script-src stays strict — no inline <script> or event
-# handlers anywhere in the app (see js/components/states.js for the one
-# case that used to exist and was switched to addEventListener for this).
+# style-src still needs 'unsafe-inline': the splash in index.html and the
+# rainbow mark SVG use inline style="..." attributes; the views use classes.
+# script-src stays strict — no inline <script> or event handlers anywhere
+# in the app (see js/components/states.js for the one case that used to
+# exist and was switched to addEventListener for this).
 # connect-src is the directive that actually matters here: it's what stops
 # an XSS bug from ever being able to exfiltrate the student's token or
 # grades to anywhere but beste.schule — and now api.pirsch.io, which is the

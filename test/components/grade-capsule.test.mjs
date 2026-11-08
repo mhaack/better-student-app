@@ -30,6 +30,26 @@ describe("gradeCapsule", () => {
     assert.ok(html.indexOf("grade-seen") < html.indexOf('class="grade-capsule"'));
   });
 
+  test("adds P to an Oberstufe grade", () => {
+    const html = gradeCapsule({ raw: "14", scale: "points_0_15", numeric: 14, isNew: false });
+    assert.ok(has(html, '<span class="grade-capsule grade-capsule--points">14 P</span>'));
+  });
+
+  test("doesn't double the P when the teacher typed one", () => {
+    const html = gradeCapsule({ raw: "14P", scale: "points_0_15", numeric: 14, isNew: false });
+    assert.ok(has(html, '<span class="grade-capsule grade-capsule--points">14 P</span>'));
+  });
+
+  test("keeps an unparseable Oberstufe value as typed", () => {
+    const html = gradeCapsule({ raw: "nb", scale: "points_0_15", numeric: null, isNew: false });
+    assert.ok(has(html, '<span class="grade-capsule">nb</span>'));
+  });
+
+  test("shows a Sek I grade without P", () => {
+    const html = gradeCapsule({ raw: "2-", scale: "grade_1_6", numeric: 2.25, isNew: false });
+    assert.ok(has(html, '<span class="grade-capsule">2-</span>'));
+  });
+
   test("escapes the grade value", () => {
     assert.ok(has(gradeCapsule({ raw: "<b>", isNew: false }), "&lt;b&gt;"));
   });

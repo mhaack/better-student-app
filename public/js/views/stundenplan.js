@@ -39,14 +39,12 @@ function cellContent(lesson, dayIndex) {
 
   let classes = "sp-cell";
   let title;
-  let titleStyle = "";
   // One line each for room and teacher; the content depends on the status.
   let roomLine = lesson.room ?? "";
   let teacherLine = lesson.teacherShort ?? "";
 
   if (lesson.status === "cancelled") {
     classes += " sp-cell--cancelled";
-    titleStyle = "text-decoration:line-through";
     title = lesson.subjectShort ?? "";
     roomLine = "entfällt";
     teacherLine = "";
@@ -73,7 +71,7 @@ function cellContent(lesson, dayIndex) {
 
   const inner = `
     ${lesson.hasExam ? `<span class="sp-exam-dot" aria-hidden="true"></span>` : ""}
-    <div class="sp-cell-title" style="${titleStyle}">${escapeHtml(title)}</div>
+    <div class="sp-cell-title">${escapeHtml(title)}</div>
     <div class="sp-cell-meta">${escapeHtml(roomLine)}</div>
     ${teacherLine ? `<div class="sp-cell-meta">${escapeHtml(teacherLine)}</div>` : ""}`;
 
@@ -122,7 +120,7 @@ function openLessonDetail(container, day, lesson) {
   openDetailSheet(container, {
     eyebrow,
     title: lesson.subject ?? lesson.subjectShort ?? "",
-    titleStyle: lesson.status === "cancelled" ? "text-decoration:line-through" : "",
+    titleStruck: lesson.status === "cancelled",
     subtitle: `${day.label}, ${day.dateLabel} · ${lesson.period}. Stunde`,
     rows,
     note,
@@ -235,9 +233,9 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
   const nextBtn = container.querySelector("#sp-next");
   // visibility, not display, so the subtitle doesn't shift.
   prevBtn.disabled = weekOffset === 0;
-  prevBtn.style.visibility = weekOffset === 0 ? "hidden" : "visible";
+  prevBtn.classList.toggle("is-invisible", weekOffset === 0);
   nextBtn.disabled = weekOffset === MAX_WEEK_OFFSET;
-  nextBtn.style.visibility = weekOffset === MAX_WEEK_OFFSET ? "hidden" : "visible";
+  nextBtn.classList.toggle("is-invisible", weekOffset === MAX_WEEK_OFFSET);
 
   try {
     const data = await getStundenplanData(weekOffset, studentId);
@@ -252,7 +250,7 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
     const weekLabel = weekLabelFor(data.weeksFromNow);
     const changes =
       data.changeCount > 0
-        ? `<span style="color:var(--accent);font-weight:600">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span>`
+        ? `<span class="sp-change-count">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span>`
         : "Keine Änderungen";
     const legendParts =
       data.testCount > 0

@@ -65,6 +65,11 @@ function startOfToday() {
   return d;
 }
 
+/** " P" after an Oberstufe value; nothing for Noten or a missing value ("–"). */
+export function scaleUnit(scale, value) {
+  return scale === "points_0_15" && value !== null && value !== undefined ? " P" : "";
+}
+
 export function formatAverage(value, scale) {
   if (value === null || value === undefined) return "–";
   return scale === "points_0_15"
