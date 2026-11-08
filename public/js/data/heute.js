@@ -65,7 +65,7 @@ export function upcomingTest(notes, dayIso, todayIso) {
   };
 }
 
-/** "Danach": the first few Klassenbuch entries by date, without the one in the test card. */
+/** Heute's Termine: the first few Klassenbuch entries by date, without the one in the test card. */
 export function nextTermine(notes, skip = null) {
   const upcoming = notes
     // Plan Klausuren have no text.
@@ -92,7 +92,7 @@ export async function getHeuteData(studentId, scale) {
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
   const [dayPlans, grades, gradeNotifications, notes, planned, role] = await Promise.all([
-    // The whole Danach window, so a test's sheet shows its day's room.
+    // The whole Termine window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
     // Optional: without the feed, the Noten card falls back to given_at.

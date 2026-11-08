@@ -4,7 +4,7 @@ import { getHeuteData } from "../data/heute.js";
 import { getMitteilungenData } from "../data/mitteilungen.js";
 import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
-import { weekdayOrDate, formatWeekdayDate } from "../util/format.js";
+import { weekdayOrDate, formatWeekdayDate, formatFullDate } from "../util/format.js";
 import { newSticker, gradeValue } from "../components/grade-capsule.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
@@ -101,11 +101,16 @@ function gradesCard(latest) {
     rest > 0
       ? `<a class="heute-grade heute-grade--more link-reset" href="#/noten">+${rest} weitere<span class="heute-chevron" aria-hidden="true">›</span></a>`
       : "";
-  return `<div class="heute-grades">${rows}${more}</div>`;
+  const heading = `${latest.grades.length === 1 ? "Letzte Note" : "Letzte Noten"} (vom ${formatFullDate(latest.date)})`;
+  return `
+    <div class="section section--tight">
+      <div class="eyebrow">${escapeHtml(heading)}</div>
+      <div class="heute-grades">${rows}${more}</div>
+    </div>`;
 }
 
 /** The next Klassenbuch entries; the rest are a tap away in Termine. */
-function danachSection({ notes }) {
+function termineSection({ notes }) {
   if (notes.length === 0) return "";
   const rows = notes
     .map(
@@ -122,7 +127,7 @@ function danachSection({ notes }) {
   return `
     <div class="section section--tight">
       <div class="heute-section-head">
-        <span class="eyebrow">Danach</span>
+        <span class="eyebrow">Termine</span>
         <a class="heute-link" href="#/termine">Alle Termine ›</a>
       </div>
       <div>${rows}</div>
@@ -146,7 +151,7 @@ async function fillMitteilungen(container) {
     </div>`;
 }
 
-/** The full entry behind a Danach row that isn't a test. */
+/** The full entry behind a Termine row that isn't a test. */
 function openNoteDetail(container, note) {
   openDetailSheet(container, {
     eyebrow: note.typeName,
@@ -182,7 +187,7 @@ export async function renderHeute(container) {
       ${testCard(data.test)}
       ${planSection(data.day, data.changeCount)}
       ${gradesCard(data.latestGrades)}
-      ${danachSection(data.termine)}
+      ${termineSection(data.termine)}
       <div id="heute-mitteilungen" hidden></div>
     `;
     fillMitteilungen(container);
