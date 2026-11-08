@@ -1,13 +1,18 @@
 // German dates, countdowns and the points unit.
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { afterEach, beforeEach, describe, mock, test } from "node:test";
 import {
   calendarDaysBetween,
   countdownLabel,
+  daysUntil,
+  formatAverage,
   formatFullDate,
+  formatOverallAverage,
   formatWeekday,
   formatWeekdayDate,
+  periodLabel,
   scaleUnit,
+  weekdayOrDate,
 } from "../../public/js/util/format.js";
 
 describe("countdownLabel", () => {
@@ -74,5 +79,92 @@ describe("scaleUnit", () => {
   test("adds nothing to a missing value, which shows as a dash", () => {
     assert.equal(scaleUnit("points_0_15", null), "");
     assert.equal(scaleUnit("points_0_15", undefined), "");
+  });
+});
+
+describe("daysUntil", () => {
+  // Sunday 2026-11-08, mid-morning local time.
+  beforeEach(() => mock.timers.enable({ apis: ["Date"], now: new Date(2026, 10, 8, 9, 30) }));
+  afterEach(() => mock.timers.reset());
+
+  test("counts whole days from today, negative looking back", () => {
+    assert.equal(daysUntil("2026-11-08"), 0);
+    assert.equal(daysUntil("2026-11-09"), 1);
+    assert.equal(daysUntil("2026-11-06"), -2);
+  });
+
+  test("returns null without a date", () => {
+    assert.equal(daysUntil(undefined), null);
+  });
+});
+
+describe("weekdayOrDate", () => {
+  beforeEach(() => mock.timers.enable({ apis: ["Date"], now: new Date(2026, 10, 8, 9, 30) }));
+  afterEach(() => mock.timers.reset());
+
+  test("says Heute and Morgen for the next two days", () => {
+    assert.equal(weekdayOrDate("2026-11-08"), "Heute");
+    assert.equal(weekdayOrDate("2026-11-09"), "Morgen");
+  });
+
+  test("names the weekday for the rest of the coming week", () => {
+    assert.equal(weekdayOrDate("2026-11-13"), "Freitag");
+  });
+
+  test("falls back to day and month from a week out, and looking back", () => {
+    assert.equal(weekdayOrDate("2026-11-16"), "16.11.");
+    assert.equal(weekdayOrDate("2026-11-05"), "05.11.");
+  });
+
+  test("returns an empty string without a date", () => {
+    assert.equal(weekdayOrDate(""), "");
+  });
+});
+
+describe("periodLabel", () => {
+  test("names a single period", () => {
+    assert.equal(periodLabel([3]), "3. Stunde");
+  });
+
+  test("joins a run of periods with a dash", () => {
+    assert.equal(periodLabel([1, 2]), "1.–2. Stunde");
+  });
+
+  test("lists periods with a gap one by one", () => {
+    assert.equal(periodLabel([1, 3]), "1., 3. Stunde");
+  });
+
+  test("is empty without periods", () => {
+    assert.equal(periodLabel([]), "");
+  });
+});
+
+describe("formatAverage", () => {
+  test("shows Noten with one or two decimals", () => {
+    assert.equal(formatAverage(2, "grade_1_6"), "2,0");
+    assert.equal(formatAverage(2.25, "grade_1_6"), "2,25");
+  });
+
+  test("shows points with at most one decimal", () => {
+    assert.equal(formatAverage(12, "points_0_15"), "12");
+    assert.equal(formatAverage(12.4, "points_0_15"), "12,4");
+  });
+
+  test("shows a dash without a value", () => {
+    assert.equal(formatAverage(null, "grade_1_6"), "–");
+  });
+});
+
+describe("formatOverallAverage", () => {
+  test("always shows two decimals for Noten", () => {
+    assert.equal(formatOverallAverage(2.3, "grade_1_6"), "2,30");
+  });
+
+  test("shows points with at most one decimal", () => {
+    assert.equal(formatOverallAverage(11.2, "points_0_15"), "11,2");
+  });
+
+  test("shows a dash without a value", () => {
+    assert.equal(formatOverallAverage(undefined, "points_0_15"), "–");
   });
 });
