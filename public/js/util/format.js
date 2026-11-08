@@ -1,6 +1,6 @@
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
 const SHORT_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit" });
-const FULL_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+const FULL_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
 
 function daysFromToday(date) {
   return Math.round((date - startOfToday()) / 86_400_000);
@@ -50,7 +50,7 @@ export function weekdayOrDate(iso) {
 }
 
 /**
- * "23.09.2026", for dates that may be months old. Parsed as local time:
+ * "23.09.26", for dates that may be months old. Parsed as local time:
  * new Date("2026-09-23") is UTC midnight.
  */
 export function formatFullDate(iso) {

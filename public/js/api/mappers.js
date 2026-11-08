@@ -151,6 +151,8 @@ export function mapGrade(raw, scale) {
     givenAt: raw.given_at ?? collection.givenAt,
     teacher: personName(raw.teacher),
     read: Boolean(raw.read),
+    // One flag for whoever read it; read_by_type says who ("guardian" seen).
+    readByGuardian: Boolean(raw.read) && raw.read_by_type === "guardian",
   };
 }
 

@@ -1,7 +1,7 @@
 // German date and countdown wording.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { calendarDaysBetween, countdownLabel } from "../../public/js/util/format.js";
+import { calendarDaysBetween, countdownLabel, formatFullDate } from "../../public/js/util/format.js";
 
 describe("countdownLabel", () => {
   test("says Heute, Morgen, In n Tagen, Gestern, Vor n Tagen", () => {
@@ -19,5 +19,19 @@ describe("calendarDaysBetween", () => {
     assert.equal(calendarDaysBetween("2026-10-23", "2026-10-26"), 3);
     assert.equal(calendarDaysBetween("2026-03-27", "2026-03-30"), 3);
     assert.equal(calendarDaysBetween("2026-09-18", "2026-09-16"), -2);
+  });
+});
+
+describe("formatFullDate", () => {
+  test("shows day, month and a two-digit year", () => {
+    assert.equal(formatFullDate("2026-11-03"), "03.11.26");
+  });
+
+  test("keeps the calendar day of a date-only string", () => {
+    assert.equal(formatFullDate("2026-09-01"), "01.09.26");
+  });
+
+  test("returns an empty string for a missing date", () => {
+    assert.equal(formatFullDate(undefined), "");
   });
 });

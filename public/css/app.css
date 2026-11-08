@@ -460,6 +460,25 @@ button {
   border-bottom: 1px solid var(--border);
 }
 
+.grade-group-weight {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.grade-entry-title {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.grade-entry-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.grade-entry-sep {
+  margin: 0 6px;
+}
+
 .grade-entry-row--points {
   min-height: 52px;
 }

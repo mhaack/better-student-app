@@ -1,12 +1,12 @@
 import { fetchGrades, fetchFinalgrades } from "./repository.js";
-import { subjectAverage } from "../domain/grades.js";
+import { gradeTypeLabel, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 
-/** Collection types are school-configured free text, so group by what occurs. */
-function groupByType(grades) {
+/** Groups by normalised type label, so "SO" and "so" land together. */
+export function groupByType(grades) {
   const byType = new Map();
   for (const grade of grades) {
-    const type = grade.collection.type;
+    const type = gradeTypeLabel(grade.collection.type);
     if (!byType.has(type)) byType.set(type, []);
     byType.get(type).push(grade);
   }
@@ -22,7 +22,8 @@ function groupByType(grades) {
       ),
       average: mean(list),
     }))
-    .sort((a, b) => b.weightingPct - a.weightingPct);
+    // Klausuren lead regardless of weight; the rest by share.
+    .sort((a, b) => (b.type === "Klausur") - (a.type === "Klausur") || b.weightingPct - a.weightingPct);
 }
 
 function mean(grades) {

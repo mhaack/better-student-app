@@ -5,6 +5,7 @@ import {
   parseGrade,
   isUnterkurs,
   pointsToGradeLabel,
+  gradeTypeLabel,
   evaluateCalculationRule,
   subjectAverage,
 } from "../../public/js/domain/grades.js";
@@ -55,6 +56,38 @@ describe("pointsToGradeLabel", () => {
     assert.equal(pointsToGradeLabel(14), "1");
     assert.equal(pointsToGradeLabel(13), "1-");
     assert.equal(pointsToGradeLabel(0), "6");
+  });
+});
+
+describe("gradeTypeLabel", () => {
+  test("maps each teacher's spelling of Sonstige to one label", () => {
+    for (const raw of ["SO", "So", "so", "Sonstige", "SN"]) {
+      assert.equal(gradeTypeLabel(raw), "Sonstige", raw);
+    }
+  });
+
+  test("reads LK as Leistungskontrolle, not Leistungskurs", () => {
+    assert.equal(gradeTypeLabel("LK"), "Leistungskontrolle");
+    assert.equal(gradeTypeLabel("Lk"), "Leistungskontrolle");
+  });
+
+  test("maps K, KL and Klausur to Klausur", () => {
+    for (const raw of ["K", "KL", "Klausur"]) {
+      assert.equal(gradeTypeLabel(raw), "Klausur", raw);
+    }
+  });
+
+  test("ignores surrounding whitespace", () => {
+    assert.equal(gradeTypeLabel(" so "), "Sonstige");
+  });
+
+  test("keeps an unknown code as the teacher typed it", () => {
+    assert.equal(gradeTypeLabel("Referat"), "Referat");
+  });
+
+  test("falls back to Sonstige for a missing type", () => {
+    assert.equal(gradeTypeLabel(undefined), "Sonstige");
+    assert.equal(gradeTypeLabel(""), "Sonstige");
   });
 });
 

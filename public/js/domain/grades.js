@@ -48,6 +48,25 @@ export function isUnterkurs(pointsValue) {
   return typeof pointsValue === "number" && pointsValue < 5;
 }
 
+// Collection types are codes each teacher types freely ("SO", "so", "KL", ...).
+// LK here is Leistungskontrolle, not Leistungskurs. Keys are lowercase.
+const GRADE_TYPE_LABELS = {
+  so: "Sonstige",
+  sn: "Sonstige",
+  sonstige: "Sonstige",
+  lk: "Leistungskontrolle",
+  k: "Klausur",
+  kl: "Klausur",
+  klausur: "Klausur",
+};
+
+/** Display label for a collection type; unknown codes are shown as typed. */
+export function gradeTypeLabel(type) {
+  const trimmed = String(type ?? "").trim();
+  if (!trimmed) return "Sonstige";
+  return GRADE_TYPE_LABELS[trimmed.toLowerCase()] ?? trimmed;
+}
+
 /**
  * Points as an approximate Note (12 P ≈ 2+). Display only, never calculated with.
  * @param {number} points
