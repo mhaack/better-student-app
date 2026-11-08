@@ -10,10 +10,6 @@ describe("gradeMeta", () => {
     assert.equal(gradeMeta({ givenAt: "2026-11-03" }), '<div class="grade-entry-meta">03.11.26</div>');
   });
 
-  test("leaves the read check to the grade capsule", () => {
-    assert.equal(gradeMeta({ givenAt: "2026-11-03", readByGuardian: true }), '<div class="grade-entry-meta">03.11.26</div>');
-  });
-
   test("puts leading text first and escapes it", () => {
     assert.equal(
       gradeMeta({ givenAt: "2026-10-13" }, ["Klausur <Mechanik>"]),

@@ -35,6 +35,12 @@
   --sticker-shadow: 0 2px 5px rgba(168, 52, 28, 0.28);
   --seen-bg: #ECE7DF;
   --seen-fg: #57504A;
+  /* Ferien and free days in the Termine list: one peach card, a label tells them apart. */
+  --frei-bg: #FCEADB;
+  --frei-line: #F9CBA7;
+  --frei-ink: #3D1E0C;
+  --frei-ink-2: #6B3410;
+  --frei-accent: #7A3E14;
 
   --radius-lg: 24px;
   --radius-md: 16px;
@@ -76,6 +82,11 @@
   --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
   --seen-bg: rgba(243, 240, 234, 0.1);
   --seen-fg: #B8AFA4;
+  --frei-bg: rgba(249, 203, 167, 0.12);
+  --frei-line: rgba(249, 203, 167, 0.35);
+  --frei-ink: #FCEADB;
+  --frei-ink-2: #F0C9A8;
+  --frei-accent: #F9CBA7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -111,5 +122,10 @@
     --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
     --seen-bg: rgba(243, 240, 234, 0.1);
     --seen-fg: #B8AFA4;
+    --frei-bg: rgba(249, 203, 167, 0.12);
+    --frei-line: rgba(249, 203, 167, 0.35);
+    --frei-ink: #FCEADB;
+    --frei-ink-2: #F0C9A8;
+    --frei-accent: #F9CBA7;
   }
 }

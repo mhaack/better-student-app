@@ -19,12 +19,15 @@ describe("newestGrade", () => {
       NOW
     );
     assert.equal(result.grade, klausur);
+    assert.equal(result.date, "2026-11-07");
   });
 
   test("falls back to given_at for a grade missing from the feed", () => {
     const older = grade(70566362, "2026-10-23", "Analysis I");
     const newer = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
-    assert.equal(newestGrade([older, newer], [notification(70566362, "2026-10-24")], NOW).grade, newer);
+    const result = newestGrade([older, newer], [notification(70566362, "2026-10-24")], NOW);
+    assert.equal(result.grade, newer);
+    assert.equal(result.date, "2026-11-03");
   });
 
   test("uses the latest entry when a grade was changed later", () => {
@@ -63,17 +66,6 @@ describe("newestGrade", () => {
       NOW
     );
     assert.equal(result.grade, morning);
-  });
-
-  test("returns the date the grade was entered, not the Leistung's", () => {
-    const klausur = grade(71300001, "2026-10-13", "Klausur Mechanik");
-    const result = newestGrade([klausur], [notification(71300001, "2026-11-07")], NOW);
-    assert.equal(result.date, "2026-11-07");
-  });
-
-  test("returns given_at as the date when the feed has no entry", () => {
-    const newer = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
-    assert.equal(newestGrade([newer], [], NOW).date, "2026-11-03");
   });
 
   test("shows nothing when the newest grade was entered more than 14 days ago", () => {

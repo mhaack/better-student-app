@@ -44,11 +44,14 @@ function dayColumn(iso) {
     </div>`;
 }
 
-/** Title, then the kind ("Klassenarbeit · 5.–6. Stunde"), then the clamped detail. */
-function rowBody(title, kind, detail) {
+/** Title (and label), then the kind ("Klassenarbeit · 5.–6. Stunde"), then the clamped detail. */
+function rowBody(title, kind, detail, tag = "") {
   return `
     <div class="date-row-body">
-      <div class="date-row-title">${escapeHtml(title)}</div>
+      <div class="date-row-head">
+        <div class="date-row-title">${escapeHtml(title)}</div>
+        ${tag ? `<span class="frei-tag">${escapeHtml(tag)}</span>` : ""}
+      </div>
       ${kind ? `<div class="date-row-detail">${escapeHtml(kind)}</div>` : ""}
       ${detail ? `<div class="date-row-note">${escapeHtml(detail)}</div>` : ""}
     </div>`;
@@ -63,7 +66,7 @@ function terminRow(termin, index) {
     </div>`;
 }
 
-/** A break or single free day on the Ferien tab. */
+/** A break or single free day: a peach card labelled FERIEN or FREI. */
 function ferienRow(block) {
   const kind = block.isFerien
     ? `Ferien · bis ${formatWeekdayDate(block.to)}`
@@ -72,9 +75,9 @@ function ferienRow(block) {
       : `Freie Tage · bis ${formatWeekdayDate(block.to)}`;
   const detail = block.isFerien ? (block.schoolDays ? `${block.schoolDays} Schultage frei` : "") : "kein Unterricht";
   return `
-    <div class="date-row">
+    <div class="date-row date-row--frei">
       ${dayColumn(block.from)}
-      ${rowBody(block.name || "Schulfrei", kind, detail)}
+      ${rowBody(block.name || "Schulfrei", kind, detail, block.isFerien ? "Ferien" : "Frei")}
     </div>`;
 }
 
