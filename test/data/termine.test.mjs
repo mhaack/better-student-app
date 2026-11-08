@@ -5,6 +5,9 @@ import { describe, test } from "node:test";
 import {
   examsFromNotes,
   attachExams,
+  attachHomework,
+  homeworkFromNotes,
+  withBellTimes,
   withExamDetails,
   terminCategory,
   termineFromNotes,
@@ -370,5 +373,65 @@ describe("termineSubtitle", () => {
       termineSubtitle(termine, "ferien", { ...ferienOptions, freieTageCount: 0, yearLabel: "" }),
       "5 Ferien in diesem Schuljahr"
     );
+  });
+});
+
+describe("homeworkFromNotes", () => {
+  test("keeps HAU only and lists a double period's homework once", () => {
+    const homework = homeworkFromNotes([
+      hw("2026-09-16", 5, MA, "Arbeitsblatt Brüche"),
+      hw("2026-09-16", 6, MA, "Arbeitsblatt Brüche"),
+      test_("2026-09-16", 3, EN),
+      topic("2026-09-16", 1, DE),
+    ]);
+    assert.deepEqual(
+      homework.map((h) => [h.subjectShort, h.periods, h.text]),
+      [["MA", [5, 6], "Arbeitsblatt Brüche"]]
+    );
+  });
+});
+
+describe("attachHomework", () => {
+  test("rings both lessons of a double period with one entry each", () => {
+    const days = week({ "2026-09-16": [lesson(5, MA), lesson(6, MA), lesson(7, DE)] });
+    const homework = homeworkFromNotes([hw("2026-09-16", 5, MA), hw("2026-09-16", 6, MA)]);
+    const wed = attachHomework(days, homework)[2];
+
+    assert.equal(wed.homework.length, 1);
+    assert.deepEqual(wed.lessons.map((l) => l.homework.length), [1, 1, 0]);
+    assert.equal(wed.lessons[0].homework[0].text, "S. 42, Aufgaben 3–5");
+  });
+
+  test("a different subject in the homework's period gets no ring", () => {
+    const days = week({ "2026-09-15": [lesson(4, DE)] });
+    const out = attachHomework(days, homeworkFromNotes([hw("2026-09-15", 4, MA)]));
+    assert.deepEqual(out[1].lessons[0].homework, []);
+    assert.equal(out[1].homework.length, 1);
+  });
+
+  test("a cancelled lesson still shows the homework due in it", () => {
+    const days = week({ "2026-09-14": [lesson(1, DE, { status: "cancelled" })] });
+    const out = attachHomework(days, homeworkFromNotes([hw("2026-09-14", 1, DE)]));
+    assert.equal(out[0].lessons[0].homework.length, 1);
+  });
+
+  test("two pieces of homework in one lesson both reach it", () => {
+    const days = week({ "2026-09-17": [lesson(2, EN)] });
+    const homework = homeworkFromNotes([hw("2026-09-17", 2, EN, "Workbook p. 12"), hw("2026-09-17", 2, EN, "Vokabeln Unit 3")]);
+    const out = attachHomework(days, homework);
+    assert.deepEqual(out[3].lessons[0].homework.map((h) => h.text), ["Workbook p. 12", "Vokabeln Unit 3"]);
+  });
+
+  test("homework outside the shown week is ignored", () => {
+    const out = attachHomework(week(), homeworkFromNotes([hw("2026-09-21", 1, MA)]));
+    assert.ok(out.every((d) => d.homework.length === 0));
+  });
+});
+
+describe("withBellTimes", () => {
+  test("gives each lesson its period's times from the timetable", () => {
+    const [fifth, ninth] = withBellTimes([lesson(5, MA), lesson(9, DE)], timetable);
+    assert.equal(fifth.timeLabel, "11:40–12:25");
+    assert.equal(ninth.timeLabel, undefined);
   });
 });

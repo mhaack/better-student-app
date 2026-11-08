@@ -1,8 +1,9 @@
 import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
+import { periodLabel } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
-import { openDetailSheet, closeDetailSheet, bindActivate } from "../components/detail-sheet.js";
+import { openDetailSheet, closeDetailSheet, bindActivate, homeworkCard } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
 
 const STATUS_EYEBROW = {
@@ -12,10 +13,10 @@ const STATUS_EYEBROW = {
   changed: "Geändert",
 };
 
-/** The tap-to-open sheet: changes as "vorher → nachher", plus the school's note. */
-function describeChange(lesson) {
-  const eyebrow = STATUS_EYEBROW[lesson.status] ?? "Geändert";
-  const rows = [];
+/** The tap-to-open sheet: time, changes as "vorher → nachher", plus the school's note. */
+function describeLesson(lesson) {
+  const eyebrow = lesson.status === "regular" ? undefined : (STATUS_EYEBROW[lesson.status] ?? "Geändert");
+  const rows = [{ label: "Zeit", value: [periodLabel([lesson.period]), lesson.timeLabel].filter(Boolean).join(" · ") }];
 
   if (lesson.status === "room_change" && lesson.previousRoom) {
     rows.push({ label: "Raum", value: `${lesson.previousRoom} → ${lesson.room ?? "–"}` });
@@ -34,7 +35,15 @@ function describeChange(lesson) {
   return { eyebrow, rows, note: lesson.notes?.[0] };
 }
 
-function cellContent(lesson, dayIndex) {
+/** Dot for a test, ring for homework; the shape tells them apart, not the colour. */
+function markers(hasExam, hasHomework) {
+  if (!hasExam && !hasHomework) return "";
+  return `<span class="sp-marks" aria-hidden="true">${hasExam ? `<span class="sp-exam-dot"></span>` : ""}${
+    hasHomework ? `<span class="hw-ring"></span>` : ""
+  }</span>`;
+}
+
+function cellContent(lesson, day, dayIndex) {
   if (!lesson) return "";
 
   let classes = "sp-cell";
@@ -69,19 +78,22 @@ function cellContent(lesson, dayIndex) {
     title = lesson.subjectShort ?? "";
   }
 
+  const hasHomework = lesson.homework?.length > 0;
   const inner = `
-    ${lesson.hasExam ? `<span class="sp-exam-dot" aria-hidden="true"></span>` : ""}
+    ${markers(lesson.hasExam, hasHomework)}
     <div class="sp-cell-title">${escapeHtml(title)}</div>
     <div class="sp-cell-meta">${escapeHtml(roomLine)}</div>
     ${teacherLine ? `<div class="sp-cell-meta">${escapeHtml(teacherLine)}</div>` : ""}`;
 
-  if (lesson.status === "regular" && !lesson.hasExam) {
-    return `<div class="${classes}">${inner}</div>`;
-  }
-
   // A div, not a <button>: see bindActivate.
   const status = lesson.status === "regular" ? "" : `, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
-  const label = `${lesson.subject ?? lesson.subjectShort ?? ""}${status}${lesson.hasExam ? ", Test" : ""}`;
+  const label = [
+    `${day.label} ${lesson.period}. Stunde, ${lesson.subject ?? lesson.subjectShort ?? ""}${status}`,
+    lesson.hasExam ? "Test" : "",
+    hasHomework ? "Hausaufgabe fällig" : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
   return `
     <div class="${classes}" role="button" tabindex="0" data-day-index="${dayIndex}" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
       ${inner}
@@ -108,22 +120,22 @@ function headerRow(days) {
   return `<div class="sp-grid-row"><span></span>${cells}</div>`;
 }
 
-function gridRow(row) {
+function gridRow(row, days) {
   const cells = row.cells
-    .map((lesson, dayIndex) => `<div class="sp-grid-cell">${cellContent(lesson, dayIndex)}</div>`)
+    .map((lesson, dayIndex) => `<div class="sp-grid-cell">${cellContent(lesson, days[dayIndex], dayIndex)}</div>`)
     .join("");
   return `<div class="sp-grid-row"><div class="sp-period">${row.period}</div>${cells}</div>`;
 }
 
 function openLessonDetail(container, day, lesson) {
-  const { eyebrow, rows, note } = describeChange(lesson);
+  const { eyebrow, rows, note } = describeLesson(lesson);
   openDetailSheet(container, {
     eyebrow,
     title: lesson.subject ?? lesson.subjectShort ?? "",
     titleStruck: lesson.status === "cancelled",
-    subtitle: `${day.label}, ${day.dateLabel} · ${lesson.period}. Stunde`,
+    when: { countdown: day.countdown, iso: day.iso },
     rows,
-    note,
+    cards: [{ eyebrow: "Hinweis", text: note }, ...(lesson.homework ?? []).map(homeworkCard)],
   });
 }
 
@@ -204,13 +216,13 @@ export async function renderStundenplan(container) {
   );
 
   // Delegated, so it survives re-renders. A test cell opens the test sheet
-  // even when also changed; that sheet shows the new room.
+  // even when also changed; that sheet shows the new room and any homework.
   function openCellDetail(cellEl) {
     const day = currentDays[Number(cellEl.dataset.dayIndex)];
     const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
     if (!day || !lesson) return;
     const exam = lesson.hasExam && day.exams.find((e) => e.periods.includes(lesson.period));
-    if (exam) openExamSheet(container, [exam], cellEl);
+    if (exam) openExamSheet(container, [exam], cellEl, lesson.homework);
     else openLessonDetail(container, day, lesson);
   }
   bindActivate(body, "[data-period]", openCellDetail);
@@ -252,16 +264,17 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
       data.changeCount > 0
         ? `<span class="sp-change-count">${data.changeCount} Änderung${data.changeCount === 1 ? "" : "en"}</span>`
         : "Keine Änderungen";
-    const legendParts =
-      data.testCount > 0
-        ? [
-            changes,
-            `<span class="sp-legend-dot" aria-hidden="true"></span>${data.testCount} Test${data.testCount === 1 ? "" : "s"}`,
-            "Tippen für Details",
-          ]
-        : data.changeCount > 0
-          ? [changes, weekLabel]
-          : [`${changes} ${weekLabel}`];
+    const marks = [
+      data.testCount > 0 &&
+        `<span class="sp-exam-dot sp-legend-mark" aria-hidden="true"></span>${data.testCount} Test${data.testCount === 1 ? "" : "s"}`,
+      data.homeworkCount > 0 &&
+        `<span class="hw-ring sp-legend-mark" aria-hidden="true"></span>${data.homeworkCount} Hausaufgabe${data.homeworkCount === 1 ? "" : "n"}`,
+    ].filter(Boolean);
+    const legendParts = marks.length
+      ? [changes, ...marks]
+      : data.changeCount > 0
+        ? [changes, weekLabel]
+        : [`${changes} ${weekLabel}`];
     const changesLine = legendParts
       .map((part) => `<span>${part}</span>`)
       .join(`<span aria-hidden="true">·</span>`);
@@ -269,9 +282,10 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
     body.innerHTML = `
       <div class="sp-grid">
         ${headerRow(data.days)}
-        ${data.grid.map(gridRow).join("")}
+        ${data.grid.map((row) => gridRow(row, data.days)).join("")}
       </div>
       <div class="sp-legend">${changesLine}</div>
+      <div class="sp-legend-hint">Stunde antippen für Details</div>
     `;
     return data.days;
   } catch (err) {

@@ -137,25 +137,45 @@ export function termineSubtitle(entries, filter, options = {}) {
 
 const joinUnique = (values) => [...new Set(values.filter(Boolean))].join(", ") || undefined;
 
+/** Period → { from, to } from the timetable; plan lessons carry no times. */
+function bellTimes(timetable) {
+  const bell = new Map();
+  for (const l of timetable?.lessons ?? []) {
+    if (l.from && l.to && !bell.has(l.period)) bell.set(l.period, { from: l.from, to: l.to });
+  }
+  return bell;
+}
+
+/** Each lesson with its period's "11:40–12:25", where the timetable knows it. */
+export function withBellTimes(lessons, timetable) {
+  const bell = bellTimes(timetable);
+  return lessons.map((l) => {
+    const time = bell.get(l.period);
+    return time ? { ...l, timeLabel: `${time.from}–${time.to}` } : l;
+  });
+}
+
+/** The day's lessons a note belongs to: its periods, same subject where both know it. */
+function lessonsOf(day, entry) {
+  return entry.periods
+    .map((p) => day.lessons.find((l) => l.period === p))
+    .filter((l) => l && (entry.subjectId == null || l.subjectId == null || l.subjectId === entry.subjectId));
+}
+
 /**
  * Joins each exam to its day's lessons (same period and subject). Room and
  * teacher come from the grid so changes show; times from the timetable, as
  * plan lessons have none.
  */
 export function attachExams(days, exams, timetable, todayIso) {
-  const bell = new Map();
-  for (const l of timetable?.lessons ?? []) {
-    if (l.from && l.to && !bell.has(l.period)) bell.set(l.period, { from: l.from, to: l.to });
-  }
+  const bell = bellTimes(timetable);
 
   return days.map((day) => {
     const dayExams = exams.filter((e) => e.date === day.iso);
     const examLessons = new Set();
 
     const attached = dayExams.map((exam) => {
-      const lessons = exam.periods
-        .map((p) => day.lessons.find((l) => l.period === p))
-        .filter((l) => l && (exam.subjectId == null || l.subjectId == null || l.subjectId === exam.subjectId));
+      const lessons = lessonsOf(day, exam);
       for (const l of lessons) examLessons.add(l);
       const present = lessons.filter((l) => l.status !== "cancelled");
 
@@ -177,6 +197,30 @@ export function attachExams(days, exams, timetable, todayIso) {
       ...day,
       exams: attached,
       lessons: day.lessons.map((l) => (examLessons.has(l) ? { ...l, hasExam: true } : l)),
+    };
+  });
+}
+
+/** Just the homework, double periods merged. */
+export function homeworkFromNotes(notes) {
+  return termineFromNotes(notes).filter((e) => e.category === "hw");
+}
+
+/**
+ * Hangs homework on the lessons it is due in, like `attachExams`. A note's
+ * lesson is the one it applies to (there is no due date), so that's "fällig".
+ */
+export function attachHomework(days, homework) {
+  return days.map((day) => {
+    const dayHomework = homework.filter((h) => h.date === day.iso);
+    const byLesson = new Map(day.lessons.map((l) => [l, []]));
+    for (const entry of dayHomework) {
+      for (const l of lessonsOf(day, entry)) byLesson.get(l).push(entry);
+    }
+    return {
+      ...day,
+      homework: dayHomework,
+      lessons: day.lessons.map((l) => ({ ...l, homework: byLesson.get(l) })),
     };
   });
 }
