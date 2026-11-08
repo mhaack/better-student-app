@@ -1,5 +1,6 @@
 import { escapeHtml } from "../util/dom.js";
 import { countdownLabel, daysUntil } from "../util/format.js";
+import { categoryMarker } from "./marker.js";
 
 /** "heute" / "morgen" / "in 2 Tagen": countdownLabel, lower-cased for mid-line use. */
 export function relativeDays(iso) {
@@ -9,11 +10,14 @@ export function relativeDays(iso) {
   return label.charAt(0).toLowerCase() + label.slice(1);
 }
 
-/** The dark "Als nächstes" card; `body` is trusted HTML below the head. */
-export function nextCard(eyebrow, title, meta, body) {
+/**
+ * The dark "Als nächstes" card; `body` is trusted HTML below the head and
+ * `category` puts its marker in front of the eyebrow.
+ */
+export function nextCard(eyebrow, title, meta, body, category = "") {
   return `
     <div class="next-card">
-      <div class="next-card-eyebrow">${escapeHtml(eyebrow)}</div>
+      <div class="next-card-eyebrow">${categoryMarker(category, "marker--lead")}${escapeHtml(eyebrow)}</div>
       <div class="next-card-head">
         <div class="next-card-title">${escapeHtml(title)}</div>
         <div class="next-card-when">${escapeHtml(meta)}</div>

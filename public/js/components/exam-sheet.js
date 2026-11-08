@@ -25,7 +25,7 @@ export function openExamSheet(container, exams, opener, homework = []) {
           ${detailRow("Raum", exam.room)}
           ${detailRow("Lehrkraft", exam.teacher)}
         </div>
-        ${infoCards([{ marker: "dot", eyebrow: "Thema", text: exam.text }])}
+        ${infoCards([{ marker: "exam", eyebrow: "Thema", text: exam.text }])}
       </section>`;
     })
     .join("");

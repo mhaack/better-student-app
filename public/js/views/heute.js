@@ -10,6 +10,7 @@ import { gradeCapsule } from "../components/grade-capsule.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
+import { categoryMarker } from "../components/marker.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
@@ -95,7 +96,7 @@ function notesSection({ notes: items, more }) {
       <div class="hw-row${n.isExam ? " is-expandable" : ""}" data-note-index="${index}"${n.isExam ? ' role="button" tabindex="0"' : ""}>
         <div class="hw-text">
           <div class="hw-title">${escapeHtml([n.subject, n.text].filter(Boolean).join(" · "))}</div>
-          ${n.typeName ? `<div class="hw-type">${escapeHtml(n.typeName)}</div>` : ""}
+          ${n.typeName ? `<div class="hw-type">${categoryMarker(n.category, "marker--lead")}${escapeHtml(n.typeName)}</div>` : ""}
         </div>
         ${due}
       </div>`;

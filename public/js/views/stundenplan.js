@@ -5,6 +5,7 @@ import { formatWeekday, periodLabel } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, closeDetailSheet, bindActivate, homeworkCard } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
+import { categoryMarker } from "../components/marker.js";
 
 const STATUS_EYEBROW = {
   cancelled: "Entfällt",
@@ -41,9 +42,7 @@ function describeLesson(lesson) {
 /** Dot for a test, ring for homework; the shape tells them apart, not the colour. */
 function markers(hasExam, hasHomework) {
   if (!hasExam && !hasHomework) return "";
-  return `<span class="sp-marks" aria-hidden="true">${hasExam ? `<span class="sp-exam-dot"></span>` : ""}${
-    hasHomework ? `<span class="hw-ring"></span>` : ""
-  }</span>`;
+  return `<span class="sp-marks">${hasExam ? categoryMarker("exam") : ""}${hasHomework ? categoryMarker("hw") : ""}</span>`;
 }
 
 function cellContent(lesson, day, dayIndex) {
@@ -263,9 +262,9 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
         : "Keine Änderungen";
     const marks = [
       data.testCount > 0 &&
-        `<span class="sp-exam-dot sp-legend-mark" aria-hidden="true"></span>${data.testCount} Test${data.testCount === 1 ? "" : "s"}`,
+        `${categoryMarker("exam", "marker--lead")}${data.testCount} Test${data.testCount === 1 ? "" : "s"}`,
       data.homeworkCount > 0 &&
-        `<span class="hw-ring sp-legend-mark" aria-hidden="true"></span>${data.homeworkCount} Hausaufgabe${data.homeworkCount === 1 ? "" : "n"}`,
+        `${categoryMarker("hw", "marker--lead")}${data.homeworkCount} Hausaufgabe${data.homeworkCount === 1 ? "" : "n"}`,
     ].filter(Boolean);
     const legendParts = marks.length
       ? [changes, ...marks]
