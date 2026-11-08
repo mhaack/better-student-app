@@ -7,6 +7,12 @@
 
 import { parseGrade } from "../domain/grades.js";
 
+const PLAN_STATUS = {
+  initial: "regular",
+  planned: "changed",
+  canceled: "cancelled",
+};
+
 function pick(obj, ...keys) {
   for (const key of keys) {
     const value = obj?.[key];
@@ -164,12 +170,6 @@ export function mapGradeNotification(raw) {
     createdAt: raw.created_at,
   };
 }
-
-const PLAN_STATUS = {
-  initial: "regular",
-  planned: "changed",
-  canceled: "cancelled",
-};
 
 /**
  * One lesson from substitution-plans/days. What exactly changed needs the

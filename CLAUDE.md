@@ -64,6 +64,14 @@ most likely to bite:
 ## Conventions
 
 - UI text is German; code, comments and commit messages are English.
+- Module layout, top to bottom: imports, then module-level constants and
+  state (`const`/`let`), then functions. A constant used by a single function
+  still goes at the top, not next to it. Functions are `function`
+  declarations; `const` arrows only for one-line helpers. Biome can't check
+  the order (its plugins see single statements only), so watch it in review.
+- Dates and numbers are formatted by `util/format.js` (`formatWeekday`,
+  `formatDayMonth`, `formatWeekdayDate`, …). Don't create `Intl` formatters or
+  build "12.11." strings in a view or component.
 - Comments explain *why* (usually an API quirk or a design decision), not what.
   Keep them short: one line where possible, a few at most. Measurements and
   investigation stories go in `docs/api-notes.md`, not in the code.

@@ -6,7 +6,9 @@ import {
   countdownLabel,
   daysUntil,
   formatAverage,
+  formatDayMonth,
   formatFullDate,
+  formatMonthYear,
   formatOverallAverage,
   formatWeekday,
   formatWeekdayDate,
@@ -63,6 +65,30 @@ describe("formatWeekday", () => {
 describe("formatWeekdayDate", () => {
   test("puts the short weekday before the full date", () => {
     assert.equal(formatWeekdayDate("2025-09-19"), "Fr 19.09.25");
+  });
+});
+
+describe("formatDayMonth", () => {
+  test("gives day and month without leading zeros, as in the grid", () => {
+    assert.equal(formatDayMonth("2026-11-09"), "9.11.");
+  });
+
+  test("ignores a time after the date", () => {
+    assert.equal(formatDayMonth("2026-03-05T23:30:00Z"), "5.3.");
+  });
+
+  test("is empty for no date", () => {
+    assert.equal(formatDayMonth(undefined), "");
+  });
+});
+
+describe("formatMonthYear", () => {
+  test("names the month and year, for Termine's month headings", () => {
+    assert.equal(formatMonthYear("2026-11-09"), "November 2026");
+  });
+
+  test("is empty for no date", () => {
+    assert.equal(formatMonthYear(""), "");
   });
 });
 

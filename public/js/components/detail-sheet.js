@@ -1,19 +1,25 @@
 import { escapeHtml } from "../util/dom.js";
+import { formatDayMonth, formatWeekday } from "../util/format.js";
 
-const WEEKDAY_SHORT = new Intl.DateTimeFormat("de-DE", { weekday: "short" });
+const BACKDROP_ID = "detail-sheet-backdrop";
+const FOCUSABLE = 'button, [href], [tabindex]:not([tabindex="-1"])';
+// Same markers as the grid: dot = test, ring = homework.
+const MARKER_CLASS = { dot: "sp-exam-dot", ring: "hw-ring" };
+
+/**
+ * @typedef {{ eyebrow: string, text?: string, marker?: "dot" | "ring" }} InfoCard
+ * One card style for all free text in a sheet: a test's topic, homework, the
+ * plan's note on a change.
+ */
 
 /** The pill and date under a sheet's title: "IN 4 TAGEN  Do 12.11." */
 export function whenLine(countdown, iso) {
-  const date = new Date(`${iso}T00:00:00`);
-  const dateText = `${WEEKDAY_SHORT.format(date).replace(".", "")} ${date.getDate()}.${date.getMonth() + 1}.`;
   return `
     <div class="exam-when">
       <span class="exam-pill">${escapeHtml(countdown)}</span>
-      <span class="exam-date">${escapeHtml(dateText)}</span>
+      <span class="exam-date">${escapeHtml(`${formatWeekday(iso)} ${formatDayMonth(iso)}`)}</span>
     </div>`;
 }
-
-const BACKDROP_ID = "detail-sheet-backdrop";
 
 export function closeDetailSheet(container) {
   container.querySelector(`#${BACKDROP_ID}`)?.remove();
@@ -54,20 +60,13 @@ export function openDetailSheet(
   });
 }
 
-/**
- * @typedef {{ eyebrow: string, text?: string, marker?: "dot" | "ring" }} InfoCard
- * One card style for everything with free text: a test's topic, homework, the
- * plan's note on a change. The marker matches the grid: dot = test, ring = homework.
- */
-
-const MARKER_CLASS = { dot: "sp-exam-dot", ring: "hw-ring" };
-
 /** Cards without text are skipped. */
 export function infoCards(cards = []) {
   return cards
     .filter((c) => c?.text)
     .map((c) => {
-      const marker = MARKER_CLASS[c.marker] ? `<span class="${MARKER_CLASS[c.marker]}" aria-hidden="true"></span>` : "";
+      const markerClass = MARKER_CLASS[c.marker];
+      const marker = markerClass ? `<span class="${markerClass}" aria-hidden="true"></span>` : "";
       return `
       <div class="info-card">
         <div class="info-card-eyebrow">${marker}${escapeHtml(c.eyebrow)}</div>
@@ -78,7 +77,9 @@ export function infoCards(cards = []) {
 }
 
 /** @returns {InfoCard} */
-export const homeworkCard = (homework) => ({ marker: "ring", eyebrow: "Hausaufgabe", text: homework.text });
+export function homeworkCard(homework) {
+  return { marker: "ring", eyebrow: "Hausaufgabe", text: homework.text };
+}
 
 /** One label/value row; empty when there is no value. */
 export function detailRow(label, value) {
@@ -86,8 +87,6 @@ export function detailRow(label, value) {
     ? `<div class="detail-row"><span class="detail-label">${escapeHtml(label)}</span><span class="detail-value">${escapeHtml(value)}</span></div>`
     : "";
 }
-
-const FOCUSABLE = 'button, [href], [tabindex]:not([tabindex="-1"])';
 
 /**
  * Mounts a sheet (`html` carries role="dialog"; callers escape their text):

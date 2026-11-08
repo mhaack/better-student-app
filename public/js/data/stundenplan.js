@@ -2,7 +2,7 @@ import { fetchDayPlans, fetchCurrentTimetable, fetchJournalNotes, isoDate } from
 import { apiWeekday, lessonsForDate } from "./timetable.js";
 import { examsFromNotes, homeworkFromNotes, attachExams, attachHomework, withBellTimes } from "./termine.js";
 import { getPlannedKlausuren, withPlannedKlausuren } from "./klausuren.js";
-import { calendarDaysBetween, countdownLabel } from "../util/format.js";
+import { calendarDaysBetween, countdownLabel, formatDayMonth } from "../util/format.js";
 
 const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr"];
 
@@ -41,8 +41,6 @@ async function fetchWeekNotes(studentId, fromIso, toIso) {
   };
 }
 
-const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });
-
 /**
  * The Mo-Fr grid: a row per period used on any day, cells are lessons or
  * empty. One plan call per week. The caller clamps `weekOffset`.
@@ -68,7 +66,7 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
         date,
         iso: isoDate(date),
         label: WEEKDAY_LABELS[index],
-        dateLabel: DAY_MONTH_FORMAT.format(date),
+        dateLabel: formatDayMonth(isoDate(date)),
         isToday: isoDate(date) === todayIso,
         countdown: countdownLabel(calendarDaysBetween(todayIso, isoDate(date))),
         lessons: withBellTimes(lessonsForDate(date, dayPlans, timetable), timetable),

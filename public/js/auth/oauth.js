@@ -6,6 +6,8 @@ import { setOAuthSession, getRefreshToken, isRemembered } from "../state/auth-st
 
 // Survives the redirect but not the attempt: always sessionStorage.
 const PENDING_KEY = "schulblick.oauth.pending";
+// The refresh in progress, shared by parallel 401s.
+let inFlightRefresh = null;
 
 export class OAuthError extends Error {
   constructor(message, cause) {
@@ -88,8 +90,6 @@ export async function completeLogin(search = location.search) {
  * Refreshes the access token. Single-flight: parallel 401s share one
  * refresh, as each refresh invalidates the previous token.
  */
-let inFlightRefresh = null;
-
 export function refreshAccessToken() {
   if (inFlightRefresh) return inFlightRefresh;
 

@@ -13,6 +13,13 @@ const CATEGORY_BY_TYPE = { KLA: "exam", LEI: "exam", HAU: "hw" };
 // Stundenthema records what a lesson covered; it isn't a Termin.
 const BACKWARD_LOOKING_TYPES = new Set(["STU"]);
 const CATEGORIES = ["exam", "hw", "other"];
+// Singular and plural per Termine tab, for the subtitle.
+const NOUNS = {
+  all: ["Termin", "Termine"],
+  exam: ["Arbeit oder Test", "Arbeiten & Tests"],
+  hw: ["Hausaufgabe", "Hausaufgaben"],
+  other: ["sonstiger Termin", "sonstige Termine"],
+};
 
 const noteKey = (note) => `${note.date}|${note.subjectId}|${note.text}`;
 
@@ -104,13 +111,6 @@ export function termineList(entries, filter, { nextFerien = null, ferien = [], f
     ...breaks.map((block) => ({ date: block.from, ferien: block })),
   ].sort((a, b) => a.date.localeCompare(b.date));
 }
-
-const NOUNS = {
-  all: ["Termin", "Termine"],
-  exam: ["Arbeit oder Test", "Arbeiten & Tests"],
-  hw: ["Hausaufgabe", "Hausaufgaben"],
-  other: ["sonstiger Termin", "sonstige Termine"],
-};
 
 const plural = (count, [one, many]) => `${count} ${count === 1 ? one : many}`;
 

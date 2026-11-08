@@ -1,7 +1,7 @@
 import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
-import { periodLabel } from "../util/format.js";
+import { formatWeekday, periodLabel } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, closeDetailSheet, bindActivate, homeworkCard } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
@@ -12,6 +12,9 @@ const STATUS_EYEBROW = {
   substitution: "Vertretung",
   changed: "Geändert",
 };
+// Up to 3 weeks ahead of the default week.
+const MAX_WEEK_OFFSET = 3;
+const SWIPE_THRESHOLD_PX = 50;
 
 /** The tap-to-open sheet: time, changes as "vorher → nachher", plus the school's note. */
 function describeLesson(lesson) {
@@ -100,8 +103,6 @@ function cellContent(lesson, day, dayIndex) {
     </div>`;
 }
 
-const WEEKDAY_LONG = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
-
 /** Headers of days with a test open the test sheet. */
 function headerRow(days) {
   const cells = days
@@ -110,7 +111,7 @@ function headerRow(days) {
         <div class="sp-day-label${d.isToday ? " sp-day-label--today" : ""}">${escapeHtml(d.label)}</div>
         <div class="sp-day-date">${escapeHtml(d.dateLabel)}</div>`;
       if (!d.exams.length) return `<div class="sp-day-head">${content}</div>`;
-      const label = `${WEEKDAY_LONG.format(d.date)} ${d.dateLabel} – Test anzeigen`;
+      const label = `${formatWeekday(d.iso, "long")} ${d.dateLabel} – Test anzeigen`;
       return `
         <div class="sp-day-head sp-day-head--exam" role="button" tabindex="0" data-exam-day="${i}" aria-label="${escapeHtml(label)}">
           ${content}
@@ -138,10 +139,6 @@ function openLessonDetail(container, day, lesson) {
     cards: [{ eyebrow: "Hinweis", text: note }, ...(lesson.homework ?? []).map(homeworkCard)],
   });
 }
-
-// Up to 3 weeks ahead of the default week.
-const MAX_WEEK_OFFSET = 3;
-const SWIPE_THRESHOLD_PX = 50;
 
 function weekLabelFor(weeksFromNow) {
   if (weeksFromNow === 0) return "in dieser Woche";

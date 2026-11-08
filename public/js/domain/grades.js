@@ -6,6 +6,18 @@
 
 const PLUS_MINUS_OFFSET = 0.25;
 
+// Collection types are codes each teacher types freely ("SO", "so", "KL", ...).
+// LK here is Leistungskontrolle, not Leistungskurs. Keys are lowercase.
+const GRADE_TYPE_LABELS = {
+  so: "Sonstige",
+  sn: "Sonstige",
+  sonstige: "Sonstige",
+  lk: "Leistungskontrolle",
+  k: "Klausur",
+  kl: "Klausur",
+  klausur: "Klausur",
+};
+
 /**
  * @param {string} raw
  * @param {GradeScale} scale From the student's context: "3" is valid on both.
@@ -47,18 +59,6 @@ export function parseGrade(raw, scale) {
 export function isUnterkurs(pointsValue) {
   return typeof pointsValue === "number" && pointsValue < 5;
 }
-
-// Collection types are codes each teacher types freely ("SO", "so", "KL", ...).
-// LK here is Leistungskontrolle, not Leistungskurs. Keys are lowercase.
-const GRADE_TYPE_LABELS = {
-  so: "Sonstige",
-  sn: "Sonstige",
-  sonstige: "Sonstige",
-  lk: "Leistungskontrolle",
-  k: "Klausur",
-  kl: "Klausur",
-  klausur: "Klausur",
-};
 
 /** Display label for a collection type; unknown codes are shown as typed. */
 export function gradeTypeLabel(type) {
