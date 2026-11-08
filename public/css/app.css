@@ -1226,6 +1226,52 @@ button {
   opacity: .6;
 }
 
+/* A break or free day: a peach card reaching past the list on both sides by
+   as much as its padding, so day and text stay aligned with the plain rows.
+   12px, less on narrow phones so 8px of screen edge stays free. */
+.date-row.date-row--frei {
+  --frei-bleed: min(12px, calc(var(--view-gutter) - 8px));
+  margin: 0 calc(-1 * var(--frei-bleed));
+  padding: 12px var(--frei-bleed);
+  border: 1px solid var(--frei-line);
+  border-radius: 14px;
+  background: var(--frei-bg);
+}
+
+.date-row--frei .date-row-number {
+  color: var(--frei-accent);
+}
+
+.date-row--frei .date-row-weekday,
+.date-row--frei .date-row-detail,
+.date-row--frei .date-row-note {
+  color: var(--frei-ink-2);
+}
+
+.date-row--frei .date-row-title {
+  color: var(--frei-ink);
+}
+
+.date-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "FERIEN" / "FREI" next to the name. */
+.frei-tag {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--frei-accent);
+  border-radius: 6px;
+  color: var(--frei-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .ferien-list {
   display: flex;
   flex-direction: column;
