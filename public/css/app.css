@@ -40,8 +40,10 @@ button {
 }
 
 .view {
+  /* Side padding; full-bleed rows use it for their negative margins. */
+  --view-gutter: 24px;
   flex: 1;
-  padding: 16px 24px 24px;
+  padding: 16px var(--view-gutter) 24px;
   display: flex;
   flex-direction: column;
   gap: 26px;
@@ -681,7 +683,7 @@ button {
 }
 
 @media (max-width: 400px) {
-  .view { padding-left: 16px; padding-right: 16px; }
+  .view { --view-gutter: 16px; }
 }
 
 /* Stundenplan week navigation */
@@ -1034,31 +1036,6 @@ button {
 
 /* Termine */
 
-.segmented {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  background: var(--chip-bg);
-  border-radius: var(--radius-sm);
-}
-
-.segment {
-  flex: 1;
-  min-height: 38px;
-  border-radius: 9px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: transparent;
-}
-
-.segment--active {
-  background: var(--surface);
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(26, 23, 20, .12);
-}
-
 .next-card {
   background: var(--lk-badge-bg);
   color: var(--lk-badge-text);
@@ -1112,6 +1089,71 @@ button {
   border-top: 1px solid rgba(128, 128, 128, .35);
   padding-top: 10px;
   margin-top: 2px;
+}
+
+/* Termine filter tabs: full-bleed row that scrolls sideways, fading out on the right. */
+.termine-tabs-wrap {
+  position: relative;
+  flex: none;
+  margin: 0 calc(-1 * var(--view-gutter));
+}
+
+.termine-tabs-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 1px;
+  width: 40px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--bg));
+}
+
+.termine-tabs {
+  display: flex;
+  gap: 14px;
+  padding: 0 calc(var(--view-gutter) + 8px) 0 var(--view-gutter);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.termine-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.termine-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: var(--touch-target);
+  padding: 0 2px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: 500 15px/1 var(--font-sans);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.termine-tab[aria-pressed="true"] {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--text-primary);
+}
+
+.termine-tab:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.termine-tab-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .date-list {
@@ -1182,15 +1224,6 @@ button {
 
 .is-expandable:active {
   opacity: .6;
-}
-
-.date-row--muted .date-row-number,
-.date-row--muted .date-row-weekday {
-  color: var(--text-disabled);
-}
-
-.date-row--muted .date-row-title {
-  color: var(--text-secondary);
 }
 
 .ferien-list {
@@ -1820,6 +1853,48 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Mehr: the next break, linking to the Ferien page. */
+.mehr-ferien {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mehr-ferien[hidden] {
+  display: none;
+}
+
+.mehr-ferien-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mehr-ferien-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.mehr-ferien-when {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mehr-ferien-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.mehr-ferien-dates {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .app-disclaimer {

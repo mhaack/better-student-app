@@ -1,8 +1,11 @@
 import { getStudents, getSelectedStudentId, setSelectedStudentId, clearSession } from "../state/auth-store.js";
-import { resetContext } from "../state/session.js";
+import { ensureContext, resetContext } from "../state/session.js";
 import { clearCache } from "../data/cache.js";
 import { fetchSchool } from "../data/repository.js";
 import { getMitteilungenData } from "../data/mitteilungen.js";
+import { getFerienData } from "../data/ferien.js";
+import { relativeDays } from "../components/next-card.js";
+import { ferienRangeLabel } from "./ferien.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
 import { getCutoffHour, setCutoffHour } from "../state/settings.js";
@@ -82,6 +85,7 @@ export async function renderMehr(container) {
              </div>`
           : ""
       }
+      <a class="card mehr-ferien link-reset" href="#/mehr/ferien" id="mehr-ferien" hidden></a>
       ${switcher}
       <a class="card card-row mehr-link" href="#/mehr/mitteilungen">
         <span class="row-title">Mitteilungen</span>
@@ -135,7 +139,7 @@ export async function renderMehr(container) {
       // Shows "installed" only once opened standalone; say so meanwhile.
       button.replaceWith(
         Object.assign(document.createElement("div"), {
-          style: "font-size:14px;color:var(--text-secondary)",
+          className: "text-note",
           textContent: "Installiert — zu finden auf dem Home-Bildschirm.",
         })
       );
@@ -161,6 +165,28 @@ export async function renderMehr(container) {
     clearCache();
     navigate("/heute");
   });
+
+  // Loads after the page; without a next break the box stays hidden.
+  ensureContext()
+    .then(getFerienData)
+    .then(({ next }) => {
+      const box = container.querySelector("#mehr-ferien");
+      if (!box || !next) return;
+      box.innerHTML = `
+        <div class="mehr-ferien-text">
+          <div class="mehr-ferien-top">
+            <span class="eyebrow">Nächste Ferien</span>
+            <span class="mehr-ferien-when">${escapeHtml(relativeDays(next.from))}</span>
+          </div>
+          <div class="mehr-ferien-title">${escapeHtml(next.name)}</div>
+          <div class="mehr-ferien-dates">${escapeHtml(ferienRangeLabel(next))}</div>
+        </div>
+        <span class="mt-chevron" aria-hidden="true">›</span>`;
+      box.hidden = false;
+    })
+    .catch(() => {
+      // The Ferien page still shows the error.
+    });
 
   fetchSchool()
     .then((school) => {

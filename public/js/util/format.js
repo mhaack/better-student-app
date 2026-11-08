@@ -1,4 +1,7 @@
-const WEEKDAY_FORMAT = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
+const WEEKDAY_FORMATS = {
+  short: new Intl.DateTimeFormat("de-DE", { weekday: "short" }),
+  long: new Intl.DateTimeFormat("de-DE", { weekday: "long" }),
+};
 const SHORT_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit" });
 const FULL_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
 
@@ -45,18 +48,35 @@ export function weekdayOrDate(iso) {
   const days = daysFromToday(date);
   if (days === 0) return "Heute";
   if (days === 1) return "Morgen";
-  if (days >= 0 && days < 7) return WEEKDAY_FORMAT.format(date);
+  if (days >= 0 && days < 7) return formatWeekday(iso, "long");
   return SHORT_DATE_FORMAT.format(date);
 }
 
 /**
- * "23.09.26", for dates that may be months old. Parsed as local time:
- * new Date("2026-09-23") is UTC midnight.
+ * The calendar day of "2026-09-23" (a time after it is ignored) as local
+ * midnight; new Date("2026-09-23") would be UTC midnight. Null if unparseable.
  */
-export function formatFullDate(iso) {
+function localDate(iso) {
   const [y, m, d] = String(iso ?? "").slice(0, 10).split("-").map(Number);
-  if (!y || !m || !d) return "";
-  return FULL_DATE_FORMAT.format(new Date(y, m - 1, d));
+  return y && m && d ? new Date(y, m - 1, d) : null;
+}
+
+/** "23.09.26", for dates that may be months old. */
+export function formatFullDate(iso) {
+  const date = localDate(iso);
+  return date ? FULL_DATE_FORMAT.format(date) : "";
+}
+
+/** "Fr" (Intl's trailing dot dropped) or, with "long", "Freitag". */
+export function formatWeekday(iso, length = "short") {
+  const date = localDate(iso);
+  return date ? WEEKDAY_FORMATS[length].format(date).replace(".", "") : "";
+}
+
+/** "Fr 19.09.25" */
+export function formatWeekdayDate(iso) {
+  const full = formatFullDate(iso);
+  return full ? `${formatWeekday(iso)} ${full}` : "";
 }
 
 function startOfToday() {

@@ -1,7 +1,14 @@
-// German date and countdown wording.
+// German dates, countdowns and the points unit.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { calendarDaysBetween, countdownLabel, formatFullDate, scaleUnit } from "../../public/js/util/format.js";
+import {
+  calendarDaysBetween,
+  countdownLabel,
+  formatFullDate,
+  formatWeekday,
+  formatWeekdayDate,
+  scaleUnit,
+} from "../../public/js/util/format.js";
 
 describe("countdownLabel", () => {
   test("says Heute, Morgen, In n Tagen, Gestern, Vor n Tagen", () => {
@@ -23,11 +30,8 @@ describe("calendarDaysBetween", () => {
 });
 
 describe("formatFullDate", () => {
-  test("shows day, month and a two-digit year", () => {
+  test("shows the calendar day given, with a two-digit year", () => {
     assert.equal(formatFullDate("2026-11-03"), "03.11.26");
-  });
-
-  test("keeps the calendar day of a date-only string", () => {
     assert.equal(formatFullDate("2026-09-01"), "01.09.26");
   });
 
@@ -37,6 +41,23 @@ describe("formatFullDate", () => {
 
   test("returns an empty string for a missing date", () => {
     assert.equal(formatFullDate(undefined), "");
+  });
+});
+
+// Date parsing is shared with formatFullDate; these only cover the wording.
+describe("formatWeekday", () => {
+  test("gives the short weekday without the trailing dot by default", () => {
+    assert.equal(formatWeekday("2025-09-19"), "Fr");
+  });
+
+  test("gives the full weekday when asked", () => {
+    assert.equal(formatWeekday("2025-09-19", "long"), "Freitag");
+  });
+});
+
+describe("formatWeekdayDate", () => {
+  test("puts the short weekday before the full date", () => {
+    assert.equal(formatWeekdayDate("2025-09-19"), "Fr 19.09.25");
   });
 });
 

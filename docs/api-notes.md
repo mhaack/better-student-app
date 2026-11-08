@@ -117,9 +117,12 @@ inherits the subject of its collection.
   base timetable doesn't have — see `diffList` in `js/data/timetable.js`.
   Printing the plan's array as "the new room/teacher" is always wrong.
 - **`journal/lessons`** is the Klassenbuch: notes hang off a lesson as
-  `{ id, description, type: { local_id, name } }`. Types seen: `LEI`
-  ("Leistungskontrolle", an announced test) and `STU` ("Stundenthema", what the
-  lesson covered — backward-looking). No `due_date`; the lesson's own date is
+  `{ id, description, type: { local_id, name } }`. Types seen: `KLA`
+  ("Klassenarbeit/Klausur"), `LEI` ("Leistungskontrolle", an announced test),
+  `HAU` ("Hausaufgabe") and `STU` ("Stundenthema", what the lesson covered —
+  backward-looking). Termine files KLA/LEI under one tab, HAU under
+  Hausaufgaben, drops STU and puts any other type under Sonstiges
+  (`terminCategory` in `data/termine.js`). No `due_date`; the lesson's own date is
   the date it applies to. A double period records the **same entry twice, once
   per lesson, with different note ids** — dedupe by content.
 - **Announcement** body is `message`: Markdown (`**bold**`, `\n\n`

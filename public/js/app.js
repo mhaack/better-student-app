@@ -12,6 +12,7 @@ import { renderFachDetail } from "./views/fach-detail.js";
 import { renderStundenplan } from "./views/stundenplan.js";
 import { renderTermine } from "./views/termine.js";
 import { renderMehr } from "./views/mehr.js";
+import { renderFerien } from "./views/ferien.js";
 import { renderMitteilungen, renderMitteilung } from "./views/mitteilungen.js";
 import { renderRechtliches } from "./views/rechtliches.js";
 import { getMitteilungenData } from "./data/mitteilungen.js";
@@ -57,6 +58,7 @@ route(/^\/termine$/, withShell(renderTermine));
 route(/^\/mehr$/, withShell(renderMehr));
 // Under /mehr so the Mehr tab stays highlighted.
 route(/^\/mehr\/mitteilungen$/, withShell(renderMitteilungen));
+route(/^\/mehr\/ferien$/, withShell(renderFerien));
 route(/^\/mehr\/mitteilungen\/(?<id>\d+)$/, withShell((container, params) => renderMitteilung(container, params)));
 // The Impressum must be reachable without logging in, so it skips withShell's login gate.
 route(/^\/mehr\/rechtliches$/, (params) => {

@@ -1,4 +1,4 @@
-// The "Ferien" segment of Termine. Three sources:
+// Ferien for the Ferien page (under Mehr) and the Termine tab. Three sources:
 //   school or not on a day     time-tables/current → no_school_dates
 //   name and range of a break  schulferien-api.de (the school's dates are incomplete)
 //   name of a single free day  domain/feiertage.js

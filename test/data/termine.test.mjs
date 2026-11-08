@@ -2,7 +2,17 @@
 // they land on in the Stundenplan. Names like the real ones.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { examsFromNotes, attachExams, withExamDetails } from "../../public/js/data/termine.js";
+import {
+  examsFromNotes,
+  attachExams,
+  withExamDetails,
+  terminCategory,
+  termineFromNotes,
+  countByCategory,
+  termineList,
+  termineSubtitle,
+  upcomingBlocks,
+} from "../../public/js/data/termine.js";
 
 const MA = { subject: "Mathematik", subjectShort: "MA", subjectId: 11 };
 const EN = { subject: "Englisch", subjectShort: "EN", subjectId: 12 };
@@ -171,5 +181,194 @@ describe("withExamDetails", () => {
     assert.equal(exam.room, "206");
     assert.equal(exam.timeLabel, "3. Stunde · 09:55–10:40");
     assert.equal(exam.countdown, "In 2 Tagen");
+  });
+});
+
+const hw = (date, period, subject, text = "S. 42, Aufgaben 3–5") =>
+  note(date, period, subject, { typeCode: "HAU", typeName: "Hausaufgabe", text });
+const test_ = (date, period, subject, text = "Unit 2") =>
+  note(date, period, subject, { typeCode: "LEI", typeName: "Leistungskontrolle", text });
+const topic = (date, period, subject) =>
+  note(date, period, subject, { typeCode: "STU", typeName: "Stundenthema", text: "Wiederholung" });
+
+describe("terminCategory", () => {
+  test("files Klassenarbeiten and tests under one tab, homework under its own", () => {
+    assert.equal(terminCategory({ typeCode: "KLA" }), "exam");
+    assert.equal(terminCategory({ typeCode: "LEI" }), "exam");
+    assert.equal(terminCategory({ typeCode: "HAU" }), "hw");
+  });
+
+  test("puts any other note type under Sonstiges", () => {
+    assert.equal(terminCategory({ typeCode: "ELT" }), "other");
+    assert.equal(terminCategory({ typeCode: undefined }), "other");
+  });
+
+  test("leaves out the Stundenthema, which looks back", () => {
+    assert.equal(terminCategory({ typeCode: "STU" }), null);
+  });
+});
+
+describe("termineFromNotes", () => {
+  test("keeps exams, homework and other notes in date order, each with its tab", () => {
+    const termine = termineFromNotes([
+      hw("2026-09-22", 2, DE),
+      note("2026-09-19", 5, MA),
+      test_("2026-09-23", 2, EN),
+      note("2026-09-25", 1, DE, { typeCode: "ELT", typeName: "Elternabend", text: "Aula, 19 Uhr" }),
+    ]);
+    assert.deepEqual(
+      termine.map((t) => [t.date, t.category]),
+      [
+        ["2026-09-19", "exam"],
+        ["2026-09-22", "hw"],
+        ["2026-09-23", "exam"],
+        ["2026-09-25", "other"],
+      ]
+    );
+  });
+
+  test("drops Stundenthemen and notes without text", () => {
+    const termine = termineFromNotes([topic("2026-09-22", 1, DE), hw("2026-09-22", 2, DE, "")]);
+    assert.deepEqual(termine, []);
+  });
+});
+
+const herbst = { name: "Herbstferien", from: "2026-10-12", to: "2026-10-24", schoolDays: 10, isFerien: true };
+const weihnacht = { name: "Weihnachtsferien", from: "2026-12-21", to: "2027-01-02", schoolDays: 9, isFerien: true };
+const bussUndBettag = { name: "Buß- und Bettag", from: "2026-11-18", to: "2026-11-18", schoolDays: 1, isFerien: false };
+
+describe("countByCategory", () => {
+  test("counts every tab, keeping empty ones at zero", () => {
+    const termine = termineFromNotes([
+      note("2026-09-19", 5, MA),
+      hw("2026-09-22", 2, DE),
+      hw("2026-09-24", 3, MA),
+      test_("2026-09-23", 2, EN),
+    ]);
+    assert.deepEqual(countByCategory(termine, 3), { all: 4, exam: 2, hw: 2, other: 0, ferien: 3 });
+  });
+});
+
+describe("termineList", () => {
+  const termine = termineFromNotes([
+    note("2026-09-19", 5, MA),
+    hw("2026-09-22", 2, DE),
+    test_("2026-10-01", 1, EN),
+    hw("2026-11-04", 3, MA),
+    note("2027-01-14", 1, DE),
+  ]);
+  const winter = { name: "Winterferien", from: "2027-02-08", to: "2027-02-20", schoolDays: 10, isFerien: true };
+  const options = { nextFerien: herbst, ferien: [herbst, weihnacht, winter], freieTage: [bussUndBettag] };
+  const kinds = (items) => items.map((i) => (i.ferien ? i.ferien.name : `${i.termin.category} ${i.date}`));
+
+  test("covers the whole year on Alle, with breaks and free days in between", () => {
+    assert.deepEqual(kinds(termineList(termine, "all", options)), [
+      "exam 2026-09-19",
+      "hw 2026-09-22",
+      "exam 2026-10-01",
+      "Herbstferien",
+      "hw 2026-11-04",
+      "Buß- und Bettag",
+      "Weihnachtsferien",
+      "exam 2027-01-14",
+    ]);
+  });
+
+  test("shows a tab's breaks only within its own entries", () => {
+    assert.deepEqual(kinds(termineList(termine, "hw", options)), ["hw 2026-09-22", "Herbstferien", "hw 2026-11-04"]);
+    assert.deepEqual(kinds(termineList(termine, "exam", options)), [
+      "exam 2026-09-19",
+      "exam 2026-10-01",
+      "Herbstferien",
+      "Buß- und Bettag",
+      "Weihnachtsferien",
+      "exam 2027-01-14",
+    ]);
+  });
+
+  test("always ends Alle with the next break, even before it", () => {
+    const early = termineFromNotes([note("2026-09-19", 5, MA)]);
+    assert.deepEqual(kinds(termineList(early, "all", options)), ["exam 2026-09-19", "Herbstferien"]);
+  });
+
+  test("ends Alle with the last entry when no break is left", () => {
+    const late = termineFromNotes([note("2027-07-01", 1, MA)]);
+    assert.deepEqual(kinds(termineList(late, "all", { nextFerien: null, ferien: [], freieTage: [] })), [
+      "exam 2027-07-01",
+    ]);
+  });
+
+  test("leaves an empty tab empty", () => {
+    assert.deepEqual(termineList(termine, "other", options), []);
+  });
+
+  test("lists the breaks and single free days by date on the Ferien tab", () => {
+    assert.deepEqual(kinds(termineList(termine, "ferien", options)), [
+      "Herbstferien",
+      "Buß- und Bettag",
+      "Weihnachtsferien",
+      "Winterferien",
+    ]);
+  });
+});
+
+describe("upcomingBlocks", () => {
+  const sommer = { name: "Sommerferien", from: "2026-07-09", to: "2026-08-19", isFerien: true };
+
+  test("keeps breaks that haven't ended yet, including one under way", () => {
+    assert.deepEqual(
+      upcomingBlocks([sommer, herbst, weihnacht], "2026-10-14").map((b) => b.name),
+      ["Herbstferien", "Weihnachtsferien"]
+    );
+  });
+
+  test("drops a single free day once it is over", () => {
+    assert.deepEqual(upcomingBlocks([bussUndBettag], "2026-11-19"), []);
+  });
+});
+
+describe("termineSubtitle", () => {
+  const termine = termineFromNotes([note("2026-09-19", 5, MA), hw("2026-09-22", 2, DE), hw("2026-09-24", 3, MA)]);
+  const options = { nextFerien: herbst, scale: "grade_1_6" };
+
+  test("counts the tab up to the next break", () => {
+    assert.equal(termineSubtitle(termine, "all", options), "3 Termine bis zu den Herbstferien");
+    assert.equal(termineSubtitle(termine, "hw", options), "2 Hausaufgaben bis zu den Herbstferien");
+    assert.equal(termineSubtitle(termine, "other", options), "0 sonstige Termine bis zu den Herbstferien");
+  });
+
+  test("counts only what comes before the next break", () => {
+    const later = termineFromNotes([hw("2026-09-22", 2, DE), hw("2026-11-04", 3, MA)]);
+    assert.equal(termineSubtitle(later, "hw", options), "1 Hausaufgabe bis zu den Herbstferien");
+  });
+
+  test("counts exams and tests over the whole school year, in singular and plural", () => {
+    assert.equal(termineSubtitle(termine, "exam", options), "1 Arbeit oder Test in diesem Schuljahr");
+    const two = termineFromNotes([note("2026-09-19", 5, MA), test_("2027-01-14", 2, EN)]);
+    assert.equal(termineSubtitle(two, "exam", options), "2 Arbeiten & Tests in diesem Schuljahr");
+  });
+
+  test("calls them Klausuren in the Oberstufe", () => {
+    assert.equal(
+      termineSubtitle(termine, "exam", { ...options, scale: "points_0_15" }),
+      "1 Klausur oder Test in diesem Schuljahr"
+    );
+  });
+
+  test("says the rest of the school year when no break is left", () => {
+    assert.equal(termineSubtitle(termine, "all", { ...options, nextFerien: null }), "3 Termine in diesem Schuljahr");
+  });
+
+  test("counts breaks and free days on the Ferien tab", () => {
+    const ferienOptions = { ...options, ferienCount: 5, freieTageCount: 3, yearLabel: "Schuljahr 2026/27" };
+    assert.equal(termineSubtitle(termine, "ferien", ferienOptions), "5 Ferien und 3 freie Tage im Schuljahr 2026/27");
+    assert.equal(
+      termineSubtitle(termine, "ferien", { ...ferienOptions, freieTageCount: 1 }),
+      "5 Ferien und 1 freier Tag im Schuljahr 2026/27"
+    );
+    assert.equal(
+      termineSubtitle(termine, "ferien", { ...ferienOptions, freieTageCount: 0, yearLabel: "" }),
+      "5 Ferien in diesem Schuljahr"
+    );
   });
 });
