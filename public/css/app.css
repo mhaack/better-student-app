@@ -1698,6 +1698,17 @@ button {
   min-height: 48px;
 }
 
+/* "Alle Termine ›" under a shortened list. */
+.section-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
 /* Noten */
 .view.view--noten {
   gap: 24px;

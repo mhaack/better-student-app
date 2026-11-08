@@ -17,7 +17,7 @@ import { markNewGrades } from "../domain/grades.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
-const MAX_NOTES = 6;
+const MAX_NOTES = 3;
 
 function germanWeekdayDate(date) {
   return new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(date);
@@ -56,6 +56,15 @@ export function newestGrade(grades, gradeNotifications, now) {
   if (!newest) return null;
   const age = calendarDaysBetween(newest.date.slice(0, 10), isoDate(now));
   return age <= RECENT_GRADE_WINDOW_DAYS ? newest : null;
+}
+
+/** "Nächste Termine": the first few Klassenbuch entries by date, and how many more there are. */
+export function nextTermine(notes, max = MAX_NOTES) {
+  const upcoming = notes
+    // Plan Klausuren have no text.
+    .filter((n) => terminCategory(n) !== null && (n.text || n.isExam))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return { notes: upcoming.slice(0, max), more: Math.max(0, upcoming.length - max) };
 }
 
 /**
@@ -105,10 +114,6 @@ export async function getHeuteData(studentId, scale) {
     lessons,
     changes,
     newestGrade: newestGrade(markNewGrades(grades, role), gradeNotifications, now),
-    notes: uniqueNotes
-      // Plan Klausuren have no text.
-      .filter((n) => terminCategory(n) !== null && (n.text || n.isExam))
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, MAX_NOTES),
+    termine: nextTermine(uniqueNotes),
   };
 }
