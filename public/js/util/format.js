@@ -54,7 +54,7 @@ export function weekdayOrDate(iso) {
  * new Date("2026-09-23") is UTC midnight.
  */
 export function formatFullDate(iso) {
-  const [y, m, d] = String(iso ?? "").split("-").map(Number);
+  const [y, m, d] = String(iso ?? "").slice(0, 10).split("-").map(Number);
   if (!y || !m || !d) return "";
   return FULL_DATE_FORMAT.format(new Date(y, m - 1, d));
 }

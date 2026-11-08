@@ -2,6 +2,7 @@ import {
   fetchDayPlans,
   fetchCurrentTimetable,
   fetchGrades,
+  fetchGradeNotifications,
   fetchJournalNotes,
   isoDate,
 } from "./repository.js";
@@ -10,6 +11,7 @@ import { withExamDetails } from "./termine.js";
 import { getPlannedKlausuren } from "./klausuren.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
+import { calendarDaysBetween } from "../util/format.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
@@ -33,6 +35,30 @@ function changeText(lesson) {
 }
 
 /**
+ * The most recently entered grade and that date, or null if it was over 14
+ * days ago.
+ * given_at is the Leistung's date, so a Klausur graded weeks later would sink;
+ * the bell feed's created_at says when it was entered. Grades missing from the
+ * feed fall back to given_at; same-day ties go to the higher (later) id.
+ */
+export function newestGrade(grades, gradeNotifications, now) {
+  const enteredAt = new Map();
+  for (const { gradeId, createdAt } of gradeNotifications) {
+    if (gradeId == null || !createdAt) continue;
+    if (createdAt > (enteredAt.get(gradeId) ?? "")) enteredAt.set(gradeId, createdAt);
+  }
+
+  const newest = grades
+    .map((grade) => ({ grade, date: enteredAt.get(grade.id) ?? grade.givenAt }))
+    .filter((entry) => entry.date)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.grade.id - a.grade.id)[0];
+
+  if (!newest) return null;
+  const age = calendarDaysBetween(newest.date.slice(0, 10), isoDate(now));
+  return age <= RECENT_GRADE_WINDOW_DAYS ? newest : null;
+}
+
+/**
  * The "Heute" screen. "Today" is the day shown, which after the cutoff is the
  * next school day.
  * @param {number} studentId
@@ -47,10 +73,12 @@ export async function getHeuteData(studentId, scale) {
   const dayIso = isoDate(day);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
-  const [dayPlans, grades, notes, planned] = await Promise.all([
+  const [dayPlans, grades, gradeNotifications, notes, planned] = await Promise.all([
     // The whole Anstehend window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
+    // Optional: without the feed, Letzte Note falls back to given_at.
+    fetchGradeNotifications().catch(() => []),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
     getPlannedKlausuren(studentId, dayIso, notesUntilIso),
   ]);
@@ -67,11 +95,6 @@ export async function getHeuteData(studentId, scale) {
       text: changeText(l),
     }));
 
-  const sortedGrades = [...grades].sort((a, b) => new Date(b.givenAt) - new Date(a.givenAt));
-  const newest = sortedGrades[0];
-  const withinWindow =
-    newest && (now - new Date(newest.givenAt)) / 86_400_000 <= RECENT_GRADE_WINDOW_DAYS;
-
   const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now), planned);
 
   return {
@@ -80,7 +103,7 @@ export async function getHeuteData(studentId, scale) {
     dayNotes,
     lessons,
     changes,
-    newestGrade: withinWindow ? newest : null,
+    newestGrade: newestGrade(grades, gradeNotifications, now),
     notes: uniqueNotes
       // Plan Klausuren have no text.
       .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && (n.text || n.isExam))

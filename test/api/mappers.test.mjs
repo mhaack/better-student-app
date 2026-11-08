@@ -2,7 +2,7 @@
 // (docs/api-notes.md); the texts are made up.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { mapAnnouncement, mapGrade, mapMe } from "../../public/js/api/mappers.js";
+import { mapAnnouncement, mapGrade, mapGradeNotification, mapMe } from "../../public/js/api/mappers.js";
 import { rawAnnouncement } from "../support/announcements.mjs";
 
 describe("mapAnnouncement", () => {
@@ -94,5 +94,33 @@ describe("mapGrade", () => {
 
   test("leaves an unread grade unacknowledged", () => {
     assert.equal(mapGrade(rawGrade({ read: false, read_by_type: null }), "points_0_15").readByGuardian, false);
+  });
+});
+
+describe("mapGradeNotification", () => {
+  const rawNotification = (overrides) => ({
+    id: "8f0c6d1e-2b4a-4c55-9e1f-3a7b9d2c4e60",
+    notification_type: "grade",
+    action: "created",
+    created_at: "2026-11-07",
+    read_at: null,
+    redirect_url: "https://beste.schule/students/1/grades",
+    notifiable_type: "user",
+    data: { collection_name: "Klausur Mechanik", subject_name: "Physik" },
+    grade: { id: 71300001, value: "10", given_at: "2026-10-13", student_id: 1, collection_id: 4370299 },
+    notifiable: { id: 5, email: "eltern@example.org", role: "guardian" },
+    ...overrides,
+  });
+
+  test("keeps the grade id, the action and when it happened", () => {
+    assert.deepEqual(mapGradeNotification(rawNotification()), {
+      gradeId: 71300001,
+      action: "created",
+      createdAt: "2026-11-07",
+    });
+  });
+
+  test("tolerates an entry without an embedded grade", () => {
+    assert.equal(mapGradeNotification(rawNotification({ grade: null })).gradeId, null);
   });
 });

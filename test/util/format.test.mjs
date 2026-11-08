@@ -31,6 +31,10 @@ describe("formatFullDate", () => {
     assert.equal(formatFullDate("2026-09-01"), "01.09.26");
   });
 
+  test("ignores a time of day after the date", () => {
+    assert.equal(formatFullDate("2026-11-06 18:30:00"), "06.11.26");
+  });
+
   test("returns an empty string for a missing date", () => {
     assert.equal(formatFullDate(undefined), "");
   });
