@@ -4,7 +4,8 @@ import { getHeuteData } from "../data/heute.js";
 import { getMitteilungenData } from "../data/mitteilungen.js";
 import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
-import { weekdayOrDate, daysUntil } from "../util/format.js";
+import { weekdayOrDate, daysUntil, formatFullDate } from "../util/format.js";
+import { gradeMeta } from "../components/grade-meta.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
@@ -58,18 +59,20 @@ function changesCard(changes) {
     </div>`;
 }
 
-function newGradeSection(grade) {
-  if (!grade) return "";
+/** @param {{ grade: object, date: string } | null} newest */
+function newGradeSection(newest) {
+  if (!newest) return "";
+  const { grade, date } = newest;
   // Same target as a subject row in the Noten tab.
   const tag = grade.subjectId != null ? "a" : "div";
   const link = tag === "a" ? ` href="#/noten/${encodeURIComponent(grade.subjectId)}"` : "";
   return `
     <div class="section" style="gap:12px">
-      <div class="eyebrow">Letzte Note</div>
+      <div class="eyebrow">Letzte Note (vom ${escapeHtml(formatFullDate(date))})</div>
       <${tag} class="card-row${tag === "a" ? " is-expandable" : ""}"${link} style="min-height:48px;text-decoration:none;color:inherit">
         <div>
           <div style="font-size:16px;color:var(--text-primary);font-weight:500">${escapeHtml(grade.subjectName ?? "")}</div>
-          <div style="font-size:13px;color:var(--text-muted)">${escapeHtml(grade.collection?.name || grade.collection?.type || "")}</div>
+          ${gradeMeta(grade, [grade.collection?.name || grade.collection?.type])}
         </div>
         <span class="grade-capsule grade-capsule--new">${escapeHtml(grade.raw)}</span>
       </${tag}>

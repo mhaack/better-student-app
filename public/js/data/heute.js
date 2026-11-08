@@ -35,7 +35,8 @@ function changeText(lesson) {
 }
 
 /**
- * The most recently entered grade, or null if that was over 14 days ago.
+ * The most recently entered grade and that date, or null if it was over 14
+ * days ago.
  * given_at is the Leistung's date, so a Klausur graded weeks later would sink;
  * the bell feed's created_at says when it was entered. Grades missing from the
  * feed fall back to given_at; same-day ties go to the higher (later) id.
@@ -54,7 +55,7 @@ export function newestGrade(grades, gradeNotifications, now) {
 
   if (!newest) return null;
   const age = calendarDaysBetween(newest.date.slice(0, 10), isoDate(now));
-  return age <= RECENT_GRADE_WINDOW_DAYS ? newest.grade : null;
+  return age <= RECENT_GRADE_WINDOW_DAYS ? newest : null;
 }
 
 /**

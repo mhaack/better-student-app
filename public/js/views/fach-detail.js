@@ -3,16 +3,9 @@ import { ensureContext } from "../state/session.js";
 import { getFachDetailData } from "../data/fach-detail.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatAverage, formatFullDate } from "../util/format.js";
+import { formatAverage } from "../util/format.js";
+import { gradeMeta } from "../components/grade-meta.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
-
-function dateLine(grade) {
-  const parts = [
-    grade.givenAt ? escapeHtml(formatFullDate(grade.givenAt)) : "",
-    grade.readByGuardian ? '<span role="img" aria-label="von Eltern gelesen" title="Von Eltern gelesen">✓</span>' : "",
-  ].filter(Boolean);
-  return parts.length ? `<div class="grade-entry-meta">${parts.join('<span class="grade-entry-sep" aria-hidden="true">·</span>')}</div>` : "";
-}
 
 function gradeEntryRow(grade, isPoints) {
   const title = grade.collection.name || grade.collection.type;
@@ -20,7 +13,7 @@ function gradeEntryRow(grade, isPoints) {
     <div class="grade-entry-row${isPoints ? " grade-entry-row--points" : ""}">
       <div>
         <div class="grade-entry-title">${escapeHtml(title)}</div>
-        ${dateLine(grade)}
+        ${gradeMeta(grade)}
       </div>
       <span class="grade-capsule">${escapeHtml(grade.raw)}</span>
     </div>`;
