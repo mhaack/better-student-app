@@ -8,7 +8,7 @@ import {
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
-import { withExamDetails } from "./termine.js";
+import { terminCategory, withExamDetails } from "./termine.js";
 import { getPlannedKlausuren } from "./klausuren.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
@@ -18,8 +18,6 @@ import { markNewGrades } from "../domain/grades.js";
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
 const MAX_NOTES = 6;
-// Stundenthema looks back, it isn't a to-do.
-const BACKWARD_LOOKING_NOTE_TYPES = new Set(["STU"]);
 
 function germanWeekdayDate(date) {
   return new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(date);
@@ -109,7 +107,7 @@ export async function getHeuteData(studentId, scale) {
     newestGrade: newestGrade(markNewGrades(grades, role), gradeNotifications, now),
     notes: uniqueNotes
       // Plan Klausuren have no text.
-      .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && (n.text || n.isExam))
+      .filter((n) => terminCategory(n) !== null && (n.text || n.isExam))
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, MAX_NOTES),
   };

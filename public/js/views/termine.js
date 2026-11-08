@@ -1,52 +1,31 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
-import { getTermineData } from "../data/termine.js";
+import {
+  countByCategory,
+  getTermineData,
+  termineList,
+  termineSubtitle,
+  upcomingBlocks,
+} from "../data/termine.js";
 import { getFerienData } from "../data/ferien.js";
-import { ferienStem } from "../domain/holidays.js";
 import { escapeHtml } from "../util/dom.js";
-import { daysUntil } from "../util/format.js";
+import { formatWeekday, formatWeekdayDate } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
+import { nextCard, relativeDays } from "../components/next-card.js";
 
-const WEEKDAY_SHORT = new Intl.DateTimeFormat("de-DE", { weekday: "short" });
+const MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" });
 
-/** "Fr 19.9." — the design's compact date; "Fr 19.9.2026" with the year. */
-function shortDate(iso, includeYear = false) {
-  const date = new Date(`${iso}T00:00:00`);
-  return `${WEEKDAY_SHORT.format(date).replace(".", "")} ${numericDate(iso, includeYear)}`;
-}
-
-/** "6.10." within the current year, "6.1.2027" once it crosses over. */
-function numericDate(iso, includeYear) {
-  const date = new Date(`${iso}T00:00:00`);
-  const base = `${date.getDate()}.${date.getMonth() + 1}.`;
-  return includeYear ? `${base}${date.getFullYear()}` : base;
-}
-
-/** "heute" / "morgen" / "in 2 Tagen" — the dark card's right-hand note. */
-function relativeDays(iso) {
-  const days = daysUntil(iso);
-  if (days === null) return "";
-  if (days < 0) return "vorbei";
-  if (days === 0) return "heute";
-  if (days === 1) return "morgen";
-  return `in ${days} Tagen`;
-}
-
-function nextCard(eyebrow, title, meta, body) {
-  return `
-    <div class="next-card">
-      <div class="next-card-eyebrow">${escapeHtml(eyebrow)}</div>
-      <div class="next-card-head">
-        <div class="next-card-title">${escapeHtml(title)}</div>
-        <div class="next-card-when">${escapeHtml(meta)}</div>
-      </div>
-      ${body}
-    </div>`;
-}
+const TABS = [
+  ["all", "Alle"],
+  ["exam", "Arbeiten & Tests"],
+  ["hw", "Hausaufgaben"],
+  ["ferien", "Ferien"],
+  ["other", "Sonstiges"],
+];
 
 function examNextCard(exam) {
-  const line = [shortDate(exam.date), exam.periodLabel, exam.typeName].filter(Boolean).join(" · ");
+  const line = [formatWeekdayDate(exam.date), exam.typeName, exam.periodLabel].filter(Boolean).join(" · ");
   return nextCard(
     "Als nächstes",
     exam.subject ?? exam.subjectShort ?? "",
@@ -56,150 +35,97 @@ function examNextCard(exam) {
   );
 }
 
-function examRow(exam, index) {
-  const date = new Date(`${exam.date}T00:00:00`);
-  const detail = [exam.typeName, exam.periodLabel].filter(Boolean).join(" · ");
+/** "19." over "Fr": the left column of every list row. */
+function dayColumn(iso) {
   return `
-    <div class="date-row" data-exam-index="${index}">
-      <div class="date-row-day">
-        <div class="date-row-number">${date.getDate()}.</div>
-        <div class="date-row-weekday">${escapeHtml(WEEKDAY_SHORT.format(date).replace(".", ""))}</div>
-      </div>
-      <div class="date-row-body">
-        <div class="date-row-title">${escapeHtml(exam.subject ?? exam.subjectShort ?? "")}</div>
-        ${detail ? `<div class="date-row-detail">${escapeHtml(detail)}</div>` : ""}
-        ${exam.text ? `<div class="date-row-note">${escapeHtml(exam.text)}</div>` : ""}
-      </div>
+    <div class="date-row-day">
+      <div class="date-row-number">${Number(iso.slice(8, 10))}.</div>
+      <div class="date-row-weekday">${escapeHtml(formatWeekday(iso))}</div>
     </div>`;
 }
 
-/** The greyed-out Ferien row that closes the Termine list. */
+/** Title, then the kind ("Klassenarbeit · 5.–6. Stunde"), then the clamped detail. */
+function rowBody(title, kind, detail) {
+  return `
+    <div class="date-row-body">
+      <div class="date-row-title">${escapeHtml(title)}</div>
+      ${kind ? `<div class="date-row-detail">${escapeHtml(kind)}</div>` : ""}
+      ${detail ? `<div class="date-row-note">${escapeHtml(detail)}</div>` : ""}
+    </div>`;
+}
+
+function terminRow(termin, index) {
+  const kind = [termin.typeName, termin.periodLabel].filter(Boolean).join(" · ");
+  return `
+    <div class="date-row" data-termin-index="${index}">
+      ${dayColumn(termin.date)}
+      ${rowBody(termin.subject ?? termin.subjectShort ?? "", kind, termin.text)}
+    </div>`;
+}
+
+/** A break or single free day on the Ferien tab. */
 function ferienRow(block) {
-  const date = new Date(`${block.from}T00:00:00`);
+  const kind = block.isFerien
+    ? `Ferien · bis ${formatWeekdayDate(block.to)}`
+    : block.from === block.to
+      ? "Freier Tag"
+      : `Freie Tage · bis ${formatWeekdayDate(block.to)}`;
+  const detail = block.isFerien ? (block.schoolDays ? `${block.schoolDays} Schultage frei` : "") : "kein Unterricht";
   return `
-    <div class="date-row date-row--muted">
-      <div class="date-row-day">
-        <div class="date-row-number">${date.getDate()}.</div>
-        <div class="date-row-weekday">${escapeHtml(WEEKDAY_SHORT.format(date).replace(".", ""))}</div>
-      </div>
-      <div class="date-row-body">
-        <div class="date-row-title">${escapeHtml(block.name)}</div>
-        <div class="date-row-detail">bis ${escapeHtml(shortDate(block.to))}</div>
-      </div>
+    <div class="date-row">
+      ${dayColumn(block.from)}
+      ${rowBody(block.name || "Schulfrei", kind, detail)}
     </div>`;
 }
-
-const MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long" });
 
 /** The full entry behind a row whose Klassenbuch text was clamped. */
-function openExamDetail(container, exam) {
+function openTerminDetail(container, termin) {
   openDetailSheet(container, {
-    eyebrow: exam.typeName,
-    title: exam.subject ?? exam.subjectShort ?? "",
-    subtitle: [shortDate(exam.date), exam.periodLabel].filter(Boolean).join(" · "),
-    note: exam.text,
+    eyebrow: termin.typeName,
+    title: termin.subject ?? termin.subjectShort ?? "",
+    subtitle: [formatWeekdayDate(termin.date), termin.periodLabel].filter(Boolean).join(" · "),
+    note: termin.text,
   });
 }
 
-function termineBody(termine, ferien) {
-  if (!termine.count) {
-    return renderEmptyState("Keine Klassenarbeiten oder Tests eingetragen.");
-  }
+/** Second level under the dark card; empty tabs are left out, Alle always stays. */
+function filterTabs(active, counts, scale) {
+  const buttons = TABS.filter(([key]) => key === "all" || counts[key] > 0).map(([key, label]) => {
+    const text = key === "exam" && scale === "points_0_15" ? "Klausuren & Tests" : label;
+    return `<button type="button" class="termine-tab" data-filter="${key}" aria-pressed="${key === active}">${escapeHtml(text)}<span class="termine-tab-count">${counts[key]}</span></button>`;
+  }).join("");
+  return `<div class="termine-tabs-wrap"><div class="termine-tabs" role="group" aria-label="Filter">${buttons}</div></div>`;
+}
 
-  const lastExam = termine.exams.at(-1)?.date ?? "";
-  const entries = [
-    ...termine.exams.map((exam, i) => ({ date: exam.date, html: examRow(exam, i) })),
-    // Breaks sit in date order as orientation, only within the exams' span.
-    ...(ferien?.ferien ?? [])
-      .filter((block) => block.from > termine.exams[0].date && block.from < lastExam)
-      .map((block) => ({ date: block.from, html: ferienRow(block) })),
-  ].sort((a, b) => a.date.localeCompare(b.date));
+/** Scrolls the active tab fully clear of the right-hand fade. */
+function revealActiveTab(body) {
+  const tabs = body.querySelector(".termine-tabs");
+  const active = tabs?.querySelector('[aria-pressed="true"]');
+  if (!active) return;
+  tabs.scrollLeft = Math.max(0, active.offsetLeft + active.offsetWidth + 40 - tabs.clientWidth);
+}
 
+/** @param {Array<{ date: string, termin?: object, ferien?: object }>} items */
+function termineBody(nextExam, counts, items, filter, scale, emptyText) {
   let currentMonth = "";
-  const rows = entries
-    .map((entry) => {
-      const label = MONTH_FORMAT.format(new Date(`${entry.date}T00:00:00`));
+  const rows = items
+    .map((item, index) => {
+      const label = MONTH_FORMAT.format(new Date(`${item.date}T00:00:00`));
       const heading = label === currentMonth ? "" : `<div class="eyebrow">${escapeHtml(label)}</div>`;
       currentMonth = label;
-      return heading + entry.html;
+      return heading + (item.ferien ? ferienRow(item.ferien) : terminRow(item.termin, index));
     })
     .join("");
 
   // The next exam stays in the list too, by design.
-  return `${examNextCard(termine.exams[0])}<div class="date-list">${rows}</div>`;
-}
-
-function ferienListRow(block) {
-  // One day isn't a range; the start shows the year only across New Year.
-  const crossesYear = block.from.slice(0, 4) !== block.to.slice(0, 4);
-  const range =
-    block.from === block.to
-      ? numericDate(block.to, true)
-      : `${numericDate(block.from, crossesYear)} – ${numericDate(block.to, true)}`;
-  return `
-    <div class="ferien-row">
-      <div class="ferien-row-name">${escapeHtml(ferienStem(block.name))}</div>
-      <div class="ferien-row-range">${escapeHtml(range)}</div>
-    </div>`;
-}
-
-function freierTagRow(block) {
-  const label = block.name || "Schulfrei";
-  // Same year rule as the Ferien rows above, keeping the weekday.
-  const crossesYear = block.from.slice(0, 4) !== block.to.slice(0, 4);
-  const range =
-    block.from === block.to
-      ? shortDate(block.from, true)
-      : `${shortDate(block.from, crossesYear)} – ${shortDate(block.to, true)}`;
-  return `
-    <div class="ferien-row">
-      <div class="ferien-row-name">${escapeHtml(label)}</div>
-      <div class="ferien-row-range">${escapeHtml(range)}</div>
-    </div>`;
-}
-
-function ferienBody(ferien) {
-  if (!ferien.ferien.length && !ferien.freieTage.length) {
-    return renderEmptyState("Keine Ferientermine hinterlegt.");
-  }
-
-  const next = ferien.next
-    ? nextCard(
-        "Als nächstes",
-        ferien.next.name,
-        relativeDays(ferien.next.from),
-        `<div class="next-card-meta">${escapeHtml(
-          `${shortDate(ferien.next.from)} – ${shortDate(ferien.next.to)} · ${ferien.next.schoolDays} Schultage frei`
-        )}</div>`
-      )
-    : "";
-
-  const ferienList = ferien.ferien.length
-    ? `<div class="eyebrow">Ferien</div>
-       ${ferien.ferien.map(ferienListRow).join("")}`
-    : "";
-
-  const freieTage = ferien.freieTage.length
-    ? `<div class="eyebrow freie-tage-title">Einzelne freie Tage</div>
-       ${ferien.freieTage.map(freierTagRow).join("")}`
-    : "";
-
-  return `${next}<div class="ferien-list">${ferienList}${freieTage}</div>`;
-}
-
-function segmentedControl(active) {
-  const tab = (id, label) => `
-    <button type="button" role="tab" class="segment${active === id ? " segment--active" : ""}"
-            data-segment="${id}" aria-selected="${active === id}">${label}</button>`;
-  return `
-    <div class="segmented" role="tablist" aria-label="Ansicht">
-      ${tab("termine", "Termine")}${tab("ferien", "Ferien")}
-    </div>`;
+  return `${nextExam ? examNextCard(nextExam) : ""}
+    ${filterTabs(filter, counts, scale)}
+    ${rows ? `<div class="date-list">${rows}</div>` : renderEmptyState(emptyText)}`;
 }
 
 export async function renderTermine(container) {
   // Deliberately not persisted.
-  let segment = "termine";
+  let filter = "all";
 
   container.innerHTML = `
     <div class="view">
@@ -207,62 +133,62 @@ export async function renderTermine(container) {
         <h1 class="view-title">Termine</h1>
         <div class="view-subtitle" id="termine-subtitle">…</div>
       </div>
-      <div id="termine-segments"></div>
       <div id="termine-body" class="view-body">${renderSkeleton()}</div>
     </div>`;
 
   const subtitle = container.querySelector("#termine-subtitle");
-  const segments = container.querySelector("#termine-segments");
   const body = container.querySelector("#termine-body");
-  let exams = [];
+  let items = [];
+  let render = () => {};
 
   // Bound once: #termine-body survives re-renders.
-  bindActivate(body, "[data-exam-index]", (row) => {
-    const exam = exams[Number(row.dataset.examIndex)];
-    if (exam) openExamDetail(container, exam);
+  bindActivate(body, "[data-termin-index]", (row) => {
+    const termin = items[Number(row.dataset.terminIndex)]?.termin;
+    if (termin) openTerminDetail(container, termin);
+  });
+  body.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-filter]");
+    if (!target || target.dataset.filter === filter) return;
+    filter = target.dataset.filter;
+    render();
   });
 
   try {
     const studentId = getSelectedStudentId();
     const context = await ensureContext();
-
-    // Both segments load up front; switching never fetches.
     const [termine, ferien] = await Promise.all([
       getTermineData(studentId, { yearEnd: context.year?.to }),
       getFerienData(context),
     ]);
-    exams = termine.exams;
 
-    const render = () => {
-      segments.innerHTML = segmentedControl(segment);
-      if (segment === "termine") {
-        // "4 Termine bis zu den Herbstferien" counts only exams before it.
-        const upTo = ferien.next
-          ? termine.exams.filter((e) => e.date < ferien.next.from).length
-          : termine.count;
-        const until = ferien.next ? ` bis zu den ${ferien.next.name}` : " in diesem Schuljahr";
-        subtitle.textContent = termine.count
-          ? `${upTo} ${upTo === 1 ? "Termin" : "Termine"}${until}`
-          : "Keine Termine";
-        body.innerHTML = termineBody(termine, ferien);
-        markTruncatedRows(body, "[data-exam-index]", ".date-row-note");
-      } else {
-        subtitle.textContent = ferien.yearLabel || "Ferien";
-        body.innerHTML = ferienBody(ferien);
-      }
+    const { scale } = context;
+    const nextFerien = ferien.next ?? null;
+    // Every tab covers the whole school year; the subtitles look closer.
+    const { entries } = termine;
+    // The Ferien tab looks ahead only.
+    const ferienAhead = upcomingBlocks(ferien.ferien, termine.today);
+    const freieTageAhead = upcomingBlocks(ferien.freieTage, termine.today);
+    const counts = countByCategory(entries, ferienAhead.length + freieTageAhead.length);
+    const listOptions = { nextFerien, ferien: ferienAhead, freieTage: freieTageAhead };
+    const emptyText = nextFerien ? `Nichts eingetragen bis zu den ${nextFerien.name}.` : "Nichts eingetragen.";
+    const subtitleOptions = {
+      nextFerien,
+      scale,
+      ferienCount: ferienAhead.length,
+      freieTageCount: freieTageAhead.length,
+      yearLabel: ferien.yearLabel,
+    };
 
-      for (const button of segments.querySelectorAll("[data-segment]")) {
-        button.addEventListener("click", () => {
-          if (segment === button.dataset.segment) return;
-          segment = button.dataset.segment;
-          render();
-        });
-      }
+    render = () => {
+      items = termineList(entries, filter, listOptions);
+      subtitle.textContent = termineSubtitle(entries, filter, subtitleOptions);
+      body.innerHTML = termineBody(termine.nextExam, counts, items, filter, scale, emptyText);
+      markTruncatedRows(body, "[data-termin-index]", ".date-row-note");
+      revealActiveTab(body);
     };
 
     render();
   } catch (err) {
-    segments.innerHTML = "";
     subtitle.textContent = "";
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);
