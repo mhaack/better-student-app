@@ -9,12 +9,10 @@ import {
 } from "../data/termine.js";
 import { getFerienData } from "../data/ferien.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatWeekday, formatWeekdayDate } from "../util/format.js";
+import { formatMonthYear, formatWeekday, formatWeekdayDate } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { nextCard, relativeDays } from "../components/next-card.js";
-
-const MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" });
 
 const TABS = [
   ["all", "Alle"],
@@ -113,7 +111,7 @@ function termineBody(nextExam, counts, items, filter, scale, emptyText) {
   let currentMonth = "";
   const rows = items
     .map((item, index) => {
-      const label = MONTH_FORMAT.format(new Date(`${item.date}T00:00:00`));
+      const label = formatMonthYear(item.date);
       const heading = label === currentMonth ? "" : `<div class="eyebrow">${escapeHtml(label)}</div>`;
       currentMonth = label;
       return heading + (item.ferien ? ferienRow(item.ferien) : terminRow(item.termin, index));

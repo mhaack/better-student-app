@@ -15,6 +15,17 @@ export const MIN_FERIEN_SCHOOL_DAYS = 5;
 // In June only length tells Pfingsten from an early summer break.
 const SOMMER_MIN_SCHOOL_DAYS = 15;
 
+// Stripping "-ferien" doesn't work in German (Weihnachts-, Oster-, Pfingst-),
+// hence an explicit map.
+const FERIEN_STEMS = {
+  Herbstferien: "Herbst",
+  Weihnachtsferien: "Weihnachten",
+  Winterferien: "Winter",
+  Osterferien: "Ostern",
+  Pfingstferien: "Pfingsten",
+  Sommerferien: "Sommer",
+};
+
 function isWeekend(iso) {
   const day = new Date(`${iso}T00:00:00Z`).getUTCDay();
   return day === SATURDAY || day === SUNDAY;
@@ -93,17 +104,6 @@ export function heuristicName(from, schoolDays) {
   if (month === 6) return schoolDays >= SOMMER_MIN_SCHOOL_DAYS ? "Sommerferien" : "Pfingstferien";
   return "Sommerferien"; // July, August
 }
-
-// Stripping "-ferien" doesn't work in German (Weihnachts-, Oster-, Pfingst-),
-// hence an explicit map.
-const FERIEN_STEMS = {
-  Herbstferien: "Herbst",
-  Weihnachtsferien: "Weihnachten",
-  Winterferien: "Winter",
-  Osterferien: "Ostern",
-  Pfingstferien: "Pfingsten",
-  Sommerferien: "Sommer",
-};
 
 /** "Weihnachtsferien" -> "Weihnachten", for G2's list column. */
 export function ferienStem(name) {

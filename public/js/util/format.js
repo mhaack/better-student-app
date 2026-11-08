@@ -4,6 +4,7 @@ const WEEKDAY_FORMATS = {
 };
 const SHORT_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit" });
 const FULL_DATE_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+const MONTH_YEAR_FORMAT = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" });
 
 function daysFromToday(date) {
   return Math.round((date - startOfToday()) / 86_400_000);
@@ -71,6 +72,18 @@ export function formatFullDate(iso) {
 export function formatWeekday(iso, length = "short") {
   const date = localDate(iso);
   return date ? WEEKDAY_FORMATS[length].format(date).replace(".", "") : "";
+}
+
+/** "9.11.", unpadded like the Stundenplan's day headers. */
+export function formatDayMonth(iso) {
+  const date = localDate(iso);
+  return date ? `${date.getDate()}.${date.getMonth() + 1}.` : "";
+}
+
+/** "November 2026" */
+export function formatMonthYear(iso) {
+  const date = localDate(iso);
+  return date ? MONTH_YEAR_FORMAT.format(date) : "";
 }
 
 /** "Fr 19.09.25" */

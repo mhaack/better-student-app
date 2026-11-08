@@ -1,15 +1,6 @@
 import { escapeHtml } from "../util/dom.js";
+import { formatDayMonth, formatWeekday } from "../util/format.js";
 import { mountSheet, detailRow, infoCards, homeworkCard, whenLine } from "./detail-sheet.js";
-
-const WEEKDAY_LONG = new Intl.DateTimeFormat("de-DE", { weekday: "long" });
-
-function localDate(iso) {
-  return new Date(`${iso}T00:00:00`);
-}
-
-function dayMonth(date) {
-  return `${date.getDate()}.${date.getMonth() + 1}.`;
-}
 
 /**
  * The test sheet, one block per exam (all on the same day). Exams carry the
@@ -39,8 +30,8 @@ export function openExamSheet(container, exams, opener, homework = []) {
     })
     .join("");
 
-  const first = localDate(exams[0].date);
-  const title = `${exams.length === 1 ? "Test" : "Tests"} am ${WEEKDAY_LONG.format(first)} ${dayMonth(first)}`;
+  const { date } = exams[0];
+  const title = `${exams.length === 1 ? "Test" : "Tests"} am ${formatWeekday(date, "long")} ${formatDayMonth(date)}`;
   mountSheet(container, {
     opener,
     html: `
