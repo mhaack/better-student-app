@@ -754,19 +754,30 @@ button {
   background: var(--pressed);
 }
 
+/* Dot = test, ring = homework: same red, the shape tells them apart. */
 .sp-exam-dot,
-.sp-legend-dot {
+.hw-ring {
   display: inline-block;
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+.sp-exam-dot {
   background: var(--accent);
 }
 
-.sp-cell .sp-exam-dot {
+.hw-ring {
+  border: 1.5px solid var(--accent);
+}
+
+.sp-marks {
+  display: flex;
+  gap: 3px;
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 5px;
 }
 
 .sp-legend {
@@ -778,9 +789,15 @@ button {
   color: var(--text-muted);
 }
 
-.sp-legend-dot {
+.sp-legend-mark {
   vertical-align: middle;
   margin: 0 5px 1px 0;
+}
+
+.sp-legend-hint {
+  margin-top: -8px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .sp-day-label {
@@ -1008,6 +1025,35 @@ button {
   font-size: 15px;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+
+/* Free text in a sheet: test topic, homework, change note (infoCards) */
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.info-card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.info-card-text {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
 }
 
 /* Test sheet (views/stundenplan.js) */

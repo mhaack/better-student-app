@@ -1,5 +1,18 @@
 import { escapeHtml } from "../util/dom.js";
 
+const WEEKDAY_SHORT = new Intl.DateTimeFormat("de-DE", { weekday: "short" });
+
+/** The pill and date under a sheet's title: "IN 4 TAGEN  Do 12.11." */
+export function whenLine(countdown, iso) {
+  const date = new Date(`${iso}T00:00:00`);
+  const dateText = `${WEEKDAY_SHORT.format(date).replace(".", "")} ${date.getDate()}.${date.getMonth() + 1}.`;
+  return `
+    <div class="exam-when">
+      <span class="exam-pill">${escapeHtml(countdown)}</span>
+      <span class="exam-date">${escapeHtml(dateText)}</span>
+    </div>`;
+}
+
 const BACKDROP_ID = "detail-sheet-backdrop";
 
 export function closeDetailSheet(container) {
@@ -12,9 +25,13 @@ export function closeDetailSheet(container) {
  *
  * @param {HTMLElement} container the view container the sheet mounts into
  * @param {{ eyebrow?: string, title: string, titleStruck?: boolean,
- *   subtitle?: string, rows?: {label: string, value: string}[], note?: string }} content
+ *   subtitle?: string, when?: {countdown: string, iso: string},
+ *   rows?: {label: string, value: string}[], note?: string, cards?: InfoCard[] }} content
  */
-export function openDetailSheet(container, { eyebrow, title, titleStruck = false, subtitle, rows = [], note }) {
+export function openDetailSheet(
+  container,
+  { eyebrow, title, titleStruck = false, subtitle, when, rows = [], note, cards = [] }
+) {
   const rowsHtml = rows.map((r) => detailRow(r.label, r.value)).join("");
 
   mountSheet(container, {
@@ -26,14 +43,42 @@ export function openDetailSheet(container, { eyebrow, title, titleStruck = false
           ${eyebrow ? `<div class="eyebrow">${escapeHtml(eyebrow)}</div>` : ""}
           <h2 id="detail-sheet-title" class="detail-title${titleStruck ? " strike" : ""}">${escapeHtml(title)}</h2>
           ${subtitle ? `<div class="detail-subtitle">${escapeHtml(subtitle)}</div>` : ""}
+          ${when ? whenLine(when.countdown, when.iso) : ""}
         </div>
         <button type="button" class="detail-close" aria-label="Schließen">✕</button>
       </div>
       ${rowsHtml ? `<div>${rowsHtml}</div>` : ""}
       ${note ? `<div class="detail-note">${escapeHtml(note)}</div>` : ""}
+      ${infoCards(cards)}
     </div>`,
   });
 }
+
+/**
+ * @typedef {{ eyebrow: string, text?: string, marker?: "dot" | "ring" }} InfoCard
+ * One card style for everything with free text: a test's topic, homework, the
+ * plan's note on a change. The marker matches the grid: dot = test, ring = homework.
+ */
+
+const MARKER_CLASS = { dot: "sp-exam-dot", ring: "hw-ring" };
+
+/** Cards without text are skipped. */
+export function infoCards(cards = []) {
+  return cards
+    .filter((c) => c?.text)
+    .map((c) => {
+      const marker = MARKER_CLASS[c.marker] ? `<span class="${MARKER_CLASS[c.marker]}" aria-hidden="true"></span>` : "";
+      return `
+      <div class="info-card">
+        <div class="info-card-eyebrow">${marker}${escapeHtml(c.eyebrow)}</div>
+        <div class="info-card-text">${escapeHtml(c.text)}</div>
+      </div>`;
+    })
+    .join("");
+}
+
+/** @returns {InfoCard} */
+export const homeworkCard = (homework) => ({ marker: "ring", eyebrow: "Hausaufgabe", text: homework.text });
 
 /** One label/value row; empty when there is no value. */
 export function detailRow(label, value) {

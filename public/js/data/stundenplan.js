@@ -1,7 +1,8 @@
 import { fetchDayPlans, fetchCurrentTimetable, fetchJournalNotes, isoDate } from "./repository.js";
 import { apiWeekday, lessonsForDate } from "./timetable.js";
-import { examsFromNotes, attachExams } from "./termine.js";
+import { examsFromNotes, homeworkFromNotes, attachExams, attachHomework, withBellTimes } from "./termine.js";
 import { getPlannedKlausuren, withPlannedKlausuren } from "./klausuren.js";
+import { calendarDaysBetween, countdownLabel } from "../util/format.js";
 
 const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr"];
 
@@ -27,14 +28,17 @@ export function resolveWeekStart(today) {
   return weekday >= 6 ? addDays(monday, 7) : monday;
 }
 
-/** A failed journal call costs the markers, never the grid. */
-async function fetchWeekExams(studentId, fromIso, toIso) {
-  if (!studentId) return [];
-  const [noteExams, planned] = await Promise.all([
-    fetchJournalNotes(studentId, fromIso, toIso).then(examsFromNotes, () => []),
+/** Tests and homework of the week. A failed journal call costs the markers, never the grid. */
+async function fetchWeekNotes(studentId, fromIso, toIso) {
+  if (!studentId) return { exams: [], homework: [] };
+  const [notes, planned] = await Promise.all([
+    fetchJournalNotes(studentId, fromIso, toIso).catch(() => []),
     getPlannedKlausuren(studentId, fromIso, toIso),
   ]);
-  return withPlannedKlausuren(noteExams, planned);
+  return {
+    exams: withPlannedKlausuren(examsFromNotes(notes), planned),
+    homework: homeworkFromNotes(notes),
+  };
 }
 
 const DAY_MONTH_FORMAT = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric" });
@@ -52,24 +56,28 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
   const toIso = isoDate(dates[4]);
   const todayIso = isoDate(today);
 
-  const [dayPlans, timetable, exams] = await Promise.all([
+  const [dayPlans, timetable, { exams, homework }] = await Promise.all([
     fetchDayPlans(fromIso, toIso),
     fetchCurrentTimetable(),
-    fetchWeekExams(studentId, fromIso, toIso),
+    fetchWeekNotes(studentId, fromIso, toIso),
   ]);
 
-  const days = attachExams(
-    dates.map((date, index) => ({
-      date,
-      iso: isoDate(date),
-      label: WEEKDAY_LABELS[index],
-      dateLabel: DAY_MONTH_FORMAT.format(date),
-      isToday: isoDate(date) === todayIso,
-      lessons: lessonsForDate(date, dayPlans, timetable),
-    })),
-    exams,
-    timetable,
-    todayIso
+  const days = attachHomework(
+    attachExams(
+      dates.map((date, index) => ({
+        date,
+        iso: isoDate(date),
+        label: WEEKDAY_LABELS[index],
+        dateLabel: DAY_MONTH_FORMAT.format(date),
+        isToday: isoDate(date) === todayIso,
+        countdown: countdownLabel(calendarDaysBetween(todayIso, isoDate(date))),
+        lessons: withBellTimes(lessonsForDate(date, dayPlans, timetable), timetable),
+      })),
+      exams,
+      timetable,
+      todayIso
+    ),
+    homework
   );
 
   const maxPeriod = Math.max(1, ...days.flatMap((d) => d.lessons.map((l) => l.period)));
@@ -83,6 +91,7 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
 
   const changeCount = days.reduce((sum, d) => sum + d.lessons.filter((l) => l.status !== "regular").length, 0);
   const testCount = days.reduce((sum, d) => sum + d.exams.length, 0);
+  const homeworkCount = days.reduce((sum, d) => sum + d.homework.length, 0);
 
   // Weeks ahead of the calendar week, counting the weekend auto-jump.
   const weeksFromNow = Math.round((weekStart.getTime() - mondayOf(today).getTime()) / (7 * 86_400_000));
@@ -92,6 +101,7 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
     grid,
     changeCount,
     testCount,
+    homeworkCount,
     weeksFromNow,
   };
 }
