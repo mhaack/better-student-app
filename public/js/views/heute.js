@@ -4,109 +4,133 @@ import { getHeuteData } from "../data/heute.js";
 import { getMitteilungenData } from "../data/mitteilungen.js";
 import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
-import { weekdayOrDate, daysUntil, formatFullDate } from "../util/format.js";
-import { gradeMeta } from "../components/grade-meta.js";
-import { gradeCapsule } from "../components/grade-capsule.js";
+import { weekdayOrDate, formatWeekdayDate, formatFullDate } from "../util/format.js";
+import { newSticker, gradeValue } from "../components/grade-capsule.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
-import { categoryMarker } from "../components/marker.js";
+import { openLessonSheet, lessonStatusLabel } from "../components/lesson-sheet.js";
+import { categoryMarker, lessonMarkers } from "../components/marker.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
   substitution: '<span class="pill pill--room">± Vertretung</span>',
   cancelled: '<span class="pill pill--cancel">entfällt</span>',
 };
+// More rows go behind "+n weitere".
+const MAX_GRADE_ROWS = 2;
 
-/** "218 → 206" for a moved lesson, otherwise just where it is. */
+/** The black card for a test today or tomorrow. */
+function testCard(test) {
+  if (!test) return "";
+  const { exam } = test;
+  return `
+    <div class="heute-test" role="button" tabindex="0" data-test aria-label="${escapeHtml(`${test.label}: ${exam.subject ?? ""}`)}">
+      <div class="eyebrow heute-test__label"><span class="heute-test__dot" aria-hidden="true"></span>${escapeHtml(test.label)}</div>
+      <div class="heute-test__row">
+        <div class="heute-test__subject">${escapeHtml(exam.subject ?? exam.subjectShort ?? "")}</div>
+        ${test.where ? `<span class="heute-test__where">${escapeHtml(test.where)}</span>` : ""}
+      </div>
+      ${exam.text ? `<div class="heute-test__topic">${escapeHtml(exam.text)}</div>` : ""}
+    </div>`;
+}
+
+/** Stand-in teacher and room for a Vertretung, otherwise the room. */
 function lessonMeta(lesson) {
-  if (lesson.status === "room_change" && lesson.previousRoom && lesson.room) {
-    return `${lesson.previousRoom} → ${lesson.room}`;
-  }
+  if (lesson.status === "substitution") return [lesson.teacher, lesson.room].filter(Boolean).join(" · ");
   return lesson.room ?? lesson.teacher ?? "";
 }
 
 function lessonRow(lesson) {
-  const isCancelled = lesson.status === "cancelled";
+  const status = lesson.status === "regular" ? "" : ` heute-lesson--${lesson.status === "cancelled" ? "cancelled" : "changed"}`;
+  const label = [
+    `${lesson.period}. Stunde, ${lesson.subject ?? lesson.subjectShort ?? ""}`,
+    lessonStatusLabel(lesson),
+    lesson.hasExam ? "Test" : "",
+    lesson.homework?.length ? "Hausaufgabe fällig" : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
   return `
-    <div class="lesson-row">
-      <div class="lesson-period">${escapeHtml(lesson.period)}</div>
-      <div class="lesson-text">
-        <div class="${isCancelled ? "lesson-subject lesson-subject--cancelled" : "lesson-subject"}">${escapeHtml(lesson.subject ?? "–")}</div>
-        <div class="lesson-meta">${escapeHtml(lessonMeta(lesson))}</div>
-      </div>
+    <div class="heute-lesson${status}" role="button" tabindex="0" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
+      <span class="heute-lesson__period">${escapeHtml(lesson.period)}</span>
+      <span class="heute-lesson__main">
+        <span class="heute-lesson__subject">${escapeHtml(lesson.subject ?? "–")}</span>
+        ${lessonMarkers(lesson, "heute-lesson__marks")}
+        <span class="heute-lesson__meta">${escapeHtml(lessonMeta(lesson))}</span>
+      </span>
       ${STATUS_PILL[lesson.status] ?? "<span></span>"}
     </div>`;
 }
 
-function changesCard(changes) {
-  if (changes.length === 0) return "";
-  const rows = changes
-    .map((c) => {
-      const cancelled = c.status === "cancelled";
+function planSection(day, changeCount) {
+  const rows = day.lessons.length
+    ? day.lessons.map(lessonRow).join("")
+    : '<div class="empty-state">Keine Stunden.</div>';
+  const changes = changeCount ? `${changeCount} ${changeCount === 1 ? "Änderung" : "Änderungen"}` : "";
+  return `
+    <div class="section section--tight">
+      <div class="heute-section-head">
+        <span class="eyebrow">Stundenplan</span>
+        ${changes ? `<span class="eyebrow heute-changes">${changes}</span>` : ""}
+      </div>
+      <div class="heute-lessons">${rows}</div>
+    </div>`;
+}
+
+/** The grades of the newest entry day, one row each; the rest are a tap away. */
+function gradesCard(latest) {
+  if (!latest) return "";
+  const rows = latest.grades
+    .slice(0, MAX_GRADE_ROWS)
+    .map((grade) => {
+      // Same target as a subject row in the Noten tab.
+      const href = grade.subjectId != null ? `#/noten/${encodeURIComponent(grade.subjectId)}` : "#/noten";
+      const kind = grade.collection?.name || grade.collection?.type;
       return `
-      <div class="change-row${cancelled ? " change-row--cancelled" : ""}">
-        <span class="change-icon">${cancelled ? "✕" : "→"}</span>
-        ${cancelled ? `<span class="strike">${escapeHtml(c.label)}</span> entfällt` : escapeHtml(c.text)}
-      </div>`;
+      <a class="heute-grade link-reset" href="${href}">
+        ${newSticker(grade)}
+        <span class="heute-grade__text">${escapeHtml(grade.subjectName ?? "")}${kind ? ` <span class="heute-grade__kind">· ${escapeHtml(kind)}</span>` : ""}</span>
+        <span class="heute-grade__value">${escapeHtml(gradeValue(grade))}</span>
+        <span class="heute-chevron" aria-hidden="true">›</span>
+      </a>`;
     })
     .join("");
+  const rest = latest.grades.length - MAX_GRADE_ROWS;
+  const more =
+    rest > 0
+      ? `<a class="heute-grade heute-grade--more link-reset" href="#/noten">+${rest} weitere<span class="heute-chevron" aria-hidden="true">›</span></a>`
+      : "";
+  const heading = `${latest.grades.length === 1 ? "Letzte Note" : "Letzte Noten"} (vom ${formatFullDate(latest.date)})`;
   return `
-    <div class="card card--accent changes-card">
-      <div class="card-row">
-        <span class="eyebrow">Änderungen heute</span>
-        <span class="changes-count">${changes.length}</span>
-      </div>
-      ${rows}
+    <div class="section section--tight">
+      <div class="eyebrow">${escapeHtml(heading)}</div>
+      <div class="heute-grades">${rows}${more}</div>
     </div>`;
 }
 
-/** @param {{ grade: object, date: string } | null} newest */
-function newGradeSection(newest) {
-  if (!newest) return "";
-  const { grade, date } = newest;
-  // Same target as a subject row in the Noten tab.
-  const tag = grade.subjectId != null ? "a" : "div";
-  const link = tag === "a" ? ` href="#/noten/${encodeURIComponent(grade.subjectId)}"` : "";
-  return `
-    <div class="section section--snug">
-      <div class="eyebrow">Letzte Note (vom ${escapeHtml(formatFullDate(date))})</div>
-      <${tag} class="card-row newest-grade-row link-reset${tag === "a" ? " is-expandable" : ""}"${link}>
-        <div>
-          <div class="row-title row-title--strong">${escapeHtml(grade.subjectName ?? "")}</div>
-          ${gradeMeta(grade, [grade.collection?.name || grade.collection?.type])}
+/** The next Klassenbuch entries; the rest are a tap away in Termine. */
+function termineSection(notes) {
+  if (notes.length === 0) return "";
+  const rows = notes
+    .map(
+      (n, index) => `
+      <div class="heute-termin${n.isExam ? " is-expandable" : ""}" data-note-index="${index}"${n.isExam ? ' role="button" tabindex="0"' : ""}>
+        <div class="heute-termin__text">
+          <div class="heute-termin__subject">${escapeHtml(n.subject ?? n.typeName ?? "")}</div>
+          <div class="heute-termin__kind">${categoryMarker(n.category, "marker--lead")}${escapeHtml(n.text || n.typeName || "")}</div>
         </div>
-        ${gradeCapsule(grade)}
-      </${tag}>
-    </div>`;
-}
-
-/** The next Klassenbuch entries; each row names its type, the rest are a tap away in Termine. */
-function notesSection({ notes: items, more }) {
-  if (items.length === 0) return "";
-  const rows = items
-    .map((n, index) => {
-      // Due today or tomorrow: accent pill.
-      const isUrgent = (daysUntil(n.date) ?? 99) <= 1;
-      const dueLabel = escapeHtml(weekdayOrDate(n.date));
-      const due = isUrgent
-        ? `<span class="pill pill--room">${dueLabel}</span>`
-        : `<span class="hw-due">${dueLabel}</span>`;
-      return `
-      <div class="hw-row${n.isExam ? " is-expandable" : ""}" data-note-index="${index}"${n.isExam ? ' role="button" tabindex="0"' : ""}>
-        <div class="hw-text">
-          <div class="hw-title">${escapeHtml([n.subject, n.text].filter(Boolean).join(" · "))}</div>
-          ${n.typeName ? `<div class="hw-type">${categoryMarker(n.category, "marker--lead")}${escapeHtml(n.typeName)}</div>` : ""}
-        </div>
-        ${due}
-      </div>`;
-    })
+        <span class="heute-termin__when">${escapeHtml(formatWeekdayDate(n.date))}</span>
+      </div>`
+    )
     .join("");
   return `
     <div class="section section--tight">
-      <div class="eyebrow">Nächste Termine</div>
-      ${rows}
-      ${more ? '<a class="section-link" href="#/termine">Alle Termine ›</a>' : ""}
+      <div class="heute-section-head">
+        <span class="eyebrow">Termine</span>
+        <a class="heute-link" href="#/termine">Alle Termine ›</a>
+      </div>
+      <div>${rows}</div>
     </div>`;
 }
 
@@ -127,7 +151,7 @@ async function fillMitteilungen(container) {
     </div>`;
 }
 
-/** The full entry behind a clamped Anstehend row that isn't a test. */
+/** The full entry behind a Termine row that isn't a test. */
 function openNoteDetail(container, note) {
   openDetailSheet(container, {
     eyebrow: note.typeName,
@@ -149,8 +173,7 @@ export async function renderHeute(container) {
 
   try {
     const studentId = getSelectedStudentId();
-    const students = getStudents();
-    const student = students.find((s) => s.id === studentId);
+    const student = getStudents().find((s) => s.id === studentId);
     const { scale } = await ensureContext();
     const data = await getHeuteData(studentId, scale);
 
@@ -161,21 +184,21 @@ export async function renderHeute(container) {
 
     const body = container.querySelector("#heute-body");
     body.innerHTML = `
-      ${changesCard(data.changes)}
-      <div class="section">
-        <div class="eyebrow">Stundenplan</div>
-        <div class="lesson-list">
-          ${data.lessons.length ? data.lessons.map(lessonRow).join("") : '<div class="empty-state">Heute keine Stunden.</div>'}
-        </div>
-      </div>
-      ${newGradeSection(data.newestGrade)}
-      ${notesSection(data.termine)}
+      ${testCard(data.test)}
+      ${planSection(data.day, data.changeCount)}
+      ${gradesCard(data.latestGrades)}
+      ${termineSection(data.termine)}
       <div id="heute-mitteilungen" hidden></div>
     `;
     fillMitteilungen(container);
-    markTruncatedRows(body, "[data-note-index]", ".hw-title");
+    markTruncatedRows(body, "[data-note-index]", ".heute-termin__kind");
+    bindActivate(body, "[data-test]", (card) => openExamSheet(container, [data.test.exam], card));
+    bindActivate(body, "[data-period]", (row) => {
+      const lesson = data.day.lessons.find((l) => l.period === Number(row.dataset.period));
+      if (lesson) openLessonSheet(container, data.day, lesson, row);
+    });
     bindActivate(body, "[data-note-index]", (row) => {
-      const note = data.termine.notes[Number(row.dataset.noteIndex)];
+      const note = data.termine[Number(row.dataset.noteIndex)];
       if (note?.isExam) openExamSheet(container, [note], row);
       else if (note) openNoteDetail(container, note);
     });

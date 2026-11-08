@@ -7,12 +7,22 @@ function seenCheck(label) {
   return `<svg class="grade-seen" viewBox="0 0 22 22" role="img" aria-label="${label}"><circle cx="11" cy="11" r="11"/><path d="${CHECK_PATH}" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
+/** "2-" as typed, or "14 P" for points; the raw text if it didn't parse. */
+export function gradeValue(grade) {
+  const unit = scaleUnit(grade.scale, grade.numeric);
+  return unit ? `${grade.numeric}${unit}` : (grade.raw ?? "");
+}
+
+/** A NEU sticker at the start of a row while unseen; nothing once seen. */
+export function newSticker(grade) {
+  if (!grade.isNew) return "";
+  return '<span class="grade-sticker grade-sticker--lead" aria-hidden="true">NEU</span><span class="sr-only">Neu, noch nicht gesehen: </span>';
+}
+
 /** The grade box with its state: a NEU sticker while unseen, otherwise a check to its left. */
 export function gradeCapsule(grade) {
-  // Points read "14 P"; Sek I keeps "2-" as typed, as does a value that didn't parse.
-  const unit = scaleUnit(grade.scale, grade.numeric);
-  const value = escapeHtml(unit ? `${grade.numeric}${unit}` : (grade.raw ?? ""));
-  const capsuleClass = unit ? "grade-capsule grade-capsule--points" : "grade-capsule";
+  const value = escapeHtml(gradeValue(grade));
+  const capsuleClass = scaleUnit(grade.scale, grade.numeric) ? "grade-capsule grade-capsule--points" : "grade-capsule";
   if (grade.isNew) {
     return `<div class="grade-capsule-wrap"><span class="${capsuleClass}">${value}<span class="grade-sticker" aria-hidden="true">NEU</span><span class="sr-only">, neu, noch nicht gesehen</span></span></div>`;
   }

@@ -156,80 +156,6 @@ button {
   letter-spacing: .06em;
 }
 
-/* Lesson list (Heute / Stundenplan) */
-.lesson-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.lesson-row {
-  display: grid;
-  grid-template-columns: 34px 1fr auto;
-  align-items: center;
-  gap: 14px;
-  min-height: 52px;
-  border-bottom: 1px solid var(--border);
-}
-
-.lesson-period {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  color: var(--text-muted);
-}
-
-.lesson-subject {
-  font-size: 17px;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.lesson-subject--cancelled {
-  color: var(--text-secondary);
-  text-decoration: line-through;
-  font-weight: 400;
-}
-
-.lesson-meta {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* Anstehend list */
-.hw-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 46px;
-}
-
-.hw-text {
-  flex: 1;
-  /* Lets the flex item shrink so the clamp below applies. */
-  min-width: 0;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.hw-title {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.hw-type {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.hw-due {
-  flex: none;
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 /* Grade capsule */
 .grade-capsule {
   min-width: 52px;
@@ -1778,63 +1704,229 @@ button {
 }
 
 /* Heute */
-.lesson-text {
+.heute-section-head {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
-.changes-card {
+.heute-changes {
+  color: var(--accent);
+}
+
+.heute-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.heute-chevron {
+  flex: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-secondary);
+}
+
+/* Test card: only for a test today or tomorrow. */
+.heute-test {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--hero-bg);
+  color: var(--hero-ink);
+  cursor: pointer;
 }
 
-.changes-card .eyebrow,
-.changes-count {
-  color: var(--accent);
-}
-
-.changes-count {
-  font-family: var(--font-serif);
-  font-size: 20px;
-}
-
-.change-row {
+.heute-test__label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
+  color: var(--hero-muted);
+}
+
+.heute-test__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hero-ink);
+}
+
+.heute-test__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 12px;
+}
+
+.heute-test__subject {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.heute-test__where {
+  font-size: 13px;
+  color: var(--hero-muted);
+}
+
+.heute-test__topic {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hero-line);
   font-size: 14px;
+}
+
+/* Stundenplan: changes shown in the lesson itself. */
+.heute-lesson {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.heute-lesson__period {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.heute-lesson__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.heute-lesson__subject {
+  font-size: 16px;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
-.change-row--cancelled {
-  color: var(--text-secondary);
+.heute-lesson__marks {
+  display: inline-flex;
+  gap: 4px;
 }
 
-.change-icon {
-  width: 20px;
-  text-align: center;
+.heute-lesson__meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.heute-lesson--changed .heute-lesson__subject,
+.heute-lesson--changed .heute-lesson__meta {
   color: var(--accent);
 }
 
-.change-row--cancelled .change-icon {
-  color: inherit;
+.heute-lesson--cancelled .heute-lesson__subject {
+  color: var(--text-secondary);
+  font-weight: 400;
+  text-decoration: line-through;
 }
 
-.newest-grade-row {
-  min-height: 48px;
+/* Grades of the newest entry day. */
+.heute-grades {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
-/* "Alle Termine ›" under a shortened list. */
-.section-link {
-  align-self: flex-start;
-  display: inline-flex;
+.heute-grade {
+  display: flex;
   align-items: center;
-  min-height: var(--touch-target);
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.heute-grade + .heute-grade {
+  border-top: 1px solid var(--border);
+}
+
+.heute-grade:active {
+  background: var(--pressed);
+}
+
+.heute-grade__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.heute-grade__kind {
+  color: var(--text-secondary);
+}
+
+.heute-grade__value {
+  flex: none;
+  font-family: var(--font-serif);
+  font-size: 22px;
+}
+
+.heute-grade--more {
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* In a row, not on a capsule's corner. */
+.grade-sticker.grade-sticker--lead {
+  position: static;
+  flex: none;
+  box-shadow: none;
+}
+
+/* Danach */
+.heute-termin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.heute-termin__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.heute-termin__subject {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.heute-termin__kind {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
   font-size: 13px;
   color: var(--text-secondary);
-  text-decoration: none;
+}
+
+.heute-termin__when {
+  flex: none;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* Noten */
