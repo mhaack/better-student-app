@@ -49,6 +49,11 @@
   --frei-ink: #3D1E0C;
   --frei-ink-2: #6B3410;
   --frei-accent: #7A3E14;
+  /* Heute's test card: dark on light, flipped to light in dark mode. */
+  --hero-bg: #1A1714;
+  --hero-ink: #F6F3EE;
+  --hero-muted: #B8AFA4;
+  --hero-line: #3A342E;
 
   --radius-lg: 24px;
   --radius-md: 16px;
@@ -95,6 +100,10 @@
   --frei-ink: #FCEADB;
   --frei-ink-2: #F0C9A8;
   --frei-accent: #F9CBA7;
+  --hero-bg: #F3F0EA;
+  --hero-ink: #1A1714;
+  --hero-muted: #57504A;
+  --hero-line: #D9D2C8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -135,5 +144,9 @@
     --frei-ink: #FCEADB;
     --frei-ink-2: #F0C9A8;
     --frei-accent: #F9CBA7;
+    --hero-bg: #F3F0EA;
+    --hero-ink: #1A1714;
+    --hero-muted: #57504A;
+    --hero-line: #D9D2C8;
   }
 }

@@ -66,6 +66,10 @@ describe("formatWeekdayDate", () => {
   test("puts the short weekday before the full date", () => {
     assert.equal(formatWeekdayDate("2025-09-19"), "Fr 19.09.25");
   });
+
+  test("writes the weekday out, with a comma, when asked", () => {
+    assert.equal(formatWeekdayDate("2025-09-18", "long"), "Donnerstag, 18.09.25");
+  });
 });
 
 describe("formatDayMonth", () => {

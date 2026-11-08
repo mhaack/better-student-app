@@ -86,10 +86,11 @@ export function formatMonthYear(iso) {
   return date ? MONTH_YEAR_FORMAT.format(date) : "";
 }
 
-/** "Fr 19.09.25" */
-export function formatWeekdayDate(iso) {
+/** "Fr 19.09.25" or, with "long", "Freitag, 19.09.25". */
+export function formatWeekdayDate(iso, length = "short") {
   const full = formatFullDate(iso);
-  return full ? `${formatWeekday(iso)} ${full}` : "";
+  if (!full) return "";
+  return length === "long" ? `${formatWeekday(iso, "long")}, ${full}` : `${formatWeekday(iso)} ${full}`;
 }
 
 function startOfToday() {

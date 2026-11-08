@@ -13,3 +13,10 @@ export function categoryMarker(category, extraClass = "") {
   if (!markerClass) return "";
   return `<span class="${markerClass}${extraClass ? ` ${extraClass}` : ""}" aria-hidden="true"></span>`;
 }
+
+/** A lesson's dot (test) and ring (homework due), in a wrapper of `className`; empty without either. */
+export function lessonMarkers(lesson, className) {
+  const hasHomework = lesson.homework?.length > 0;
+  if (!lesson.hasExam && !hasHomework) return "";
+  return `<span class="${className}">${lesson.hasExam ? categoryMarker("exam") : ""}${hasHomework ? categoryMarker("hw") : ""}</span>`;
+}

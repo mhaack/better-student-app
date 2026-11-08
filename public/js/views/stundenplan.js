@@ -1,49 +1,16 @@
 import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { getStundenplanData } from "../data/stundenplan.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatWeekday, periodLabel } from "../util/format.js";
+import { formatWeekday } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
-import { openDetailSheet, closeDetailSheet, bindActivate, homeworkCard } from "../components/detail-sheet.js";
+import { closeDetailSheet, bindActivate } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
-import { categoryMarker } from "../components/marker.js";
+import { categoryMarker, lessonMarkers } from "../components/marker.js";
+import { lessonStatusLabel, openLessonSheet } from "../components/lesson-sheet.js";
 
-const STATUS_EYEBROW = {
-  cancelled: "Entfällt",
-  room_change: "Raumänderung",
-  substitution: "Vertretung",
-  changed: "Geändert",
-};
 // Up to 3 weeks ahead of the default week.
 const MAX_WEEK_OFFSET = 3;
 const SWIPE_THRESHOLD_PX = 50;
-
-/** The tap-to-open sheet: time, changes as "vorher → nachher", plus the school's note. */
-function describeLesson(lesson) {
-  const eyebrow = lesson.status === "regular" ? undefined : (STATUS_EYEBROW[lesson.status] ?? "Geändert");
-  const rows = [{ label: "Zeit", value: [periodLabel([lesson.period]), lesson.timeLabel].filter(Boolean).join(" · ") }];
-
-  if (lesson.status === "room_change" && lesson.previousRoom) {
-    rows.push({ label: "Raum", value: `${lesson.previousRoom} → ${lesson.room ?? "–"}` });
-  } else if (lesson.room) {
-    rows.push({ label: "Raum", value: lesson.room });
-  }
-
-  if (lesson.status === "substitution" && (lesson.previousTeacher || lesson.previousTeacherShort)) {
-    const prev = lesson.previousTeacher ?? lesson.previousTeacherShort;
-    const next = lesson.teacher ?? lesson.teacherShort ?? "–";
-    rows.push({ label: "Lehrkraft", value: `${prev} → ${next}` });
-  } else if (lesson.teacher) {
-    rows.push({ label: "Lehrkraft", value: lesson.teacher });
-  }
-
-  return { eyebrow, rows, note: lesson.notes?.[0] };
-}
-
-/** Dot for a test, ring for homework; the shape tells them apart, not the colour. */
-function markers(hasExam, hasHomework) {
-  if (!hasExam && !hasHomework) return "";
-  return `<span class="sp-marks">${hasExam ? categoryMarker("exam") : ""}${hasHomework ? categoryMarker("hw") : ""}</span>`;
-}
 
 function cellContent(lesson, day, dayIndex) {
   if (!lesson) return "";
@@ -82,13 +49,13 @@ function cellContent(lesson, day, dayIndex) {
 
   const hasHomework = lesson.homework?.length > 0;
   const inner = `
-    ${markers(lesson.hasExam, hasHomework)}
+    ${lessonMarkers(lesson, "sp-marks")}
     <div class="sp-cell-title">${escapeHtml(title)}</div>
     <div class="sp-cell-meta">${escapeHtml(roomLine)}</div>
     ${teacherLine ? `<div class="sp-cell-meta">${escapeHtml(teacherLine)}</div>` : ""}`;
 
   // A div, not a <button>: see bindActivate.
-  const status = lesson.status === "regular" ? "" : `, ${STATUS_EYEBROW[lesson.status] ?? "Geändert"}`;
+  const status = lesson.status === "regular" ? "" : `, ${lessonStatusLabel(lesson)}`;
   const label = [
     `${day.label} ${lesson.period}. Stunde, ${lesson.subject ?? lesson.subjectShort ?? ""}${status}`,
     lesson.hasExam ? "Test" : "",
@@ -125,18 +92,6 @@ function gridRow(row, days) {
     .map((lesson, dayIndex) => `<div class="sp-grid-cell">${cellContent(lesson, days[dayIndex], dayIndex)}</div>`)
     .join("");
   return `<div class="sp-grid-row"><div class="sp-period">${row.period}</div>${cells}</div>`;
-}
-
-function openLessonDetail(container, day, lesson) {
-  const { eyebrow, rows, note } = describeLesson(lesson);
-  openDetailSheet(container, {
-    eyebrow,
-    title: lesson.subject ?? lesson.subjectShort ?? "",
-    titleStruck: lesson.status === "cancelled",
-    when: { countdown: day.countdown, iso: day.iso },
-    rows,
-    cards: [{ eyebrow: "Hinweis", text: note }, ...(lesson.homework ?? []).map(homeworkCard)],
-  });
 }
 
 function weekLabelFor(weeksFromNow) {
@@ -211,15 +166,11 @@ export async function renderStundenplan(container) {
     { passive: true }
   );
 
-  // Delegated, so it survives re-renders. A test cell opens the test sheet
-  // even when also changed; that sheet shows the new room and any homework.
+  // Delegated, so it survives re-renders.
   function openCellDetail(cellEl) {
     const day = currentDays[Number(cellEl.dataset.dayIndex)];
     const lesson = day?.lessons.find((l) => l.period === Number(cellEl.dataset.period));
-    if (!day || !lesson) return;
-    const exam = lesson.hasExam && day.exams.find((e) => e.periods.includes(lesson.period));
-    if (exam) openExamSheet(container, [exam], cellEl, lesson.homework);
-    else openLessonDetail(container, day, lesson);
+    if (day && lesson) openLessonSheet(container, day, lesson, cellEl);
   }
   bindActivate(body, "[data-period]", openCellDetail);
   bindActivate(body, "[data-exam-day]", (headEl) => {

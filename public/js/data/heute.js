@@ -8,64 +8,71 @@ import {
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
-import { terminCategory, withExamDetails } from "./termine.js";
+import { terminCategory, withExamDetails, attachExams, attachHomework, homeworkFromNotes, withBellTimes } from "./termine.js";
 import { getPlannedKlausuren } from "./klausuren.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
-import { calendarDaysBetween } from "../util/format.js";
+import { calendarDaysBetween, countdownLabel, formatWeekday, formatWeekdayDate } from "../util/format.js";
 import { markNewGrades } from "../domain/grades.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
 const MAX_NOTES = 3;
 
-function germanWeekdayDate(date) {
-  return new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(date);
-}
-
-function changeText(lesson) {
-  if (lesson.status === "cancelled") return `${lesson.period}. Std ${lesson.subject} entfällt`;
-  // The school's note says more than a room or teacher diff.
-  const note = lesson.notes?.[0];
-  if (note) return `${lesson.period}. Std ${lesson.subject} · ${note}`;
-  if (lesson.status === "room_change") {
-    return `${lesson.period}. Std ${lesson.subject} · ${lesson.previousRoom} → ${lesson.room}`;
-  }
-  return `${lesson.period}. Std ${lesson.subject}${lesson.teacher ? ` · ${lesson.teacher}` : ""}`;
-}
-
 /**
- * The most recently entered grade and that date, or null if it was over 14
- * days ago.
+ * The grades entered on the most recent entry day, latest first, and that
+ * date; null if it was over 14 days ago.
  * given_at is the Leistung's date, so a Klausur graded weeks later would sink;
  * the bell feed's created_at says when it was entered. Grades missing from the
  * feed fall back to given_at; same-day ties go to the higher (later) id.
  */
-export function newestGrade(grades, gradeNotifications, now) {
+export function latestGrades(grades, gradeNotifications, now) {
   const enteredAt = new Map();
   for (const { gradeId, createdAt } of gradeNotifications) {
     if (gradeId == null || !createdAt) continue;
     if (createdAt > (enteredAt.get(gradeId) ?? "")) enteredAt.set(gradeId, createdAt);
   }
 
-  const newest = grades
-    .map((grade) => ({ grade, date: enteredAt.get(grade.id) ?? grade.givenAt }))
-    .filter((entry) => entry.date)
-    .sort((a, b) => b.date.localeCompare(a.date) || b.grade.id - a.grade.id)[0];
+  const entries = grades
+    .map((grade) => {
+      const at = enteredAt.get(grade.id) ?? grade.givenAt ?? "";
+      return { grade, at, day: at.slice(0, 10) };
+    })
+    .filter((entry) => entry.day)
+    .sort((a, b) => b.at.localeCompare(a.at) || b.grade.id - a.grade.id);
 
-  if (!newest) return null;
-  const age = calendarDaysBetween(newest.date.slice(0, 10), isoDate(now));
-  return age <= RECENT_GRADE_WINDOW_DAYS ? newest : null;
+  const date = entries[0]?.day;
+  if (!date || calendarDaysBetween(date, isoDate(now)) > RECENT_GRADE_WINDOW_DAYS) return null;
+  return { date, grades: entries.filter((e) => e.day === date).map((e) => e.grade) };
 }
 
-/** "Nächste Termine": the first few Klassenbuch entries by date, and how many more there are. */
-export function nextTermine(notes, max = MAX_NOTES) {
+/**
+ * The test card: the first test on the shown day or the day after. Its label
+ * leaves out the day when the title already says it.
+ */
+export function upcomingTest(notes, dayIso, todayIso) {
+  const test = notes
+    .filter((n) => n.isExam && calendarDaysBetween(dayIso, n.date) >= 0 && calendarDaysBetween(dayIso, n.date) <= 1)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (!test) return null;
+
+  const daysAway = calendarDaysBetween(todayIso, test.date);
+  const when = test.date === dayIso ? "" : daysAway === 1 ? "Morgen" : formatWeekday(test.date, "long");
+  return {
+    exam: test,
+    label: [when, test.typeName].filter(Boolean).join(" · "),
+    where: [test.timeLabel, test.room].filter(Boolean).join(" · "),
+  };
+}
+
+/** "Danach": the first few Klassenbuch entries by date, without the one in the test card. */
+export function nextTermine(notes, skip = null) {
   const upcoming = notes
     // Plan Klausuren have no text.
-    .filter((n) => terminCategory(n) !== null && (n.text || n.isExam))
+    .filter((n) => n !== skip && terminCategory(n) !== null && (n.text || n.isExam))
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((n) => ({ ...n, category: terminCategory(n) }));
-  return { notes: upcoming.slice(0, max), more: Math.max(0, upcoming.length - max) };
+  return { notes: upcoming.slice(0, MAX_NOTES), more: Math.max(0, upcoming.length - MAX_NOTES) };
 }
 
 /**
@@ -81,40 +88,46 @@ export async function getHeuteData(studentId, scale) {
   const timetable = await fetchCurrentTimetable();
   const day = resolveSchoolDay(now, getCutoffHour(), timetable.noSchoolDates);
   const dayIso = isoDate(day);
+  const todayIso = isoDate(now);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
   const [dayPlans, grades, gradeNotifications, notes, planned, role] = await Promise.all([
-    // The whole Anstehend window, so a test's sheet shows its day's room.
+    // The whole Danach window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
-    // Optional: without the feed, Letzte Note falls back to given_at.
+    // Optional: without the feed, the Noten card falls back to given_at.
     fetchGradeNotifications().catch(() => []),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
     getPlannedKlausuren(studentId, dayIso, notesUntilIso),
     fetchRole(),
   ]);
 
-  const lessons = lessonsForDate(day, dayPlans, timetable);
-  const dayNotes = dayPlans.find((d) => d.date === dayIso)?.notes ?? [];
-
-  const changes = lessons
-    .filter((l) => l.status !== "regular")
-    .map((l) => ({
-      status: l.status,
-      // Kept apart: only the lesson is struck through, not "entfällt".
-      label: `${l.period}. Std ${l.subject}`,
-      text: changeText(l),
-    }));
-
-  const uniqueNotes = withExamDetails(notes, dayPlans, timetable, isoDate(now), planned);
+  const uniqueNotes = withExamDetails(notes, dayPlans, timetable, todayIso, planned);
+  // Same markers and sheets as the Stundenplan.
+  const [shownDay] = attachHomework(
+    attachExams(
+      [
+        {
+          iso: dayIso,
+          countdown: countdownLabel(calendarDaysBetween(todayIso, dayIso)),
+          lessons: withBellTimes(lessonsForDate(day, dayPlans, timetable), timetable),
+        },
+      ],
+      uniqueNotes.filter((n) => n.isExam),
+      timetable,
+      todayIso
+    ),
+    homeworkFromNotes(notes)
+  );
+  const test = upcomingTest(uniqueNotes, dayIso, todayIso);
 
   return {
     title: schoolDayLabel(day, now),
-    dateLabel: germanWeekdayDate(day),
-    dayNotes,
-    lessons,
-    changes,
-    newestGrade: newestGrade(markNewGrades(grades, role), gradeNotifications, now),
-    termine: nextTermine(uniqueNotes),
+    dateLabel: formatWeekdayDate(dayIso, "long"),
+    day: shownDay,
+    changeCount: shownDay.lessons.filter((l) => l.status !== "regular").length,
+    test,
+    latestGrades: latestGrades(markNewGrades(grades, role), gradeNotifications, now),
+    termine: nextTermine(uniqueNotes, test?.exam),
   };
 }
