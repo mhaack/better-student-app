@@ -754,9 +754,8 @@ button {
   background: var(--pressed);
 }
 
-/* Dot = test, ring = homework: same red, the shape tells them apart. */
-.sp-exam-dot,
-.hw-ring {
+/* Termine markers (components/marker.js): dot = test, ring = homework. */
+.marker {
   display: inline-block;
   flex: none;
   width: 8px;
@@ -764,12 +763,23 @@ button {
   border-radius: 50%;
 }
 
-.sp-exam-dot {
+.marker--dot {
   background: var(--accent);
 }
 
-.hw-ring {
+.marker--ring {
   border: 1.5px solid var(--accent);
+}
+
+/* In front of a line of text. */
+.marker--lead {
+  vertical-align: middle;
+  margin: 0 6px 2px 0;
+}
+
+/* Light on the dark "Als nächstes" card. */
+.next-card .marker--dot {
+  background: currentColor;
 }
 
 .sp-marks {
@@ -787,11 +797,6 @@ button {
   gap: 4px 8px;
   font-size: 12px;
   color: var(--text-muted);
-}
-
-.sp-legend-mark {
-  vertical-align: middle;
-  margin: 0 5px 1px 0;
 }
 
 .sp-legend-hint {

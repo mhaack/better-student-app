@@ -13,6 +13,7 @@ import { formatMonthYear, formatWeekday, formatWeekdayDate } from "../util/forma
 import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { nextCard, relativeDays } from "../components/next-card.js";
+import { categoryMarker } from "../components/marker.js";
 
 const TABS = [
   ["all", "Alle"],
@@ -29,7 +30,8 @@ function examNextCard(exam) {
     exam.subject ?? exam.subjectShort ?? "",
     relativeDays(exam.date),
     `<div class="next-card-meta">${escapeHtml(line)}</div>
-     ${exam.text ? `<div class="next-card-body">${escapeHtml(exam.text)}</div>` : ""}`
+     ${exam.text ? `<div class="next-card-body">${escapeHtml(exam.text)}</div>` : ""}`,
+    "exam"
   );
 }
 
@@ -42,15 +44,18 @@ function dayColumn(iso) {
     </div>`;
 }
 
-/** Title (and label), then the kind ("Klassenarbeit · 5.–6. Stunde"), then the clamped detail. */
-function rowBody(title, kind, detail, tag = "") {
+/**
+ * Title (and label), then the kind ("Klassenarbeit · 5.–6. Stunde") behind
+ * its category's marker, then the clamped detail.
+ */
+function rowBody(title, kind, detail, { tag = "", category = "" } = {}) {
   return `
     <div class="date-row-body">
       <div class="date-row-head">
         <div class="date-row-title">${escapeHtml(title)}</div>
         ${tag ? `<span class="frei-tag">${escapeHtml(tag)}</span>` : ""}
       </div>
-      ${kind ? `<div class="date-row-detail">${escapeHtml(kind)}</div>` : ""}
+      ${kind ? `<div class="date-row-detail">${categoryMarker(category, "marker--lead")}${escapeHtml(kind)}</div>` : ""}
       ${detail ? `<div class="date-row-note">${escapeHtml(detail)}</div>` : ""}
     </div>`;
 }
@@ -60,7 +65,7 @@ function terminRow(termin, index) {
   return `
     <div class="date-row" data-termin-index="${index}">
       ${dayColumn(termin.date)}
-      ${rowBody(termin.subject ?? termin.subjectShort ?? "", kind, termin.text)}
+      ${rowBody(termin.subject ?? termin.subjectShort ?? "", kind, termin.text, { category: termin.category })}
     </div>`;
 }
 
@@ -75,7 +80,7 @@ function ferienRow(block) {
   return `
     <div class="date-row date-row--frei">
       ${dayColumn(block.from)}
-      ${rowBody(block.name || "Schulfrei", kind, detail, block.isFerien ? "Ferien" : "Frei")}
+      ${rowBody(block.name || "Schulfrei", kind, detail, { tag: block.isFerien ? "Ferien" : "Frei" })}
     </div>`;
 }
 

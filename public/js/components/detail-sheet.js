@@ -1,13 +1,12 @@
 import { escapeHtml } from "../util/dom.js";
 import { formatDayMonth, formatWeekday } from "../util/format.js";
+import { categoryMarker } from "./marker.js";
 
 const BACKDROP_ID = "detail-sheet-backdrop";
 const FOCUSABLE = 'button, [href], [tabindex]:not([tabindex="-1"])';
-// Same markers as the grid: dot = test, ring = homework.
-const MARKER_CLASS = { dot: "sp-exam-dot", ring: "hw-ring" };
 
 /**
- * @typedef {{ eyebrow: string, text?: string, marker?: "dot" | "ring" }} InfoCard
+ * @typedef {{ eyebrow: string, text?: string, marker?: "exam" | "hw" }} InfoCard
  * One card style for all free text in a sheet: a test's topic, homework, the
  * plan's note on a change.
  */
@@ -65,11 +64,9 @@ export function infoCards(cards = []) {
   return cards
     .filter((c) => c?.text)
     .map((c) => {
-      const markerClass = MARKER_CLASS[c.marker];
-      const marker = markerClass ? `<span class="${markerClass}" aria-hidden="true"></span>` : "";
       return `
       <div class="info-card">
-        <div class="info-card-eyebrow">${marker}${escapeHtml(c.eyebrow)}</div>
+        <div class="info-card-eyebrow">${categoryMarker(c.marker)}${escapeHtml(c.eyebrow)}</div>
         <div class="info-card-text">${escapeHtml(c.text)}</div>
       </div>`;
     })
@@ -78,7 +75,7 @@ export function infoCards(cards = []) {
 
 /** @returns {InfoCard} */
 export function homeworkCard(homework) {
-  return { marker: "ring", eyebrow: "Hausaufgabe", text: homework.text };
+  return { marker: "hw", eyebrow: "Hausaufgabe", text: homework.text };
 }
 
 /** One label/value row; empty when there is no value. */

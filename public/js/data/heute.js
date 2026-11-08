@@ -63,7 +63,8 @@ export function nextTermine(notes, max = MAX_NOTES) {
   const upcoming = notes
     // Plan Klausuren have no text.
     .filter((n) => terminCategory(n) !== null && (n.text || n.isExam))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((n) => ({ ...n, category: terminCategory(n) }));
   return { notes: upcoming.slice(0, max), more: Math.max(0, upcoming.length - max) };
 }
 

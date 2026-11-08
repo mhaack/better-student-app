@@ -112,6 +112,11 @@ describe("nextTermine", () => {
 
   test("keeps a plan Klausur, which has no text", () => {
     const klausur = { date: "2026-11-10", typeCode: "KLA", text: "", isExam: true };
-    assert.deepEqual(nextTermine([klausur]).notes, [klausur]);
+    assert.deepEqual(nextTermine([klausur]).notes, [{ ...klausur, category: "exam" }]);
+  });
+
+  test("files each entry under its Termine category, for the marker", () => {
+    const result = nextTermine([entry("2026-11-10", "KLA"), entry("2026-11-11", "HAU"), entry("2026-11-12", "XYZ")]);
+    assert.deepEqual(result.notes.map((n) => n.category), ["exam", "hw", "other"]);
   });
 });
