@@ -5,7 +5,7 @@
 
 import { fetchCurrentTimetable, fetchSchool, isoDate } from "./repository.js";
 import { fetchSchulferien } from "../api/schulferien.js";
-import { holidayBlocks, nameBlocks, nextHoliday, MIN_FERIEN_SCHOOL_DAYS } from "../domain/holidays.js";
+import { holidayBlocks, nameBlocks, nextHoliday } from "../domain/holidays.js";
 
 /**
  * @param {{ year?: { from?: string, to?: string, name?: string } }} [context]
@@ -36,8 +36,9 @@ export async function getFerienData(context = {}) {
   return {
     next: nextHoliday(named, today),
     ferien: named.filter((b) => b.isFerien),
-    // "Einzelne freie Tage"; unnamed ones render as "Schulfrei".
-    freieTage: named.filter((b) => !b.isFerien && b.schoolDays < MIN_FERIEN_SCHOOL_DAYS),
+    // "Einzelne freie Tage"; unnamed ones render as "Schulfrei". Every block of
+    // MIN_FERIEN_SCHOOL_DAYS or more is named Ferien, so nothing falls between.
+    freieTage: named.filter((b) => !b.isFerien),
     yearLabel: context.year?.name ? `Schuljahr ${context.year.name}` : "",
     // So the view can say when the official calendar was unreachable.
     source: official.length ? "official" : "derived",
