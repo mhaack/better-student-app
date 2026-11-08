@@ -2,7 +2,7 @@
 // feed's dates where it has them. Subjects and names like the real ones.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { newestGrade } from "../../public/js/data/heute.js";
+import { newestGrade, nextTermine } from "../../public/js/data/heute.js";
 
 const NOW = new Date(2026, 10, 8, 9, 0); // Sunday 2026-11-08, local time
 
@@ -88,5 +88,38 @@ describe("newestGrade", () => {
 
   test("shows nothing without grades", () => {
     assert.equal(newestGrade([], [notification(70665820, "2026-11-07")], NOW), null);
+  });
+});
+
+describe("nextTermine", () => {
+  const entry = (date, typeCode, text = "Kurztest") => ({ date, typeCode, text, subject: "Physik" });
+
+  test("shows the next three by date and counts the rest", () => {
+    const result = nextTermine([
+      entry("2026-11-13", "HAU"),
+      entry("2026-11-10", "KLA"),
+      entry("2026-11-12", "LEI"),
+      entry("2026-11-11", "HAU"),
+      entry("2026-11-19", "HAU"),
+    ]);
+    assert.deepEqual(
+      result.notes.map((n) => n.date),
+      ["2026-11-10", "2026-11-11", "2026-11-12"]
+    );
+    assert.equal(result.more, 2);
+  });
+
+  test("has nothing more when three or fewer are coming", () => {
+    assert.equal(nextTermine([entry("2026-11-10", "KLA")]).more, 0);
+  });
+
+  test("leaves out Stundenthemen and entries without text", () => {
+    const result = nextTermine([entry("2026-11-10", "STU", "Wiederholung"), entry("2026-11-11", "HAU", "")]);
+    assert.deepEqual(result, { notes: [], more: 0 });
+  });
+
+  test("keeps a plan Klausur, which has no text", () => {
+    const klausur = { date: "2026-11-10", typeCode: "KLA", text: "", isExam: true };
+    assert.deepEqual(nextTermine([klausur]).notes, [klausur]);
   });
 });

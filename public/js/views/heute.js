@@ -80,8 +80,8 @@ function newGradeSection(newest) {
     </div>`;
 }
 
-/** Klassenbuch entries of the next two weeks; each row names its type. */
-function notesSection(items) {
+/** The next Klassenbuch entries; each row names its type, the rest are a tap away in Termine. */
+function notesSection({ notes: items, more }) {
   if (items.length === 0) return "";
   const rows = items
     .map((n, index) => {
@@ -103,8 +103,9 @@ function notesSection(items) {
     .join("");
   return `
     <div class="section section--tight">
-      <div class="eyebrow">Anstehend</div>
+      <div class="eyebrow">Nächste Termine</div>
       ${rows}
+      ${more ? '<a class="section-link" href="#/termine">Alle Termine ›</a>' : ""}
     </div>`;
 }
 
@@ -167,13 +168,13 @@ export async function renderHeute(container) {
         </div>
       </div>
       ${newGradeSection(data.newestGrade)}
-      ${notesSection(data.notes)}
+      ${notesSection(data.termine)}
       <div id="heute-mitteilungen" hidden></div>
     `;
     fillMitteilungen(container);
     markTruncatedRows(body, "[data-note-index]", ".hw-title");
     bindActivate(body, "[data-note-index]", (row) => {
-      const note = data.notes[Number(row.dataset.noteIndex)];
+      const note = data.termine.notes[Number(row.dataset.noteIndex)];
       if (note?.isExam) openExamSheet(container, [note], row);
       else if (note) openNoteDetail(container, note);
     });
