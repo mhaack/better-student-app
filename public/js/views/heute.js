@@ -110,7 +110,7 @@ function gradesCard(latest) {
 }
 
 /** The next Klassenbuch entries; the rest are a tap away in Termine. */
-function termineSection({ notes }) {
+function termineSection(notes) {
   if (notes.length === 0) return "";
   const rows = notes
     .map(
@@ -198,7 +198,7 @@ export async function renderHeute(container) {
       if (lesson) openLessonSheet(container, data.day, lesson, row);
     });
     bindActivate(body, "[data-note-index]", (row) => {
-      const note = data.termine.notes[Number(row.dataset.noteIndex)];
+      const note = data.termine[Number(row.dataset.noteIndex)];
       if (note?.isExam) openExamSheet(container, [note], row);
       else if (note) openNoteDetail(container, note);
     });

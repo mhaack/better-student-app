@@ -67,12 +67,12 @@ export function upcomingTest(notes, dayIso, todayIso) {
 
 /** Heute's Termine: the first few Klassenbuch entries by date, without the one in the test card. */
 export function nextTermine(notes, skip = null) {
-  const upcoming = notes
+  return notes
     // Plan Klausuren have no text.
     .filter((n) => n !== skip && terminCategory(n) !== null && (n.text || n.isExam))
     .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, MAX_NOTES)
     .map((n) => ({ ...n, category: terminCategory(n) }));
-  return { notes: upcoming.slice(0, MAX_NOTES), more: Math.max(0, upcoming.length - MAX_NOTES) };
 }
 
 /**

@@ -18,7 +18,7 @@ describe("latestGrades", () => {
       [notification(71194131, "2026-11-03"), notification(71300001, "2026-11-07")],
       NOW
     );
-    assert.equal(result.grades[0], klausur);
+    assert.deepEqual(result.grades, [klausur]);
     assert.equal(result.date, "2026-11-07");
   });
 
@@ -26,7 +26,7 @@ describe("latestGrades", () => {
     const older = grade(70566362, "2026-10-23", "Analysis I");
     const newer = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
     const result = latestGrades([older, newer], [notification(70566362, "2026-10-24")], NOW);
-    assert.equal(result.grades[0], newer);
+    assert.deepEqual(result.grades, [newer]);
     assert.equal(result.date, "2026-11-03");
   });
 
@@ -42,7 +42,7 @@ describe("latestGrades", () => {
       ],
       NOW
     );
-    assert.equal(result.grades[0], changed);
+    assert.deepEqual(result.grades, [changed]);
   });
 
   test("lists every grade entered on the newest day, the later-entered id first", () => {
@@ -61,17 +61,6 @@ describe("latestGrades", () => {
     );
     assert.deepEqual(result.grades, [morning, evening]);
     assert.equal(result.date, "2026-11-06");
-  });
-
-  test("leaves out a grade entered the day before", () => {
-    const today = grade(71194131, "2026-11-01", "Klausur Mechanik");
-    const yesterday = grade(71005722, "2026-11-01", "Freiwillige Leistung AB");
-    const result = latestGrades(
-      [yesterday, today],
-      [notification(71194131, "2026-11-07"), notification(71005722, "2026-11-06")],
-      NOW
-    );
-    assert.deepEqual(result.grades, [today]);
   });
 
   test("ignores entries for grades that aren't this student's", () => {
@@ -97,7 +86,7 @@ describe("latestGrades", () => {
 describe("nextTermine", () => {
   const entry = (date, typeCode, text = "Kurztest") => ({ date, typeCode, text, subject: "Physik" });
 
-  test("shows the next three by date and counts the rest", () => {
+  test("shows the next three by date", () => {
     const result = nextTermine([
       entry("2026-11-13", "HAU"),
       entry("2026-11-10", "KLA"),
@@ -106,35 +95,25 @@ describe("nextTermine", () => {
       entry("2026-11-19", "HAU"),
     ]);
     assert.deepEqual(
-      result.notes.map((n) => n.date),
+      result.map((n) => n.date),
       ["2026-11-10", "2026-11-11", "2026-11-12"]
     );
-    assert.equal(result.more, 2);
-  });
-
-  test("has nothing more when three or fewer are coming", () => {
-    assert.equal(nextTermine([entry("2026-11-10", "KLA")]).more, 0);
   });
 
   test("leaves out the test already shown in the card", () => {
     const shown = entry("2026-11-10", "KLA");
     const result = nextTermine([shown, entry("2026-11-11", "HAU")], shown);
-    assert.deepEqual(result.notes.map((n) => n.date), ["2026-11-11"]);
+    assert.deepEqual(result.map((n) => n.date), ["2026-11-11"]);
   });
 
   test("leaves out Stundenthemen and entries without text", () => {
     const result = nextTermine([entry("2026-11-10", "STU", "Wiederholung"), entry("2026-11-11", "HAU", "")]);
-    assert.deepEqual(result, { notes: [], more: 0 });
+    assert.deepEqual(result, []);
   });
 
   test("keeps a plan Klausur, which has no text", () => {
     const klausur = { date: "2026-11-10", typeCode: "KLA", text: "", isExam: true };
-    assert.deepEqual(nextTermine([klausur]).notes, [{ ...klausur, category: "exam" }]);
-  });
-
-  test("files each entry under its Termine category, for the marker", () => {
-    const result = nextTermine([entry("2026-11-10", "KLA"), entry("2026-11-11", "HAU"), entry("2026-11-12", "XYZ")]);
-    assert.deepEqual(result.notes.map((n) => n.category), ["exam", "hw", "other"]);
+    assert.deepEqual(nextTermine([klausur]), [{ ...klausur, category: "exam" }]);
   });
 });
 

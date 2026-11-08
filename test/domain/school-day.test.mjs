@@ -44,13 +44,10 @@ describe("resolveSchoolDay", () => {
     assert.equal(iso(resolveSchoolDay(at(18, 9, 0))), "2026-09-18");
   });
 
-  test("shows Monday, whatever the time", () => {
-    assert.equal(iso(resolveSchoolDay(at(19, 6, 0))), "2026-09-21");
+  test("shows Monday all weekend, whatever the time", () => {
+    assert.equal(iso(resolveSchoolDay(at(19, 6, 0))), "2026-09-21"); // Saturday
     assert.equal(iso(resolveSchoolDay(at(19, 23, 30))), "2026-09-21");
-  });
-
-  test("shows Monday, whatever the time", () => {
-    assert.equal(iso(resolveSchoolDay(at(20, 6, 0))), "2026-09-21");
+    assert.equal(iso(resolveSchoolDay(at(20, 6, 0))), "2026-09-21"); // Sunday
     assert.equal(iso(resolveSchoolDay(at(20, 22, 0))), "2026-09-21");
   });
 
