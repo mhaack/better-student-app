@@ -1,5 +1,5 @@
-import { fetchGrades, fetchFinalgrades } from "./repository.js";
-import { gradeTypeLabel, subjectAverage } from "../domain/grades.js";
+import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
+import { gradeTypeLabel, markNewGrades, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 
 /** Groups by normalised type label, so "SO" and "so" land together. */
@@ -55,12 +55,16 @@ export async function getFachDetailData(studentId, subjectId, options) {
   const { yearId, intervalId, scale } = options;
 
   // Same cache key as Noten: no extra request.
-  const [allGrades, finalgrades] = await Promise.all([
+  const [allGrades, finalgrades, role] = await Promise.all([
     fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
+    fetchRole(),
   ]);
 
-  const grades = allGrades.filter((g) => g.subjectId === subjectId);
+  const grades = markNewGrades(
+    allGrades.filter((g) => g.subjectId === subjectId),
+    role
+  );
   const finalgrade =
     finalgrades.find(
       (fg) => fg.subject_id === subjectId && (!intervalId || fg.interval_id === intervalId)

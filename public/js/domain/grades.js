@@ -68,6 +68,19 @@ export function gradeTypeLabel(type) {
 }
 
 /**
+ * Adds `isNew`: not yet seen by the viewer's side. Grades carry one read flag
+ * plus who read it, so for a guardian a grade only the child read is still new.
+ * @param {Array<{ read: boolean, readByGuardian: boolean }>} grades
+ * @param {"guardian" | "student" | null} role
+ */
+export function markNewGrades(grades, role) {
+  return grades.map((grade) => ({
+    ...grade,
+    isNew: role === "guardian" ? !grade.readByGuardian : !grade.read,
+  }));
+}
+
+/**
  * Points as an approximate Note (12 P ≈ 2+). Display only, never calculated with.
  * @param {number} points
  * @returns {string}

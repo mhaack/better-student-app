@@ -6,6 +6,7 @@ import {
   isUnterkurs,
   pointsToGradeLabel,
   gradeTypeLabel,
+  markNewGrades,
   evaluateCalculationRule,
   subjectAverage,
 } from "../../public/js/domain/grades.js";
@@ -88,6 +89,31 @@ describe("gradeTypeLabel", () => {
   test("falls back to Sonstige for a missing type", () => {
     assert.equal(gradeTypeLabel(undefined), "Sonstige");
     assert.equal(gradeTypeLabel(""), "Sonstige");
+  });
+});
+
+describe("markNewGrades", () => {
+  const unread = { id: 1, read: false, readByGuardian: false };
+  const readByChild = { id: 2, read: true, readByGuardian: false };
+  const readByParent = { id: 3, read: true, readByGuardian: true };
+  const flags = (role) => markNewGrades([unread, readByChild, readByParent], role).map((g) => g.isNew);
+
+  test("for a guardian, a grade stays new until a guardian has read it", () => {
+    assert.deepEqual(flags("guardian"), [true, true, false]);
+  });
+
+  test("for a student, a grade read by anyone is no longer new", () => {
+    assert.deepEqual(flags("student"), [true, false, false]);
+  });
+
+  test("with an unknown role, any read counts", () => {
+    assert.deepEqual(flags(null), [true, false, false]);
+  });
+
+  test("keeps the grade's own fields", () => {
+    const [marked] = markNewGrades([{ ...unread, raw: "1-" }], "guardian");
+    assert.equal(marked.raw, "1-");
+    assert.equal(marked.id, 1);
   });
 });
 

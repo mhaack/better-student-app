@@ -4,6 +4,7 @@ import {
   fetchGrades,
   fetchGradeNotifications,
   fetchJournalNotes,
+  fetchRole,
   isoDate,
 } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
@@ -12,6 +13,7 @@ import { getPlannedKlausuren } from "./klausuren.js";
 import { resolveSchoolDay, schoolDayLabel } from "../domain/school-day.js";
 import { getCutoffHour } from "../state/settings.js";
 import { calendarDaysBetween } from "../util/format.js";
+import { markNewGrades } from "../domain/grades.js";
 
 const RECENT_GRADE_WINDOW_DAYS = 14;
 const NOTE_WINDOW_DAYS = 14;
@@ -73,7 +75,7 @@ export async function getHeuteData(studentId, scale) {
   const dayIso = isoDate(day);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
-  const [dayPlans, grades, gradeNotifications, notes, planned] = await Promise.all([
+  const [dayPlans, grades, gradeNotifications, notes, planned, role] = await Promise.all([
     // The whole Anstehend window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
@@ -81,6 +83,7 @@ export async function getHeuteData(studentId, scale) {
     fetchGradeNotifications().catch(() => []),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
     getPlannedKlausuren(studentId, dayIso, notesUntilIso),
+    fetchRole(),
   ]);
 
   const lessons = lessonsForDate(day, dayPlans, timetable);
@@ -103,7 +106,7 @@ export async function getHeuteData(studentId, scale) {
     dayNotes,
     lessons,
     changes,
-    newestGrade: newestGrade(grades, gradeNotifications, now),
+    newestGrade: newestGrade(markNewGrades(grades, role), gradeNotifications, now),
     notes: uniqueNotes
       // Plan Klausuren have no text.
       .filter((n) => !BACKWARD_LOOKING_NOTE_TYPES.has(n.typeCode) && (n.text || n.isExam))
