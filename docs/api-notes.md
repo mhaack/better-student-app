@@ -78,11 +78,17 @@ inherits the subject of its collection.
   there is no `name`. **Teachers** are arrays too; a lesson can have several
   of both.
 - **Grade**: `{ id, value: "8", given_at, read, student_id, collection_id,
-  collection: {...}, teacher: {...} }`. `value` is a string.
+  collection: {...}, teacher: {...} }`. `value` is a string. `read` is one
+  flag for whoever read it; `read_by_type` (untyped string in the spec, only
+  `"guardian"` seen) says who. `POST /grades/{id}/read` would set it — the
+  app never calls it.
 - **Collection**: `{ id, type, weighting, name, given_at, interval_id,
   subject_id, interval: {...}, subject: {...} }`. `type` is free text
-  configured per school — this school uses "Sonstige"; it is *not* a fixed
-  code like "KA"/"So", so UI must not hardcode buckets.
+  typed per teacher, *not* a fixed code. One student's 19 grades had 10
+  spellings: `SO`/`So`/`so`/`Sonstige`/`SN`, `LK`/`Lk` (Leistungskontrolle,
+  not Leistungskurs), `K`/`KL`/`Klausur`. `gradeTypeLabel` in
+  `domain/grades.js` maps them case-insensitively; unknown codes pass through.
+  All had `weighting: 1`, Klausuren included.
 - **Interval**: `{ id, name: "1. Schulhalbjahr", type, from, to, year_id }`
   with `type` one of **`"Sek I"` / `"11er"` / `"12er"`**. A year carries all
   six (two per type); which ones apply depends on the student's Jahrgang.

@@ -3,16 +3,24 @@ import { ensureContext } from "../state/session.js";
 import { getFachDetailData } from "../data/fach-detail.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatAverage, weekdayOrDate } from "../util/format.js";
+import { formatAverage, formatFullDate } from "../util/format.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
+
+function dateLine(grade) {
+  const parts = [
+    grade.givenAt ? escapeHtml(formatFullDate(grade.givenAt)) : "",
+    grade.readByGuardian ? '<span role="img" aria-label="von Eltern gelesen" title="Von Eltern gelesen">✓</span>' : "",
+  ].filter(Boolean);
+  return parts.length ? `<div class="grade-entry-meta">${parts.join('<span class="grade-entry-sep" aria-hidden="true">·</span>')}</div>` : "";
+}
 
 function gradeEntryRow(grade, isPoints) {
   const title = grade.collection.name || grade.collection.type;
   return `
     <div class="grade-entry-row${isPoints ? " grade-entry-row--points" : ""}">
       <div>
-        <div style="font-size:16px;color:var(--text-primary)">${escapeHtml(title)}</div>
-        ${grade.givenAt ? `<div style="font-size:12px;color:var(--text-muted)">${escapeHtml(weekdayOrDate(grade.givenAt))}</div>` : ""}
+        <div class="grade-entry-title">${escapeHtml(title)}</div>
+        ${dateLine(grade)}
       </div>
       <span class="grade-capsule">${escapeHtml(grade.raw)}</span>
     </div>`;
@@ -23,7 +31,7 @@ function gradeGroup(group, isPoints) {
     <div class="grade-group">
       <div class="grade-group-header">
         <span class="eyebrow">${escapeHtml(group.type)}</span>
-        <span style="font-size:12px;color:var(--text-secondary)">${group.weightingPct} %</span>
+        <span class="grade-group-weight">${group.weightingPct} %</span>
       </div>
       ${group.grades.map((g) => gradeEntryRow(g, isPoints)).join("")}
     </div>`;

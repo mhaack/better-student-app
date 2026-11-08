@@ -2,7 +2,7 @@
 // (docs/api-notes.md); the texts are made up.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { mapAnnouncement, mapMe } from "../../public/js/api/mappers.js";
+import { mapAnnouncement, mapGrade, mapMe } from "../../public/js/api/mappers.js";
 import { rawAnnouncement } from "../support/announcements.mjs";
 
 describe("mapAnnouncement", () => {
@@ -69,5 +69,30 @@ describe("mapMe", () => {
     assert.deepEqual(mapMe({ role: "student" }), { role: "student" });
     assert.deepEqual(mapMe({}), { role: null });
     assert.deepEqual(mapMe(null), { role: null });
+  });
+});
+
+describe("mapGrade", () => {
+  const rawGrade = (overrides) => ({
+    id: 71194131,
+    value: "10",
+    given_at: "2026-11-03",
+    read: true,
+    read_by_type: "guardian",
+    collection: { id: 4370299, type: "KL", weighting: 1, name: "Klausur Mechanik", subject_id: 77 },
+    teacher: { id: 205, local_id: "RCH", forename: "Sabine", name: "Reich" },
+    ...overrides,
+  });
+
+  test("marks a grade a guardian has read as acknowledged", () => {
+    assert.equal(mapGrade(rawGrade(), "points_0_15").readByGuardian, true);
+  });
+
+  test("does not count a read by someone other than a guardian", () => {
+    assert.equal(mapGrade(rawGrade({ read_by_type: "student" }), "points_0_15").readByGuardian, false);
+  });
+
+  test("leaves an unread grade unacknowledged", () => {
+    assert.equal(mapGrade(rawGrade({ read: false, read_by_type: null }), "points_0_15").readByGuardian, false);
   });
 });
