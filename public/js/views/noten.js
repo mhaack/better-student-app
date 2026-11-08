@@ -35,7 +35,7 @@ function subjectRow(subject, scale) {
   return `
     <a class="${rowClasses}" href="#/noten/${subject.subjectId}" style="text-decoration:none;color:inherit">
       <div style="display:flex;flex-direction:column;gap:4px">
-        <div class="subject-name">${escapeHtml(subject.name)}</div>
+        <div class="subject-name">${escapeHtml(subject.name)}${subject.hasNew ? '<span class="new-dot" role="img" aria-label="neue Noten"></span>' : ""}</div>
         ${subject.average.source === "estimated" ? '<span class="chip">geschätzt</span>' : ""}
         ${subject.average.unterkurs ? '<span class="chip">Unterkurs</span>' : ""}
         ${isEmpty ? '<span class="subject-empty-note">noch keine Noten</span>' : ""}

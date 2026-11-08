@@ -1,5 +1,5 @@
-import { fetchGrades, fetchFinalgrades } from "./repository.js";
-import { subjectAverage } from "../domain/grades.js";
+import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
+import { markNewGrades, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, MINI_TREND_WIDTH } from "../domain/trend.js";
 
 const TREND_POINTS_COUNT = 4;
@@ -14,10 +14,12 @@ const TREND_POINTS_COUNT = 4;
 export async function getNotenData(studentId, options) {
   const { yearId, intervalId, scale, courses } = options;
 
-  const [grades, finalgrades] = await Promise.all([
+  const [allGrades, finalgrades, role] = await Promise.all([
     fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
+    fetchRole(),
   ]);
+  const grades = markNewGrades(allGrades, role);
 
   const finalgradeBySubject = new Map();
   for (const fg of finalgrades) {
@@ -47,6 +49,7 @@ export async function getNotenData(studentId, options) {
             )
           : null,
       empty: average.value === null,
+      hasNew: subjectGrades.some((g) => g.isNew),
     };
   });
 

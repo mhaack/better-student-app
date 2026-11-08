@@ -5,6 +5,7 @@ import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage } from "../util/format.js";
 import { gradeMeta } from "../components/grade-meta.js";
+import { gradeCapsule } from "../components/grade-capsule.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 function gradeEntryRow(grade, isPoints) {
@@ -15,7 +16,7 @@ function gradeEntryRow(grade, isPoints) {
         <div class="grade-entry-title">${escapeHtml(title)}</div>
         ${gradeMeta(grade)}
       </div>
-      <span class="grade-capsule">${escapeHtml(grade.raw)}</span>
+      ${gradeCapsule(grade)}
     </div>`;
 }
 

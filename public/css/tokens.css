@@ -27,6 +27,15 @@
 
   --pressed: #EFEAE2;
 
+  /* Grade capsule and its Kenntnisnahme state (design: schulblick-neu-sticker). */
+  --capsule-bg: var(--surface);
+  --capsule-border: var(--border-strong);
+  --sticker-bg: #A8341C;
+  --sticker-text: #FFFFFF;
+  --sticker-shadow: 0 2px 5px rgba(168, 52, 28, 0.28);
+  --seen-bg: #ECE7DF;
+  --seen-fg: #57504A;
+
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
@@ -59,6 +68,14 @@
   --lk-badge-text: #14120F;
 
   --pressed: #26221D;
+
+  /* Accent is too light for white text; the sticker gets its own red (4.8:1). */
+  --capsule-bg: transparent;
+  --capsule-border: #F3F0EA;
+  --sticker-bg: #C4492E;
+  --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  --seen-bg: rgba(243, 240, 234, 0.1);
+  --seen-fg: #B8AFA4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -86,5 +103,13 @@
     --lk-badge-text: #14120F;
 
     --pressed: #26221D;
+
+    /* Accent is too light for white text; the sticker gets its own red (4.8:1). */
+    --capsule-bg: transparent;
+    --capsule-border: #F3F0EA;
+    --sticker-bg: #C4492E;
+    --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+    --seen-bg: rgba(243, 240, 234, 0.1);
+    --seen-fg: #B8AFA4;
   }
 }
