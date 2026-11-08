@@ -167,6 +167,14 @@ describe("heuristicName", () => {
     // Below the threshold nothing is named.
     assert.equal(heuristicName("2026-10-12", MIN_FERIEN_SCHOOL_DAYS - 1), null);
   });
+
+  // getFerienData relies on this: a long block is never left out of both lists.
+  test("names a block at the threshold in every month", () => {
+    for (let month = 1; month <= 12; month++) {
+      const from = `2027-${String(month).padStart(2, "0")}-04`;
+      assert.ok(heuristicName(from, MIN_FERIEN_SCHOOL_DAYS), from);
+    }
+  });
 });
 
 describe("ferienStem", () => {
