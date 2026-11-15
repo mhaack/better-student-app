@@ -7,6 +7,7 @@ import { renderBottomNav, setMehrDot } from "./components/bottom-nav.js";
 import { initSplash } from "./components/splash.js";
 import { renderLogin, establishSession } from "./views/login.js";
 import { renderHeute } from "./views/heute.js";
+import { renderBenachrichtigungen } from "./views/benachrichtigungen.js";
 import { renderNoten } from "./views/noten.js";
 import { renderFachDetail } from "./views/fach-detail.js";
 import { renderStundenplan } from "./views/stundenplan.js";
@@ -51,6 +52,8 @@ function withShell(viewFn) {
 }
 
 route(/^\/heute$/, withShell(renderHeute));
+// Under /heute so the Heute tab stays highlighted.
+route(/^\/heute\/benachrichtigungen$/, withShell(renderBenachrichtigungen));
 route(/^\/noten$/, withShell(renderNoten));
 route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFachDetail(container, params)));
 route(/^\/stundenplan$/, withShell(renderStundenplan));
