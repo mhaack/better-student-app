@@ -2,7 +2,7 @@ import {
   fetchDayPlans,
   fetchCurrentTimetable,
   fetchGrades,
-  fetchGradeNotifications,
+  fetchNotifications,
   fetchJournalNotes,
   fetchRole,
   isoDate,
@@ -23,17 +23,20 @@ const MAX_NOTES = 3;
  * The grades entered on the most recent entry day, latest first, and that
  * date; null if it was over 14 days ago.
  * given_at is the Leistung's date, so a Klausur graded weeks later would sink;
- * the bell feed's created_at says when it was entered. Grades missing from the
- * feed fall back to given_at; same-day ties go to the higher (later) id.
+ * the bell feed's created_at says when it was entered. Only "created" entries
+ * count: a later update must not pull a grade up, and a changed grade is left
+ * out (it isn't news on Heute). Missing from the feed falls back to given_at;
+ * same-day ties go to the higher (later) id.
  */
-export function latestGrades(grades, gradeNotifications, now) {
+export function latestGrades(grades, notifications, now) {
   const enteredAt = new Map();
-  for (const { gradeId, createdAt } of gradeNotifications) {
-    if (gradeId == null || !createdAt) continue;
+  for (const { type, action, gradeId, createdAt } of notifications) {
+    if (type !== "grade" || action !== "created" || gradeId == null || !createdAt) continue;
     if (createdAt > (enteredAt.get(gradeId) ?? "")) enteredAt.set(gradeId, createdAt);
   }
 
   const entries = grades
+    .filter((grade) => !grade.isChanged)
     .map((grade) => {
       const at = enteredAt.get(grade.id) ?? grade.givenAt ?? "";
       return { grade, at, day: at.slice(0, 10) };
@@ -91,12 +94,12 @@ export async function getHeuteData(studentId, scale) {
   const todayIso = isoDate(now);
   const notesUntilIso = isoDate(new Date(day.getTime() + NOTE_WINDOW_DAYS * 86_400_000));
 
-  const [dayPlans, grades, gradeNotifications, notes, planned, role] = await Promise.all([
+  const [dayPlans, grades, notifications, notes, planned, role] = await Promise.all([
     // The whole Termine window, so a test's sheet shows its day's room.
     fetchDayPlans(dayIso, notesUntilIso),
     fetchGrades(studentId, { scale }),
     // Optional: without the feed, the Noten card falls back to given_at.
-    fetchGradeNotifications().catch(() => []),
+    fetchNotifications().catch(() => []),
     fetchJournalNotes(studentId, dayIso, notesUntilIso),
     getPlannedKlausuren(studentId, dayIso, notesUntilIso),
     fetchRole(),
@@ -127,7 +130,7 @@ export async function getHeuteData(studentId, scale) {
     day: shownDay,
     changeCount: shownDay.lessons.filter((l) => l.status !== "regular").length,
     test,
-    latestGrades: latestGrades(markNewGrades(grades, role), gradeNotifications, now),
+    latestGrades: latestGrades(markNewGrades(grades, role), notifications, now),
     termine: nextTermine(uniqueNotes, test?.exam),
   };
 }

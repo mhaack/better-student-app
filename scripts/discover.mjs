@@ -82,7 +82,7 @@ async function run() {
     "intervals",
     "subjects",
     "groups?include=students,subjects",
-    "grades?include=collection,subject,teacher&per_page=250",
+    "grades?include=collection.subject,teacher,histories&per_page=250",
     "collections",
     "finalgrades?per_page=250",
     "time-tables/current?include=lessons.times",
