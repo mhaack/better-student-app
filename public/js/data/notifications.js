@@ -16,11 +16,15 @@ function onePerGrade(entries) {
   const best = new Map();
   for (const entry of entries) {
     if (entry.type !== "grade") continue;
-    const current = best.get(entry.gradeId);
-    if (!current || outranks(entry, current)) best.set(entry.gradeId, entry);
+    const key = gradeKey(entry);
+    const current = best.get(key);
+    if (!current || outranks(entry, current)) best.set(key, entry);
   }
-  return entries.filter((e) => e.type !== "grade" || best.get(e.gradeId) === e);
+  return entries.filter((e) => e.type !== "grade" || best.get(gradeKey(e)) === e);
 }
+
+// Entries without a grade id must not collapse into one bucket.
+const gradeKey = (entry) => entry.gradeId ?? `notification-${entry.id}`;
 
 function outranks(entry, best) {
   if (entry.action !== best.action) return entry.action === "updated";
@@ -31,7 +35,7 @@ function gradeItem(entry, grades) {
   const grade = grades.find((g) => g.id === entry.gradeId) ?? null;
   return {
     id: entry.id,
-    kind: KIND_BY_ACTION[entry.action] ?? "new",
+    kind: KIND_BY_ACTION[entry.action],
     unread: entry.unread,
     createdAt: entry.createdAt,
     href: entry.subjectId != null ? `#/noten/${entry.subjectId}` : null,
@@ -50,7 +54,8 @@ function infoItem(entry, announcements) {
     kind: "info",
     unread: entry.unread,
     createdAt: entry.createdAt,
-    href: `#/mehr/mitteilungen/${entry.announcementId}`,
+    // The detail page errors for an announcement that isn't in the list.
+    href: announcement ? `#/mehr/mitteilungen/${announcement.id}` : null,
     subjectName: null,
     collectionName: null,
     grade: null,
@@ -64,7 +69,7 @@ export function prepareNotifications(notifications, { grades, announcements, stu
   const relevant = notifications.filter((n) => {
     if (n.type === "announcement") return true;
     // Announcements aren't per child; grade entries are.
-    return n.type === "grade" && (n.studentId == null || n.studentId === studentId);
+    return n.type === "grade" && n.action in KIND_BY_ACTION && (n.studentId == null || n.studentId === studentId);
   });
 
   const items = onePerGrade(relevant).map((n) =>
@@ -80,7 +85,8 @@ export async function getNotificationsData(studentId, scale) {
   const [notifications, grades, announcements, role] = await Promise.all([
     fetchNotifications(),
     fetchGrades(studentId, { scale }),
-    fetchAnnouncements(),
+    // Only needed for the sender; the feed is worth showing without it.
+    fetchAnnouncements().catch(() => []),
     fetchRole(),
   ]);
   return prepareNotifications(notifications, {

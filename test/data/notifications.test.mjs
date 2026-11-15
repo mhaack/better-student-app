@@ -113,6 +113,23 @@ describe("prepareNotifications", () => {
     assert.deepEqual(unread.map((i) => i.id).sort(), [2, 3]);
   });
 
+  test("drops a grade entry with an unknown action", () => {
+    const { unread } = prepare([gradeEntry({ id: 1, action: "deleted" }), gradeEntry({ id: 2, gradeId: 101 })]);
+    assert.deepEqual(unread.map((i) => i.id), [2]);
+  });
+
+  test("keeps entries without a grade id apart", () => {
+    const { unread } = prepare([gradeEntry({ id: 1, gradeId: null }), gradeEntry({ id: 2, gradeId: null })]);
+    assert.deepEqual(unread.map((i) => i.id).sort(), [1, 2]);
+  });
+
+  test("has no link for an info entry whose announcement isn't in the list", () => {
+    const { unread } = prepare([infoEntry({ id: 1, announcementId: 9 }), infoEntry({ id: 2, announcementId: null })], {
+      announcements: [],
+    });
+    assert.deepEqual(unread.map((i) => i.href), [null, null]);
+  });
+
   test("drops other notification types", () => {
     const { unread, read } = prepare([gradeEntry({ type: "message" }), gradeEntry({ id: 2 })]);
     assert.equal(unread.length + read.length, 1);
@@ -219,6 +236,14 @@ describe("getNotificationsData", () => {
     assert.equal(read[0].href, "#/mehr/mitteilungen/2982");
     assert.ok(read[0].sender);
     assert.equal(unreadCount, 1);
+  });
+
+  test("still shows the feed, without senders, when the announcements fail", async () => {
+    stubApi({ ...WORKING_API, announcements: null });
+    const { read } = await getNotificationsData(STUDENT, "grade_1_6");
+    assert.deepEqual(read.map((i) => i.id), [3]);
+    assert.equal(read[0].sender, null);
+    assert.equal(read[0].href, null);
   });
 
   test("rejects when the feed fails", async () => {
