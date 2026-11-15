@@ -1,6 +1,7 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getNotificationsData } from "../data/notifications.js";
+import { markAllNotificationsRead, markNotificationRead } from "../data/repository.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatFullDate, formatWeekdayDate } from "../util/format.js";
 import { noticeCapsule, gradeValue } from "../components/grade-capsule.js";
@@ -12,10 +13,11 @@ const CARD_LABEL = { new: "Neue Note", changed: "Note geändert" };
 const joinParts = (parts) => parts.filter(Boolean).join(" · ");
 
 /** A link when the entry has a target, otherwise a plain block with the same look. */
-function linkOrBlock(href, className, inner, label = "") {
+function linkOrBlock(href, className, inner, label = "", id = null) {
   if (!href) return `<div class="${className}">${inner}</div>`;
   const aria = label ? ` aria-label="${escapeHtml(label)}"` : "";
-  return `<a class="${className}" href="${escapeHtml(href)}"${aria}>${inner}</a>`;
+  const data = id ? ` data-notification-id="${escapeHtml(id)}"` : "";
+  return `<a class="${className}" href="${escapeHtml(href)}"${aria}${data}>${inner}</a>`;
 }
 
 function infoCard(item) {
@@ -27,7 +29,7 @@ function infoCard(item) {
       <span class="nt-card__subject">${escapeHtml(item.title ?? "")}</span>
     </span>
     <span class="nt-chevron" aria-hidden="true">›</span>`;
-  return linkOrBlock(item.href, "nt-card", inner);
+  return linkOrBlock(item.href, "nt-card", inner, "", item.id);
 }
 
 function gradeMeta(item) {
@@ -52,7 +54,8 @@ function gradeCard(item) {
       <span class="nt-card__meta">${gradeMeta(item)}</span>
     </span>
     ${grade ? noticeCapsule(grade, item.kind) : ""}`;
-  return linkOrBlock(item.href, "nt-card", inner, [label + (value ? `: ${value}` : ""), previous].filter(Boolean).join(", "));
+  const aria = [label + (value ? `: ${value}` : ""), previous].filter(Boolean).join(", ");
+  return linkOrBlock(item.href, "nt-card", inner, aria, item.id);
 }
 
 function readRow(item) {
@@ -86,6 +89,32 @@ function readZone(read) {
     </section>`;
 }
 
+/** Opening an unread card marks it read; the link navigates without waiting for it. */
+function bindCardReads(body) {
+  for (const card of body.querySelectorAll("[data-notification-id]")) {
+    card.addEventListener("click", () => {
+      // A failed mark only means the card is still unread next time.
+      markNotificationRead(card.dataset.notificationId).catch(() => {});
+    });
+  }
+}
+
+function bindAllRead(container) {
+  const button = container.querySelector("#nt-all-read");
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    button.textContent = "Wird markiert…";
+    try {
+      await markAllNotificationsRead();
+      await renderBenachrichtigungen(container);
+    } catch {
+      button.disabled = false;
+      button.textContent = "Alle als gelesen markieren";
+      container.querySelector("#nt-count").textContent = "Konnte nicht markiert werden.";
+    }
+  });
+}
+
 export async function renderBenachrichtigungen(container) {
   container.innerHTML = `
     <div class="view view--detail">
@@ -105,12 +134,13 @@ export async function renderBenachrichtigungen(container) {
     const { scale } = await ensureContext();
     const { unread, read, unreadCount } = await getNotificationsData(getSelectedStudentId(), scale);
     container.querySelector("#nt-count").textContent = unreadCount ? `${unreadCount} ungelesen` : "Alles gelesen";
-    // Enabled but inert for now: marking read comes with a later step.
     container.querySelector("#nt-all-read").disabled = unreadCount === 0;
     body.innerHTML =
       unread.length + read.length === 0
         ? renderEmptyState("Keine Benachrichtigungen.")
         : `${unreadZone(unread)}${readZone(read)}`;
+    bindCardReads(body);
+    bindAllRead(container);
   } catch (err) {
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);

@@ -80,8 +80,10 @@ inherits the subject of its collection.
 - **Grade**: `{ id, value: "8", given_at, read, student_id, collection_id,
   collection: {...}, teacher: {...} }`. `value` is a string. `read` is one
   flag for whoever read it; `read_by_type` (untyped string in the spec, only
-  `"guardian"` seen) says who. `POST /grades/{id}/read` would set it — the
-  app never calls it.
+  `"guardian"` seen) says who. `POST /grades/{id}/read` ("Any role" in the
+  spec) sets it: the app's "Zur Kenntnis nehmen" on a new or changed grade.
+  Its CORS preflight allows `POST` with `authorization` (checked 2026-11-15);
+  the call itself is not yet verified against a real grade.
 - **Collection**: `{ id, type, weighting, name, given_at, interval_id,
   subject_id, interval: {...}, subject: {...} }`. `type` is free text
   typed per teacher, *not* a fixed code. One student's 19 grades had 10
@@ -235,9 +237,16 @@ grade/created 16, grade/updated 1, announcement/created 1) — one entry per
 event, shaped `{ id (uuid), notification_type: "grade" | "announcement",
 action: "created" | "updated", created_at, read_at, redirect_url,
 notifiable_type, data, grade | announcement, notifiable }`.
-`POST /api/notifications/read` and `POST /api/notifications/{id}/read` mark
-them read; the app never calls those (it's an inbox marker, **not** a
-Lesebestätigung).
+`POST /api/notifications/read` (the whole feed) and
+`POST /api/notifications/{id}/read` (one entry) mark them read. The app calls
+them from Benachrichtigungen: opening an unread card, and "Alle als gelesen
+markieren". It's an inbox marker, **not** a Lesebestätigung, and it **doesn't
+touch the grade**: after the Geschichte update entry was marked read
+(2026-11-15), its `read_at` was set but the grade stayed `read: false`, so
+NEU/GEÄNDERT and the Noten dot stay until the grade itself is read
+(`POST /grades/{id}/read`; the app marks the grade's notifications read
+right after it). The feed is per account, so marking
+all read also covers a sibling's entries.
 
 - Grade entries embed `grade` (with `student_id`, `collection.subject`,
   `value`, `read`, `read_by_type`); `data` is `{ collection_name,
