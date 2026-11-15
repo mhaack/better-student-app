@@ -1,17 +1,23 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
-import { getFachDetailData } from "../data/fach-detail.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, scaleUnit } from "../util/format.js";
 import { gradeMeta } from "../components/grade-meta.js";
 import { gradeCapsule } from "../components/grade-capsule.js";
+import { openGradeSheet } from "../components/grade-sheet.js";
+import { acknowledgeGrade, getFachDetailData } from "../data/fach-detail.js";
+import { bindActivate } from "../components/detail-sheet.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
 function gradeEntryRow(grade, isPoints) {
   const title = grade.collection.name || grade.collection.type;
+  // Only unseen grades open the Kenntnisnahme card.
+  const tappable = grade.isNew
+    ? ` role="button" tabindex="0" data-grade-id="${grade.id}" aria-haspopup="dialog"`
+    : "";
   return `
-    <div class="grade-entry-row${isPoints ? " grade-entry-row--points" : ""}">
+    <div class="grade-entry-row${isPoints ? " grade-entry-row--points" : ""}${grade.isNew ? " grade-entry-row--tappable" : ""}"${tappable}>
       <div>
         <div class="grade-entry-title">${escapeHtml(title)}</div>
         ${gradeMeta(grade)}
@@ -68,6 +74,30 @@ function trendChart(trendPoints, scale) {
         </svg>
       </div>
     </div>`;
+}
+
+/** A tap on an unseen grade opens its card; confirming redraws the page with the check. */
+function bindAcknowledge(container, data, subjectName, subjectId) {
+  const entries = new Map(
+    data.groups.flatMap((group) =>
+      group.grades.map((grade) => [grade.id, { grade, weighting: `${group.type} · ${group.weightingPct} %` }])
+    )
+  );
+  bindActivate(container.querySelector("#fach-body"), "[data-grade-id]", (row) => {
+    const entry = entries.get(Number(row.dataset.gradeId));
+    if (!entry) return;
+    openGradeSheet(
+      container,
+      { grade: entry.grade, subjectName: subjectName || entry.grade.subjectName, weighting: entry.weighting, role: data.role },
+      {
+        opener: row,
+        onConfirm: async () => {
+          await acknowledgeGrade(entry.grade.id, entry.grade.notice?.unreadIds ?? []);
+          await renderFachDetail(container, { subjectId });
+        },
+      }
+    );
+  });
 }
 
 export async function renderFachDetail(container, { subjectId }) {
@@ -135,6 +165,8 @@ export async function renderFachDetail(container, { subjectId }) {
         <div id="formula-text" class="formula-text" hidden>${escapeHtml(data.formulaText)}</div>
       </div>
     `;
+
+    bindAcknowledge(container, data, course?.name ?? "", subjectId);
 
     const toggle = container.querySelector("#formula-toggle");
     const text = container.querySelector("#formula-text");

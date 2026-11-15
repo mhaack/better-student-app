@@ -1,7 +1,7 @@
-// Grouping a subject's grades by type on the Fach detail page.
+// The Fach detail page: grouping by type, and acknowledging a new or changed grade.
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
-import { groupByType } from "../../public/js/data/fach-detail.js";
+import { afterEach, describe, mock, test } from "node:test";
+import { acknowledgeGrade, gradeNotice, groupByType } from "../../public/js/data/fach-detail.js";
 
 function grade(type, numeric, givenAt, weighting = 1) {
   return { numeric, givenAt, collection: { type, weighting, name: `${type} ${givenAt}` } };
@@ -50,5 +50,89 @@ describe("groupByType", () => {
       group.grades.map((g) => g.givenAt),
       ["2026-11-03", "2026-09-15"]
     );
+  });
+});
+
+describe("gradeNotice", () => {
+  const entry = (overrides) => ({
+    id: "n-1",
+    type: "grade",
+    action: "created",
+    createdAt: "2026-10-02",
+    unread: false,
+    gradeId: 70482217,
+    ...overrides,
+  });
+  const newGrade = { id: 70482217, isNew: true, isChanged: false };
+  const changedGrade = { id: 70482217, isNew: true, isChanged: true };
+
+  test("dates a new grade by its creation entry", () => {
+    const notice = gradeNotice(newGrade, [entry({ unread: true })]);
+    assert.deepEqual(notice, { label: "Eingetragen", date: "2026-10-02", unreadIds: ["n-1"] });
+  });
+
+  test("dates a changed grade by its newest update entry", () => {
+    const notice = gradeNotice(changedGrade, [
+      entry({ id: "n-1", createdAt: "2026-10-02" }),
+      entry({ id: "n-2", action: "updated", createdAt: "2026-10-19", unread: true }),
+      entry({ id: "n-3", action: "updated", createdAt: "2026-10-12" }),
+    ]);
+    assert.equal(notice.label, "Geändert");
+    assert.equal(notice.date, "2026-10-19");
+  });
+
+  test("collects every unread entry of the grade, and only those", () => {
+    const notice = gradeNotice(changedGrade, [
+      entry({ id: "n-1", unread: true }),
+      entry({ id: "n-2", action: "updated", unread: true }),
+      entry({ id: "n-3", unread: true, gradeId: 1 }),
+      entry({ id: "n-4", type: "announcement", gradeId: null, unread: true }),
+    ]);
+    assert.deepEqual(notice.unreadIds, ["n-1", "n-2"]);
+  });
+
+  test("has no date when the feed doesn't know the grade", () => {
+    assert.deepEqual(gradeNotice(newGrade, []), { label: "Eingetragen", date: null, unreadIds: [] });
+  });
+
+  test("is null for a seen grade", () => {
+    assert.equal(gradeNotice({ id: 70482217, isNew: false, isChanged: false }, [entry({})]), null);
+  });
+});
+
+describe("acknowledgeGrade", () => {
+  function stubApi({ failGrade = false, failNotification = false } = {}) {
+    const calls = [];
+    mock.method(globalThis, "fetch", async (url, init = {}) => {
+      const path = new URL(url).pathname;
+      calls.push(`${init.method ?? "GET"} ${path}`);
+      const fails = (failGrade && path.startsWith("/api/grades/")) || (failNotification && path.startsWith("/api/notifications/"));
+      if (fails) return { ok: false, status: 404, text: async () => "{}" };
+      return { ok: true, status: 200, text: async () => "{}" };
+    });
+    return calls;
+  }
+
+  afterEach(() => mock.restoreAll());
+
+  test("confirms the grade, then marks its notifications read", async () => {
+    const calls = stubApi();
+    await acknowledgeGrade(70482217, ["n-1", "n-2"]);
+    assert.deepEqual(calls, [
+      "POST /api/grades/70482217/read",
+      "POST /api/notifications/n-1/read",
+      "POST /api/notifications/n-2/read",
+    ]);
+  });
+
+  test("fails when the grade can't be confirmed, without touching notifications", async () => {
+    const calls = stubApi({ failGrade: true });
+    await assert.rejects(acknowledgeGrade(70482217, ["n-1"]));
+    assert.deepEqual(calls, ["POST /api/grades/70482217/read"]);
+  });
+
+  test("still succeeds when a notification can't be marked", async () => {
+    stubApi({ failNotification: true });
+    await acknowledgeGrade(70482217, ["n-1"]);
   });
 });

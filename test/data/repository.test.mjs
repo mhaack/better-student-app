@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, mock, test } from "node:test";
 import { clearCache } from "../../public/js/data/cache.js";
 import {
+  fetchGrades,
   fetchNotifications,
   markAllNotificationsRead,
+  markGradeRead,
   markNotificationRead,
 } from "../../public/js/data/repository.js";
 
@@ -70,5 +72,21 @@ describe("markAllNotificationsRead", () => {
     await markAllNotificationsRead();
     await fetchNotifications();
     assert.equal(calls.filter((c) => c.method === "GET").length, 2);
+  });
+});
+
+describe("markGradeRead", () => {
+  test("posts to the grade's read route", async () => {
+    const calls = stubApi();
+    await markGradeRead(70482217);
+    assert.deepEqual(calls, [{ path: "/api/grades/70482217/read", method: "POST" }]);
+  });
+
+  test("makes the next grades read hit the API again", async () => {
+    const calls = stubApi();
+    await fetchGrades(7, { scale: "points_0_15" });
+    await markGradeRead(70482217);
+    await fetchGrades(7, { scale: "points_0_15" });
+    assert.equal(calls.filter((c) => c.method === "GET" && c.path === "/api/grades").length, 2);
   });
 });

@@ -80,8 +80,10 @@ inherits the subject of its collection.
 - **Grade**: `{ id, value: "8", given_at, read, student_id, collection_id,
   collection: {...}, teacher: {...} }`. `value` is a string. `read` is one
   flag for whoever read it; `read_by_type` (untyped string in the spec, only
-  `"guardian"` seen) says who. `POST /grades/{id}/read` would set it — the
-  app never calls it.
+  `"guardian"` seen) says who. `POST /grades/{id}/read` ("Any role" in the
+  spec) sets it: the app's "Zur Kenntnis nehmen" on a new or changed grade.
+  Its CORS preflight allows `POST` with `authorization` (checked 2026-11-15);
+  the call itself is not yet verified against a real grade.
 - **Collection**: `{ id, type, weighting, name, given_at, interval_id,
   subject_id, interval: {...}, subject: {...} }`. `type` is free text
   typed per teacher, *not* a fixed code. One student's 19 grades had 10
@@ -242,7 +244,8 @@ markieren". It's an inbox marker, **not** a Lesebestätigung, and it **doesn't
 touch the grade**: after the Geschichte update entry was marked read
 (2026-11-15), its `read_at` was set but the grade stayed `read: false`, so
 NEU/GEÄNDERT and the Noten dot stay until the grade itself is read
-(`POST /grades/{id}/read`, not called). The feed is per account, so marking
+(`POST /grades/{id}/read`; the app marks the grade's notifications read
+right after it). The feed is per account, so marking
 all read also covers a sibling's entries.
 
 - Grade entries embed `grade` (with `student_id`, `collection.subject`,
