@@ -149,7 +149,9 @@ function previousValue(histories, scale) {
   const last = (histories ?? [])
     .filter((h) => h.attr === "value")
     .reduce((newest, h) => (!newest || h.id > newest.id ? h : newest), null);
-  return last ? parseGrade(String(last.old_value ?? ""), scale) : null;
+  // A grade first saved empty and filled later logs a blank old value: not a change.
+  const old = String(last?.old_value ?? "").trim();
+  return old ? parseGrade(old, scale) : null;
 }
 
 /**

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { mapAnnouncement, mapGrade, mapMe, mapNotification } from "../../public/js/api/mappers.js";
 import { rawAnnouncement } from "../support/announcements.mjs";
+import { historyFlashHistories } from "../support/grades.mjs";
 
 describe("mapAnnouncement", () => {
   test("date comes from read_from (there is no created_at)", () => {
@@ -119,6 +120,18 @@ describe("mapGrade", () => {
   test("ignores read-marker entries", () => {
     const histories = [entry(2, "read_at"), entry(3, "read_by_type")];
     assert.equal(mapGrade(rawGrade({ histories }), "points_0_15").previous, null);
+  });
+
+  test("has no previous when the value was first saved empty", () => {
+    const histories = [entry(3, "value", null), entry(4, "value", " ")];
+    assert.equal(mapGrade(rawGrade({ histories }), "points_0_15").previous, null);
+  });
+
+  test("reads the old value from a real-shaped change log and keeps nothing of the people", () => {
+    const mapped = mapGrade(rawGrade({ histories: historyFlashHistories() }), "points_0_15");
+    assert.equal(mapped.previous.raw, "3");
+    const json = JSON.stringify(mapped);
+    for (const leak of ["conductor", "histories", "@", "0151"]) assert.ok(!json.includes(leak), leak);
   });
 
   test("has no previous without histories", () => {

@@ -268,6 +268,8 @@ reset — that's why a changed grade looks new again.
 
 - The app reads the old value of the last (highest id) `attr === "value"`
   entry as `previous`; `markNewGrades` sets `isChanged = isNew && previous`.
+- A grade first saved empty and filled later logs a `value` entry with a
+  null/blank `old_value`; that is not a change, so `previous` is null.
 - History entries have **no timestamp**.
 - `conductor` is the full person; for a guardian it includes email/phone
   fields. `mapGrade` keeps nothing of it.
