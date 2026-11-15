@@ -1,7 +1,7 @@
 // The grade box with its Kenntnisnahme state: NEU sticker or seen check, never both.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { gradeCapsule, gradeValue, newSticker } from "../../public/js/components/grade-capsule.js";
+import { gradeCapsule, gradeValue, newSticker, noticeCapsule } from "../../public/js/components/grade-capsule.js";
 
 const has = (html, needle) => html.includes(needle);
 
@@ -67,5 +67,51 @@ describe("gradeCapsule", () => {
 
   test("escapes the grade value", () => {
     assert.ok(has(gradeCapsule({ raw: "<b>", isNew: false }), "&lt;b&gt;"));
+  });
+});
+
+const changed = {
+  raw: "2+",
+  scale: "grade_1_6",
+  numeric: 1.75,
+  isNew: true,
+  isChanged: true,
+  previous: { raw: "3", scale: "grade_1_6", numeric: 3 },
+};
+
+describe("gradeCapsule for a changed grade", () => {
+  test("shows GEÄNDERT and the struck old value for a changed grade", () => {
+    const html = gradeCapsule(changed);
+    assert.ok(has(html, '<s class="grade-previous">3</s>'));
+    assert.ok(has(html, '<span class="grade-sticker grade-sticker--changed" aria-hidden="true">GEÄNDERT</span>'));
+    assert.ok(html.indexOf("grade-previous") < html.indexOf('class="grade-capsule"'));
+    assert.ok(!has(html, "grade-seen"));
+    assert.ok(!has(html, ">NEU<"));
+  });
+
+  test("says the old value to screen readers", () => {
+    assert.ok(has(gradeCapsule(changed), '<span class="sr-only">, geändert, vorher 3</span>'));
+  });
+
+  test("a seen changed grade shows only the check", () => {
+    const html = gradeCapsule({ ...changed, isNew: false, isChanged: false, readByGuardian: true });
+    assert.ok(has(html, 'class="grade-seen"'));
+    assert.ok(!has(html, "GEÄNDERT"));
+    assert.ok(!has(html, "grade-previous"));
+  });
+});
+
+describe("noticeCapsule", () => {
+  test("noticeCapsule shows GEÄNDERT for a read grade", () => {
+    const html = noticeCapsule({ ...changed, isNew: false, isChanged: false, readByGuardian: true }, "changed");
+    assert.ok(has(html, "GEÄNDERT"));
+    assert.ok(!has(html, "grade-seen"));
+    assert.ok(!has(html, "grade-previous"));
+  });
+
+  test("shows NEU for kind new regardless of read state", () => {
+    const html = noticeCapsule({ raw: "1", isNew: false, readByGuardian: true }, "new");
+    assert.ok(has(html, ">NEU</span>"));
+    assert.ok(!has(html, "grade-seen"));
   });
 });
