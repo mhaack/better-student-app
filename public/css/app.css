@@ -992,10 +992,12 @@ button {
   font-size: 30px;
 }
 
-/* GEÄNDERT is wider than the box; keep it inside the sheet's left padding. */
-.grade-sheet__hero .grade-sticker--changed {
+/* In the card the sticker sits centred on the box's top edge, not on its corner. */
+.grade-sheet__hero .grade-sticker {
   right: auto;
-  left: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .grade-sheet__state {
