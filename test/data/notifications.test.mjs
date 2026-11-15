@@ -1,7 +1,13 @@
 // Preparing the bell feed: which entries show, one per grade, joins, order.
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
-import { prepareNotifications } from "../../public/js/data/notifications.js";
+import { afterEach, beforeEach, describe, mock, test } from "node:test";
+import { clearCache } from "../../public/js/data/cache.js";
+import {
+  getNotificationsData,
+  prepareNotifications,
+  unreadNotificationCount,
+} from "../../public/js/data/notifications.js";
+import { rawAnnouncement } from "../support/announcements.mjs";
 
 const STUDENT = 7;
 
@@ -38,6 +44,61 @@ function infoEntry(overrides = {}) {
     ...overrides,
   });
 }
+
+// Raw API bodies, as the live routes return them (names and ids invented).
+const RAW_FEED = [
+  {
+    id: 1,
+    notification_type: "grade",
+    action: "created",
+    created_at: "2026-11-10T08:00:00Z",
+    read_at: null,
+    grade: { id: 100, student_id: STUDENT, collection: { subject_id: 5 } },
+    data: { subject_name: "Mathematik", collection_name: "Klassenarbeit 1" },
+  },
+  {
+    id: 2,
+    notification_type: "grade",
+    action: "created",
+    created_at: "2026-11-09T08:00:00Z",
+    read_at: "2026-11-09T09:00:00Z",
+    grade: { id: 101, student_id: 8, collection: { subject_id: 6 } },
+    data: { subject_name: "Deutsch", collection_name: "Diktat" },
+  },
+  {
+    id: 3,
+    notification_type: "announcement",
+    action: "created",
+    created_at: "2026-11-08T08:00:00Z",
+    read_at: "2026-11-08T09:00:00Z",
+    announcement: { id: 2982, title: "Belehrung Sportunterricht" },
+  },
+];
+const RAW_GRADE = {
+  id: 100,
+  value: "2+",
+  collection: { id: 1, name: "Klassenarbeit 1", subject_id: 5, subject: { id: 5, name: "Mathematik" } },
+};
+
+/** Stubs fetch per route; a route mapped to `null` answers 404. */
+function stubApi(routes) {
+  mock.method(globalThis, "fetch", async (url) => {
+    const body = routes[new URL(url).pathname.replace("/api/", "")];
+    if (body == null) return { ok: false, status: 404, text: async () => "{}" };
+    return { ok: true, status: 200, text: async () => JSON.stringify({ data: body }) };
+  });
+}
+
+const WORKING_API = {
+  notifications: RAW_FEED,
+  grades: [RAW_GRADE],
+  announcements: [rawAnnouncement()],
+  me: { role: "guardian" },
+};
+
+// The repository caches per key; start every test from an empty cache.
+beforeEach(() => clearCache());
+afterEach(() => mock.restoreAll());
 
 const prepare = (entries, extra = {}) =>
   prepareNotifications(entries, { grades: [], announcements: [], studentId: STUDENT, ...extra });
@@ -142,5 +203,39 @@ describe("prepareNotifications", () => {
     assert.equal(item.grade, null);
     const [unknown] = prepare([infoEntry()]).unread;
     assert.equal(unknown.sender, null);
+  });
+});
+
+describe("getNotificationsData", () => {
+  test("fetches the feed and splits it into unread and read for the student", async () => {
+    stubApi(WORKING_API);
+    const { unread, read, unreadCount } = await getNotificationsData(STUDENT, "grades");
+    assert.deepEqual(unread.map((i) => i.id), [1]);
+    assert.equal(unread[0].kind, "new");
+    assert.equal(unread[0].grade.id, 100);
+    assert.equal(unread[0].href, "#/noten/5");
+    // The other child's grade is gone; the announcement stays with its sender.
+    assert.deepEqual(read.map((i) => i.id), [3]);
+    assert.equal(read[0].href, "#/mehr/mitteilungen/2982");
+    assert.ok(read[0].sender);
+    assert.equal(unreadCount, 1);
+  });
+
+  test("rejects when the feed fails", async () => {
+    stubApi({ ...WORKING_API, notifications: null });
+    await assert.rejects(getNotificationsData(STUDENT, "grades"));
+  });
+});
+
+describe("unreadNotificationCount", () => {
+  test("counts the student's unread entries", async () => {
+    stubApi(WORKING_API);
+    assert.equal(await unreadNotificationCount(STUDENT, "grades"), 1);
+  });
+
+  test("is 0 when the feed fails", async () => {
+    // A 404 fails at once; a network error would retry with real delays.
+    stubApi({ ...WORKING_API, notifications: null });
+    assert.equal(await unreadNotificationCount(STUDENT, "grades"), 0);
   });
 });
