@@ -209,7 +209,7 @@ describe("prepareNotifications", () => {
 describe("getNotificationsData", () => {
   test("fetches the feed and splits it into unread and read for the student", async () => {
     stubApi(WORKING_API);
-    const { unread, read, unreadCount } = await getNotificationsData(STUDENT, "grades");
+    const { unread, read, unreadCount } = await getNotificationsData(STUDENT, "grade_1_6");
     assert.deepEqual(unread.map((i) => i.id), [1]);
     assert.equal(unread[0].kind, "new");
     assert.equal(unread[0].grade.id, 100);
@@ -223,19 +223,19 @@ describe("getNotificationsData", () => {
 
   test("rejects when the feed fails", async () => {
     stubApi({ ...WORKING_API, notifications: null });
-    await assert.rejects(getNotificationsData(STUDENT, "grades"));
+    await assert.rejects(getNotificationsData(STUDENT, "grade_1_6"));
   });
 });
 
 describe("unreadNotificationCount", () => {
   test("counts the student's unread entries", async () => {
     stubApi(WORKING_API);
-    assert.equal(await unreadNotificationCount(STUDENT, "grades"), 1);
+    assert.equal(await unreadNotificationCount(STUDENT, "grade_1_6"), 1);
   });
 
   test("is 0 when the feed fails", async () => {
     // A 404 fails at once; a network error would retry with real delays.
     stubApi({ ...WORKING_API, notifications: null });
-    assert.equal(await unreadNotificationCount(STUDENT, "grades"), 0);
+    assert.equal(await unreadNotificationCount(STUDENT, "grade_1_6"), 0);
   });
 });
