@@ -46,6 +46,8 @@
   --grade-previous: #8A827A;
   --seen-bg: #ECE7DF;
   --seen-fg: #57504A;
+  /* Benachrichtigungen: the Schulinfo card's megaphone tile. */
+  --info-tile-bg: #EAE4DB;
   /* Ferien and free days in the Termine list: one peach card, a label tells them apart. */
   --frei-bg: #FCEADB;
   --frei-line: #F9CBA7;
@@ -100,6 +102,7 @@
   --sticker-changed-text: #14120F;
   --seen-bg: rgba(243, 240, 234, 0.1);
   --seen-fg: #B8AFA4;
+  --info-tile-bg: rgba(243, 240, 234, 0.1);
   --frei-bg: rgba(249, 203, 167, 0.12);
   --frei-line: rgba(249, 203, 167, 0.35);
   --frei-ink: #FCEADB;
@@ -146,6 +149,7 @@
     --sticker-changed-text: #14120F;
     --seen-bg: rgba(243, 240, 234, 0.1);
     --seen-fg: #B8AFA4;
+    --info-tile-bg: rgba(243, 240, 234, 0.1);
     --frei-bg: rgba(249, 203, 167, 0.12);
     --frei-line: rgba(249, 203, 167, 0.35);
     --frei-ink: #FCEADB;
