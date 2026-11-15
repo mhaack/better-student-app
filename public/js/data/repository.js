@@ -181,6 +181,21 @@ export async function respondToAnnouncement(id) {
   invalidate("announcements");
 }
 
+/**
+ * Marks one bell entry read — an inbox marker only: the grade's own read flag
+ * (NEU/GEÄNDERT) stays as it is. The response is discarded (personal data).
+ */
+export async function markNotificationRead(id) {
+  await apiFetch(`notifications/${encodeURIComponent(id)}/read`, { method: "POST" });
+  invalidate("notifications");
+}
+
+/** Marks the whole account's feed read, every child's entries included. */
+export async function markAllNotificationsRead() {
+  await apiFetch("notifications/read", { method: "POST" });
+  invalidate("notifications");
+}
+
 export function isoDate(date) {
   const offsetMs = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);

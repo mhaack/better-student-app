@@ -235,9 +235,15 @@ grade/created 16, grade/updated 1, announcement/created 1) — one entry per
 event, shaped `{ id (uuid), notification_type: "grade" | "announcement",
 action: "created" | "updated", created_at, read_at, redirect_url,
 notifiable_type, data, grade | announcement, notifiable }`.
-`POST /api/notifications/read` and `POST /api/notifications/{id}/read` mark
-them read; the app never calls those (it's an inbox marker, **not** a
-Lesebestätigung).
+`POST /api/notifications/read` (the whole feed) and
+`POST /api/notifications/{id}/read` (one entry) mark them read. The app calls
+them from Benachrichtigungen: opening an unread card, and "Alle als gelesen
+markieren". It's an inbox marker, **not** a Lesebestätigung, and it **doesn't
+touch the grade**: after the Geschichte update entry was marked read
+(2026-11-15), its `read_at` was set but the grade stayed `read: false`, so
+NEU/GEÄNDERT and the Noten dot stay until the grade itself is read
+(`POST /grades/{id}/read`, not called). The feed is per account, so marking
+all read also covers a sibling's entries.
 
 - Grade entries embed `grade` (with `student_id`, `collection.subject`,
   `value`, `read`, `read_by_type`); `data` is `{ collection_name,
