@@ -35,6 +35,15 @@ describe("newSticker", () => {
   });
 });
 
+const changed = {
+  raw: "2+",
+  scale: "grade_1_6",
+  numeric: 1.75,
+  isNew: true,
+  isChanged: true,
+  previous: { raw: "3", scale: "grade_1_6", numeric: 3 },
+};
+
 describe("gradeCapsule", () => {
   test("puts a NEU sticker on a new grade, hidden from screen readers", () => {
     const html = gradeCapsule({ raw: "1-", isNew: true, readByGuardian: false });
@@ -68,18 +77,6 @@ describe("gradeCapsule", () => {
   test("escapes the grade value", () => {
     assert.ok(has(gradeCapsule({ raw: "<b>", isNew: false }), "&lt;b&gt;"));
   });
-});
-
-const changed = {
-  raw: "2+",
-  scale: "grade_1_6",
-  numeric: 1.75,
-  isNew: true,
-  isChanged: true,
-  previous: { raw: "3", scale: "grade_1_6", numeric: 3 },
-};
-
-describe("gradeCapsule for a changed grade", () => {
   test("shows GEÄNDERT and the struck old value for a changed grade", () => {
     const html = gradeCapsule(changed);
     assert.ok(has(html, '<s class="grade-previous">3</s>'));
@@ -102,7 +99,7 @@ describe("gradeCapsule for a changed grade", () => {
 });
 
 describe("noticeCapsule", () => {
-  test("noticeCapsule shows GEÄNDERT for a read grade", () => {
+  test("shows GEÄNDERT for a read grade, without the seen check or old value", () => {
     const html = noticeCapsule({ ...changed, isNew: false, isChanged: false, readByGuardian: true }, "changed");
     assert.ok(has(html, "GEÄNDERT"));
     assert.ok(!has(html, "grade-seen"));
