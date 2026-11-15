@@ -194,6 +194,22 @@ button {
   box-shadow: var(--sticker-shadow);
 }
 
+/* Same size and position as NEU, in ink instead of red. */
+.grade-sticker--changed {
+  background: var(--sticker-changed-bg);
+  color: var(--sticker-changed-text);
+  box-shadow: none;
+}
+
+/* Fills the check's slot (22px) plus gap, so rows reserve at least 40px left. */
+.grade-previous {
+  flex: none;
+  min-width: 22px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--grade-previous);
+}
+
 .grade-seen {
   flex: none;
   width: 22px;
