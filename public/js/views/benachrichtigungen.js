@@ -42,7 +42,9 @@ function gradeCard(item) {
   const { grade } = item;
   const value = grade ? gradeValue(grade) : "";
   const previous = item.kind === "changed" && grade?.previous ? `vorher ${gradeValue(grade.previous)}` : "";
-  const label = joinParts([CARD_LABEL[item.kind], item.subjectName, item.collectionName]);
+  const given = item.kind === "changed" && grade?.givenAt ? `Note vom ${formatFullDate(grade.givenAt)}` : "";
+  const teacher = item.kind === "new" ? grade?.teacher : "";
+  const label = joinParts([CARD_LABEL[item.kind], item.subjectName, item.collectionName, teacher, given]);
   const inner = `
     <span class="nt-card__text">
       <span class="nt-card__label nt-card__label--${item.kind}">${CARD_LABEL[item.kind]}</span>
