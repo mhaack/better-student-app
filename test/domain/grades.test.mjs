@@ -110,6 +110,23 @@ describe("markNewGrades", () => {
     assert.deepEqual(flags(null), [true, false, false]);
   });
 
+  test("marks an unseen grade with a previous value as changed", () => {
+    const previous = { raw: "3", numeric: 3 };
+    const [marked] = markNewGrades([{ ...unread, previous }, unread], "guardian");
+    assert.equal(marked.isChanged, true);
+    assert.equal(markNewGrades([unread], "guardian")[0].isChanged, false);
+  });
+
+  test("a seen changed grade is not changed", () => {
+    const [marked] = markNewGrades([{ ...readByParent, previous: { raw: "3", numeric: 3 } }], "guardian");
+    assert.equal(marked.isChanged, false);
+  });
+
+  test("a student-read grade is still changed for a guardian", () => {
+    const [marked] = markNewGrades([{ ...readByChild, previous: { raw: "3", numeric: 3 } }], "guardian");
+    assert.equal(marked.isChanged, true);
+  });
+
   test("keeps the grade's own fields", () => {
     const [marked] = markNewGrades([{ ...unread, raw: "1-" }], "guardian");
     assert.equal(marked.raw, "1-");

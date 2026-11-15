@@ -142,6 +142,17 @@ export function mapGradeCollection(raw) {
 }
 
 /**
+ * The old value of the last value change in a grade's change log, or null.
+ * Entries also record read markers; the log has no timestamps, ids grow.
+ */
+function previousValue(histories, scale) {
+  const last = (histories ?? [])
+    .filter((h) => h.attr === "value")
+    .reduce((newest, h) => (!newest || h.id > newest.id ? h : newest), null);
+  return last ? parseGrade(String(last.old_value ?? ""), scale) : null;
+}
+
+/**
  * @param {object} raw
  * @param {import('../domain/grades.js').GradeScale} scale
  */
@@ -159,15 +170,25 @@ export function mapGrade(raw, scale) {
     read: Boolean(raw.read),
     // One flag for whoever read it; read_by_type says who ("guardian" seen).
     readByGuardian: Boolean(raw.read) && raw.read_by_type === "guardian",
+    previous: previousValue(raw.histories, scale),
   };
 }
 
-/** A grade's bell entry; drops the embedded user (email, phone). */
-export function mapGradeNotification(raw) {
+/** A bell entry; drops the embedded user (email, phone) and the announcement text. */
+export function mapNotification(raw) {
   return {
-    gradeId: raw.grade?.id ?? null,
+    id: raw.id,
+    type: raw.notification_type,
     action: raw.action,
     createdAt: raw.created_at,
+    unread: !raw.read_at,
+    gradeId: raw.grade?.id ?? null,
+    studentId: raw.grade?.student_id ?? null,
+    subjectId: raw.grade?.collection?.subject_id ?? raw.grade?.collection?.subject?.id ?? null,
+    subjectName: raw.data?.subject_name ?? null,
+    collectionName: raw.data?.collection_name ?? null,
+    announcementId: raw.announcement?.id ?? null,
+    title: raw.data?.title ?? raw.announcement?.title ?? null,
   };
 }
 

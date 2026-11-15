@@ -49,7 +49,7 @@ Two traps when probing by hand:
 | `years` | — (intervals come nested; no separate `intervals` call needed) |
 | `subjects` | `filter[student]` |
 | `groups` | `filter[student]`, `include=subjects,students` |
-| `grades` | `filter[student]`, `filter[year]`, `filter[interval]`, `filter[subject]`, `include=collection.subject,teacher` |
+| `grades` | `filter[student]`, `filter[year]`, `filter[interval]`, `filter[subject]`, `include=collection.subject,teacher,histories` (also `readBy`; `subject` is a 400) |
 | `collections` | `filter[student]` |
 | `finalgrades` | `filter[student]`, `filter[year]` |
 | `time-tables/current` | `include=lessons.times` |
@@ -228,29 +228,50 @@ of them to confirm. Summing them conflates the roles: a letter would look read
 as soon as the child opened it, hiding the guardian's outstanding
 Lesebestätigung. Pick the side that matches `role`.
 
-## Notifications: when a grade was entered
+## Notifications: the bell feed
 
-`GET /api/notifications` is the bell feed — one entry per event, shaped
-`{ id (uuid), notification_type: "grade" | "announcement", action: "created" |
-"updated", created_at, read_at, redirect_url, data, grade, notifiable }`.
+`GET /api/notifications` is the bell feed (re-read 2026-11-15: 18 entries,
+grade/created 16, grade/updated 1, announcement/created 1) — one entry per
+event, shaped `{ id (uuid), notification_type: "grade" | "announcement",
+action: "created" | "updated", created_at, read_at, redirect_url,
+notifiable_type, data, grade | announcement, notifiable }`.
 `POST /api/notifications/read` and `POST /api/notifications/{id}/read` mark
 them read; the app never calls those (it's an inbox marker, **not** a
 Lesebestätigung).
 
-It is the only source for *when* a grade was entered: `given_at` is the
-Leistung's date, so a Klausur graded weeks later looks old. Heute's "Letzte
-Note" uses each grade's latest `created_at` (`newestGrade` in
-`data/heute.js`), falling back to `given_at`.
-
+- Grade entries embed `grade` (with `student_id`, `collection.subject`,
+  `value`, `read`, `read_by_type`); `data` is `{ collection_name,
+  subject_name }` — **no old value**. Announcement entries embed
+  `announcement` (id, title, message, no sender) and `data: { title }`.
+- It is the only source for *when* a grade was entered: `given_at` is the
+  Leistung's date, so a Klausur graded weeks later looks old. Heute's
+  "Noten des Tages" uses each grade's `grade`/`created` entry (`latestGrades`
+  in `data/heute.js`), falling back to `given_at`.
 - No filters and no paging in the spec; a guardian gets every child's
-  entries. `grade` is embedded (with `student_id`); `notifiable` is the
-  signed-in user with email and phone, so the mapper drops it.
-- `created_at` was a plain date (`"2026-09-03"`) in the one recorded entry;
-  `read_at` had a time. Same-day ties go to the higher grade id, which grows
-  in entry order.
-- Retention is unknown: the recorded feed had 2 entries while the student
-  already had more grades. Grades stay the source of truth; the feed only
-  dates them.
+  entries. `notifiable` is the signed-in user with email and phone, and
+  announcement `message` is long text, so `mapNotification` drops both.
+- `created_at` is a plain date (`"2026-09-03"`); `read_at` has a time.
+  Same-day ties go to the higher grade id, which grows in entry order.
+- The updated entry's `created_at` (2026-10-19) is earlier than the
+  guardian's read of that grade (2026-11-08), which preceded the change — the
+  notification date is not reliably the change date. Don't present it as such.
+- Retention is unknown; grades stay the source of truth.
+
+## Grades: the change log
+
+`GET /grades` allows `include=histories` (also `readBy`). Each grade's
+history is a list of `{ id, action: "created" | "updated", attr, old_value,
+body, conductor_type, conductor }`, ordered by id. A teacher's change reads
+`attr: "value", old_value: "3", body: "Updated Value ('3' -> '8')"` and is
+followed, in the same edit, by `read_at`/`read_by_type`/`read_by_id` being
+reset — that's why a changed grade looks new again.
+
+- The app reads the old value of the last (highest id) `attr === "value"`
+  entry as `previous`; `markNewGrades` sets `isChanged = isNew && previous`.
+- History entries have **no timestamp**.
+- `conductor` is the full person; for a guardian it includes email/phone
+  fields. `mapGrade` keeps nothing of it.
+- `include=subject` on grades is a 400 (allowed: `collection.subject`).
 
 ## No LK/GK anywhere
 

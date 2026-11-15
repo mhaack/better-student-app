@@ -7,7 +7,7 @@ import { latestGrades, nextTermine, upcomingTest } from "../../public/js/data/he
 const NOW = new Date(2026, 10, 8, 9, 0); // Sunday 2026-11-08, local time
 
 const grade = (id, givenAt, name) => ({ id, givenAt, subjectName: "Physik", collection: { name } });
-const notification = (gradeId, createdAt, action = "created") => ({ gradeId, createdAt, action });
+const notification = (gradeId, createdAt, action = "created") => ({ type: "grade", gradeId, createdAt, action });
 
 describe("latestGrades", () => {
   test("shows a Klausur graded today although it was written weeks ago", () => {
@@ -30,7 +30,7 @@ describe("latestGrades", () => {
     assert.equal(result.date, "2026-11-03");
   });
 
-  test("uses the latest entry when a grade was changed later", () => {
+  test("an update does not move a grade to a later day", () => {
     const changed = grade(70935361, "2026-10-26", "Was ist Kunst?");
     const other = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
     const result = latestGrades(
@@ -42,7 +42,26 @@ describe("latestGrades", () => {
       ],
       NOW
     );
-    assert.deepEqual(result.grades, [changed]);
+    assert.deepEqual(result.grades, [other]);
+    assert.equal(result.date, "2026-11-03");
+  });
+
+  test("leaves out a changed grade", () => {
+    const changed = { ...grade(70935361, "2026-10-26", "Was ist Kunst?"), isChanged: true };
+    const other = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
+    const result = latestGrades(
+      [changed, other],
+      [notification(70935361, "2026-11-06"), notification(71005722, "2026-11-03")],
+      NOW
+    );
+    assert.deepEqual(result.grades, [other]);
+    assert.equal(result.date, "2026-11-03");
+  });
+
+  test("ignores announcement entries", () => {
+    const g = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
+    const result = latestGrades([g], [{ type: "announcement", gradeId: 71005722, createdAt: "2026-11-07", action: "created" }], NOW);
+    assert.equal(result.date, "2026-11-03");
   });
 
   test("lists every grade entered on the newest day, the later-entered id first", () => {
