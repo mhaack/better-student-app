@@ -146,7 +146,7 @@ async function fillMitteilungen(container) {
   if (!slot || fresh.length === 0) return;
   slot.outerHTML = `
     <div class="section section--tight">
-      <div class="eyebrow">Mitteilungen</div>
+      <div class="eyebrow">Schulinformationen</div>
       <div class="mt-list">${fresh.map((item) => mitteilungRow(item, weekdayOrDate(item.date))).join("")}</div>
     </div>`;
 }
