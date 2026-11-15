@@ -28,5 +28,5 @@ export function setMehrDot(nav, hasUnread) {
   const item = nav?.querySelector('[data-path="/mehr"]');
   if (!item) return;
   item.classList.toggle("nav-item--dot", hasUnread);
-  item.setAttribute("aria-label", hasUnread ? "Mehr, ungelesene Mitteilungen" : "Mehr");
+  item.setAttribute("aria-label", hasUnread ? "Mehr, ungelesene Schulinformationen" : "Mehr");
 }
