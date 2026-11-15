@@ -156,9 +156,11 @@ async function fillMitteilungen(container) {
 
 /** The bell's badge, loaded after the page; unreadNotificationCount never throws. */
 async function fillBell(container, studentId, scale) {
-  const count = await unreadNotificationCount(studentId, scale);
   const bell = container.querySelector("#heute-bell");
-  if (!bell || count === 0) return;
+  if (!bell) return;
+  const count = await unreadNotificationCount(studentId, scale);
+  // The container outlives the route: a stale call must not touch a newer Heute's bell.
+  if (count === 0 || !bell.isConnected || bell.querySelector(".heute-bell__count")) return;
   bell.setAttribute("aria-label", `Benachrichtigungen, ${count} ungelesen`);
   bell.insertAdjacentHTML("beforeend", `<span class="heute-bell__count" aria-hidden="true">${count}</span>`);
 }
