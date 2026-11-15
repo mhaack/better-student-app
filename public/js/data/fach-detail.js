@@ -1,7 +1,42 @@
-import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
+import {
+  fetchGrades,
+  fetchFinalgrades,
+  fetchNotifications,
+  fetchRole,
+  markGradeRead,
+  markNotificationRead,
+} from "./repository.js";
 import { gradeTypeLabel, markNewGrades, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 import { scaleUnit } from "../util/format.js";
+
+/**
+ * What the acknowledge card needs from the bell feed for an unseen grade: the
+ * date it was entered (or changed) and its unread entries, so confirming the
+ * grade clears the bell too. Null for a seen grade.
+ */
+export function gradeNotice(grade, notifications) {
+  if (!grade.isNew) return null;
+  const entries = notifications.filter((n) => n.type === "grade" && n.gradeId === grade.id);
+  const action = grade.isChanged ? "updated" : "created";
+  const dated = entries
+    .filter((n) => n.action === action && n.createdAt)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return {
+    label: grade.isChanged ? "Geändert" : "Eingetragen",
+    date: dated?.createdAt ?? null,
+    unreadIds: entries.filter((n) => n.unread).map((n) => n.id),
+  };
+}
+
+/**
+ * Confirms the grade in beste.schule, then marks its notifications read. Only
+ * the grade decides success: a notification left unread is a minor leftover.
+ */
+export async function acknowledgeGrade(gradeId, notificationIds) {
+  await markGradeRead(gradeId);
+  await Promise.allSettled(notificationIds.map(markNotificationRead));
+}
 
 /** Groups by normalised type label, so "SO" and "so" land together. */
 export function groupByType(grades) {
@@ -57,16 +92,18 @@ export async function getFachDetailData(studentId, subjectId, options) {
   const { yearId, intervalId, scale } = options;
 
   // Same cache key as Noten: no extra request.
-  const [allGrades, finalgrades, role] = await Promise.all([
+  const [allGrades, finalgrades, role, notifications] = await Promise.all([
     fetchGrades(studentId, { yearId, intervalId, scale }),
     fetchFinalgrades(studentId, { yearId }),
     fetchRole(),
+    // Only dates the acknowledge card; the page works without it.
+    fetchNotifications().catch(() => []),
   ]);
 
   const grades = markNewGrades(
     allGrades.filter((g) => g.subjectId === subjectId),
     role
-  );
+  ).map((g) => ({ ...g, notice: gradeNotice(g, notifications) }));
   const finalgrade =
     finalgrades.find(
       (fg) => fg.subject_id === subjectId && (!intervalId || fg.interval_id === intervalId)
@@ -81,6 +118,7 @@ export async function getFachDetailData(studentId, subjectId, options) {
 
   return {
     scale,
+    role,
     average,
     groups,
     weightingSummary: groups.map((g) => `${g.type} ${g.weightingPct} %`).join(" · "),

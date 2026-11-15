@@ -196,6 +196,15 @@ export async function markAllNotificationsRead() {
   invalidate("notifications");
 }
 
+/**
+ * The Kenntnisnahme: sets the grade's read flag for the signed-in role, which
+ * clears NEU/GEÄNDERT. The response is discarded (personal data).
+ */
+export async function markGradeRead(id) {
+  await apiFetch(`grades/${encodeURIComponent(id)}/read`, { method: "POST" });
+  invalidate("grades");
+}
+
 export function isoDate(date) {
   const offsetMs = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
