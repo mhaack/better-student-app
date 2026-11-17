@@ -24,8 +24,8 @@ const MAX_NOTES = 3;
  * date; null if it was over 14 days ago.
  * given_at is the Leistung's date, so a Klausur graded weeks later would sink;
  * the bell feed's created_at says when it was entered. Only "created" entries
- * count: a later update must not pull a grade up, and a changed grade is left
- * out (it isn't news on Heute). Missing from the feed falls back to given_at;
+ * count, so a later change doesn't pull a grade up, while one corrected on its
+ * entry day still shows. Missing from the feed falls back to given_at;
  * same-day ties go to the higher (later) id.
  */
 export function latestGrades(grades, notifications, now) {
@@ -36,7 +36,6 @@ export function latestGrades(grades, notifications, now) {
   }
 
   const entries = grades
-    .filter((grade) => !grade.isChanged)
     .map((grade) => {
       const at = enteredAt.get(grade.id) ?? grade.givenAt ?? "";
       return { grade, at, day: at.slice(0, 10) };

@@ -33,7 +33,7 @@ function stickerBox(grade, kind) {
 
 /** The grade box with its state: NEU or GEÄNDERT (old value struck) while unseen, otherwise a check to its left. */
 export function gradeCapsule(grade) {
-  if (grade.isChanged && grade.previous) {
+  if (grade.isChanged) {
     const previous = escapeHtml(gradeValue(grade.previous));
     return `<div class="grade-capsule-wrap"><s class="grade-previous">${previous}</s>${stickerBox(grade, "changed")}<span class="sr-only">, geändert, vorher ${previous}</span></div>`;
   }

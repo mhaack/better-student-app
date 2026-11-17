@@ -180,9 +180,12 @@ describe("prepareNotifications", () => {
     assert.equal(result.unreadCount, result.unread.length);
   });
 
-  test("links a grade to its subject", () => {
+  test("links a grade to its subject, in the grade's Halbjahr when known", () => {
     const [withSubject] = prepare([gradeEntry()]).unread;
     assert.equal(withSubject.href, "#/noten/5");
+    const grade = { id: 100, subjectId: 5, collection: { name: "Klassenarbeit 1", intervalId: 33 } };
+    const [withInterval] = prepare([gradeEntry()], { grades: [grade] }).unread;
+    assert.equal(withInterval.href, "#/noten/5/33");
     const [without] = prepare([gradeEntry({ subjectId: null })]).unread;
     assert.equal(without.href, null);
   });

@@ -12,7 +12,7 @@ const CONFIRM_LABEL = "Zur Kenntnis nehmen";
 
 /** "Neue Note / Noch nicht von euch gesehen" or "Note geändert / vorher 3 → jetzt 8". */
 function stateText(grade, role) {
-  if (grade.isChanged && grade.previous) {
+  if (grade.isChanged) {
     const before = escapeHtml(gradeValue(grade.previous));
     const now = escapeHtml(gradeValue(grade));
     return `
@@ -30,7 +30,7 @@ function stateText(grade, role) {
  * @param {{ grade: object, subjectName: string, weighting: string, role: string | null }} content
  */
 export function gradeSheetHtml({ grade, subjectName, weighting, role }) {
-  const kind = grade.isChanged && grade.previous ? "changed" : "new";
+  const kind = grade.isChanged ? "changed" : "new";
   const eyebrow = [gradeTypeLabel(grade.collection?.type), formatWeekdayDate(grade.givenAt)].filter(Boolean).join(" · ");
   const title = grade.collection?.name || gradeTypeLabel(grade.collection?.type);
   const notice = grade.notice;

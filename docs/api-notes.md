@@ -238,15 +238,16 @@ event, shaped `{ id (uuid), notification_type: "grade" | "announcement",
 action: "created" | "updated", created_at, read_at, redirect_url,
 notifiable_type, data, grade | announcement, notifiable }`.
 `POST /api/notifications/read` (the whole feed) and
-`POST /api/notifications/{id}/read` (one entry) mark them read. The app calls
-them from Benachrichtigungen: opening an unread card, and "Alle als gelesen
-markieren". It's an inbox marker, **not** a Lesebestätigung, and it **doesn't
+`POST /api/notifications/{id}/read` (one entry) mark them read. The app only
+uses the per-entry call, from Benachrichtigungen: opening an unread card, and
+"Alle als gelesen markieren" sends it for each listed entry. It's an inbox marker, **not** a Lesebestätigung, and it **doesn't
 touch the grade**: after the Geschichte update entry was marked read
 (2026-11-15), its `read_at` was set but the grade stayed `read: false`, so
 NEU/GEÄNDERT and the Noten dot stay until the grade itself is read
 (`POST /grades/{id}/read`; the app marks the grade's notifications read
-right after it). The feed is per account, so marking
-all read also covers a sibling's entries.
+right after it). The feed is per account, so the
+whole-feed route would also mark a sibling's entries read, which the screen
+never showed; that's why the app doesn't use it.
 
 - Grade entries embed `grade` (with `student_id`, `collection.subject`,
   `value`, `read`, `read_by_type`); `data` is `{ collection_name,
@@ -263,7 +264,10 @@ all read also covers a sibling's entries.
   Same-day ties go to the higher grade id, which grows in entry order.
 - The updated entry's `created_at` (2026-10-19) is earlier than the
   guardian's read of that grade (2026-11-08), which preceded the change — the
-  notification date is not reliably the change date. Don't present it as such.
+  notification date is not reliably the change date. Don't present it as such:
+  the acknowledge card dates only new grades (`gradeNotice`).
+- The feed spans every year and Halbjahr, so a grade card links to
+  `#/noten/<subject>/<interval>`, the subject page in the grade's Halbjahr.
 - Retention is unknown; grades stay the source of truth.
 
 ## Grades: the change log

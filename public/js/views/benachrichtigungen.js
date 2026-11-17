@@ -1,23 +1,28 @@
 import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getNotificationsData } from "../data/notifications.js";
-import { markAllNotificationsRead, markNotificationRead } from "../data/repository.js";
+import { markNotificationRead } from "../data/repository.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatFullDate, formatWeekdayDate } from "../util/format.js";
 import { noticeCapsule, gradeValue } from "../components/grade-capsule.js";
 import { ICONS } from "../components/icons.js";
+import { bindActivate } from "../components/detail-sheet.js";
 import { renderSkeleton, renderErrorState, bindErrorState, renderEmptyState } from "../components/states.js";
 
 const CARD_LABEL = { new: "Neue Note", changed: "Note geändert" };
 
 const joinParts = (parts) => parts.filter(Boolean).join(" · ");
 
-/** A link when the entry has a target, otherwise a plain block with the same look. */
+/**
+ * A link when the entry has a target. Without one, an unread card is still a
+ * button (marking it read), a read row a plain block with the same look.
+ */
 function linkOrBlock(href, className, inner, label = "", id = null) {
-  if (!href) return `<div class="${className}">${inner}</div>`;
   const aria = label ? ` aria-label="${escapeHtml(label)}"` : "";
   const data = id ? ` data-notification-id="${escapeHtml(id)}"` : "";
-  return `<a class="${className}" href="${escapeHtml(href)}"${aria}${data}>${inner}</a>`;
+  if (href) return `<a class="${className}" href="${escapeHtml(href)}"${aria}${data}>${inner}</a>`;
+  if (id) return `<div class="${className}" role="button" tabindex="0"${aria}${data}>${inner}</div>`;
+  return `<div class="${className}">${inner}</div>`;
 }
 
 function infoCard(item) {
@@ -89,24 +94,44 @@ function readZone(read) {
     </section>`;
 }
 
-/** Opening an unread card marks it read; the link navigates without waiting for it. */
-function bindCardReads(body) {
-  for (const card of body.querySelectorAll("[data-notification-id]")) {
+/** Redraws after marking, unless the user has already left for another screen. */
+async function rerenderIfShown(container, view) {
+  if (view.isConnected) await renderBenachrichtigungen(container);
+}
+
+/**
+ * Opening an unread card marks it read; a link navigates without waiting for
+ * it, a card without a target moves to Gelesen once marked.
+ */
+function bindCardReads(container, body) {
+  const view = container.querySelector(".view");
+  for (const card of body.querySelectorAll("a[data-notification-id]")) {
     card.addEventListener("click", () => {
       // A failed mark only means the card is still unread next time.
       markNotificationRead(card.dataset.notificationId).catch(() => {});
     });
   }
+  bindActivate(body, "[data-notification-id]", (card) => {
+    markNotificationRead(card.dataset.notificationId)
+      .then(() => rerenderIfShown(container, view))
+      .catch(() => {});
+  });
 }
 
-function bindAllRead(container) {
+/**
+ * Marks the listed unread entries one by one: POST /notifications/read covers
+ * the whole account, a sibling's grades included.
+ */
+function bindAllRead(container, unread) {
   const button = container.querySelector("#nt-all-read");
+  const view = container.querySelector(".view");
   button.addEventListener("click", async () => {
     button.disabled = true;
     button.textContent = "Wird markiert…";
     try {
-      await markAllNotificationsRead();
-      await renderBenachrichtigungen(container);
+      const results = await Promise.allSettled(unread.map((item) => markNotificationRead(item.id)));
+      if (results.every((r) => r.status === "rejected")) throw new Error("none marked");
+      await rerenderIfShown(container, view);
     } catch {
       button.disabled = false;
       button.textContent = "Alle als gelesen markieren";
@@ -139,8 +164,8 @@ export async function renderBenachrichtigungen(container) {
       unread.length + read.length === 0
         ? renderEmptyState("Keine Benachrichtigungen.")
         : `${unreadZone(unread)}${readZone(read)}`;
-    bindCardReads(body);
-    bindAllRead(container);
+    bindCardReads(container, body);
+    bindAllRead(container, unread);
   } catch (err) {
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);

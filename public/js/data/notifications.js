@@ -3,6 +3,9 @@ import { markNewGrades } from "../domain/grades.js";
 
 const KIND_BY_ACTION = { created: "new", updated: "changed" };
 
+// Entries without a grade id must not collapse into one bucket.
+const gradeKey = (entry) => entry.gradeId ?? `notification-${entry.id}`;
+
 /** Newest first; Array.sort is stable, so ties keep the feed order. */
 function newestFirst(items) {
   return [...items].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
@@ -23,12 +26,15 @@ function onePerGrade(entries) {
   return entries.filter((e) => e.type !== "grade" || best.get(gradeKey(e)) === e);
 }
 
-// Entries without a grade id must not collapse into one bucket.
-const gradeKey = (entry) => entry.gradeId ?? `notification-${entry.id}`;
-
 function outranks(entry, best) {
   if (entry.action !== best.action) return entry.action === "updated";
   return (entry.createdAt ?? "") > (best.createdAt ?? "");
+}
+
+/** The subject page, in the grade's Halbjahr: the feed spans every year and interval. */
+function gradeHref(subjectId, intervalId) {
+  if (subjectId == null) return null;
+  return intervalId != null ? `#/noten/${subjectId}/${intervalId}` : `#/noten/${subjectId}`;
 }
 
 function gradeItem(entry, grades) {
@@ -38,7 +44,7 @@ function gradeItem(entry, grades) {
     kind: KIND_BY_ACTION[entry.action],
     unread: entry.unread,
     createdAt: entry.createdAt,
-    href: entry.subjectId != null ? `#/noten/${entry.subjectId}` : null,
+    href: gradeHref(entry.subjectId, grade?.collection?.intervalId),
     subjectName: grade?.subjectName ?? entry.subjectName,
     collectionName: grade?.collection?.name ?? entry.collectionName,
     grade,

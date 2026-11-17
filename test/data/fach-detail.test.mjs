@@ -71,14 +71,15 @@ describe("gradeNotice", () => {
     assert.deepEqual(notice, { label: "Eingetragen", date: "2026-10-02", unreadIds: ["n-1"] });
   });
 
-  test("dates a changed grade by its newest update entry", () => {
+  test("gives a changed grade no date: the update entry's date isn't when it changed", () => {
+    // Real data: the update entry is dated 19.10., the change came after a read on 08.11.
     const notice = gradeNotice(changedGrade, [
       entry({ id: "n-1", createdAt: "2026-10-02" }),
       entry({ id: "n-2", action: "updated", createdAt: "2026-10-19", unread: true }),
-      entry({ id: "n-3", action: "updated", createdAt: "2026-10-12" }),
     ]);
     assert.equal(notice.label, "Geändert");
-    assert.equal(notice.date, "2026-10-19");
+    assert.equal(notice.date, null);
+    assert.deepEqual(notice.unreadIds, ["n-2"]);
   });
 
   test("collects every unread entry of the grade, and only those", () => {
