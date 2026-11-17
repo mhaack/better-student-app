@@ -9,6 +9,9 @@ const TABS = [
   { path: "/mehr", label: "Mehr", icon: ICONS.ellipsis },
 ];
 
+// Fired on window when a screen changed what a dot counts, so the shell redraws the dots.
+export const NAV_DOTS_STALE = "navdotsstale";
+
 export function renderBottomNav(activeBasePath) {
   const items = TABS.map((tab) => {
     const isActive = tab.path === activeBasePath;
@@ -23,10 +26,14 @@ export function renderBottomNav(activeBasePath) {
   return `<nav class="bottom-nav" aria-label="Hauptnavigation">${items}</nav>`;
 }
 
-/** A dot on Mehr for unread announcements older than Heute shows. Needs a fetch. */
-export function setMehrDot(nav, hasUnread) {
-  const item = nav?.querySelector('[data-path="/mehr"]');
+/**
+ * A dot on a tab for something waiting further in (unseen grades, unread
+ * Schulinformationen); `reason` also goes into its label. Falsy removes it.
+ */
+export function setNavDot(nav, path, reason) {
+  const item = nav?.querySelector(`[data-path="${path}"]`);
   if (!item) return;
-  item.classList.toggle("nav-item--dot", hasUnread);
-  item.setAttribute("aria-label", hasUnread ? "Mehr, ungelesene Mitteilungen" : "Mehr");
+  const label = TABS.find((tab) => tab.path === path)?.label ?? "";
+  item.classList.toggle("nav-item--dot", Boolean(reason));
+  item.setAttribute("aria-label", reason ? `${label}, ${reason}` : label);
 }

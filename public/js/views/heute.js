@@ -2,10 +2,13 @@ import { getSelectedStudentId, getStudents } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getHeuteData } from "../data/heute.js";
 import { getMitteilungenData } from "../data/mitteilungen.js";
+import { unreadNotificationCount } from "../data/notifications.js";
+import { navigate } from "../router.js";
 import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
 import { weekdayOrDate, formatWeekdayDate, formatFullDate } from "../util/format.js";
 import { newSticker, gradeValue } from "../components/grade-capsule.js";
+import { ICONS } from "../components/icons.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
@@ -146,9 +149,20 @@ async function fillMitteilungen(container) {
   if (!slot || fresh.length === 0) return;
   slot.outerHTML = `
     <div class="section section--tight">
-      <div class="eyebrow">Mitteilungen</div>
+      <div class="eyebrow">Schulinformationen</div>
       <div class="mt-list">${fresh.map((item) => mitteilungRow(item, weekdayOrDate(item.date))).join("")}</div>
     </div>`;
+}
+
+/** The bell's badge, loaded after the page; unreadNotificationCount never throws. */
+async function fillBell(container, studentId, scale) {
+  const bell = container.querySelector("#heute-bell");
+  if (!bell) return;
+  const count = await unreadNotificationCount(studentId, scale);
+  // The container outlives the route: a stale call must not touch a newer Heute's bell.
+  if (count === 0 || !bell.isConnected || bell.querySelector(".heute-bell__count")) return;
+  bell.setAttribute("aria-label", `Benachrichtigungen, ${count} ungelesen`);
+  bell.insertAdjacentHTML("beforeend", `<span class="heute-bell__count" aria-hidden="true">${count}</span>`);
 }
 
 /** The full entry behind a Termine row that isn't a test. */
@@ -164,12 +178,16 @@ function openNoteDetail(container, note) {
 export async function renderHeute(container) {
   container.innerHTML = `
     <div class="view">
-      <div>
-        <h1 class="view-title" id="heute-title">Heute</h1>
-        <div class="view-subtitle" id="heute-subtitle">…</div>
+      <div class="heute-head">
+        <div>
+          <h1 class="view-title" id="heute-title">Heute</h1>
+          <div class="view-subtitle" id="heute-subtitle">…</div>
+        </div>
+        <button type="button" class="heute-bell" id="heute-bell" aria-label="Benachrichtigungen">${ICONS.bell}</button>
       </div>
       <div id="heute-body" class="view-body">${renderSkeleton()}</div>
     </div>`;
+  container.querySelector("#heute-bell").addEventListener("click", () => navigate("/heute/benachrichtigungen"));
 
   try {
     const studentId = getSelectedStudentId();
@@ -191,6 +209,7 @@ export async function renderHeute(container) {
       <div id="heute-mitteilungen" hidden></div>
     `;
     fillMitteilungen(container);
+    fillBell(container, studentId, scale);
     markTruncatedRows(body, "[data-note-index]", ".heute-termin__kind");
     bindActivate(body, "[data-test]", (card) => openExamSheet(container, [data.test.exam], card));
     bindActivate(body, "[data-period]", (row) => {

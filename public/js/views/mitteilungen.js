@@ -27,7 +27,7 @@ export async function renderMitteilungen(container) {
   container.innerHTML = `
     <div class="view view--detail">
       <a class="back-link" href="#/mehr">‹ Mehr</a>
-      <h1 class="view-title">Mitteilungen</h1>
+      <h1 class="view-title">Schulinformationen</h1>
       <div id="mt-body" class="view-body">${renderSkeleton()}</div>
     </div>`;
 
@@ -36,7 +36,7 @@ export async function renderMitteilungen(container) {
     const { items } = await getMitteilungenData();
     body.innerHTML = items.length
       ? `<div class="mt-list">${items.map((item) => mitteilungRow(item)).join("")}</div>`
-      : renderEmptyState("Keine Mitteilungen.");
+      : renderEmptyState("Keine Schulinformationen.");
   } catch (err) {
     body.innerHTML = renderErrorState(escapeHtml(err.message));
     bindErrorState(container);
@@ -67,7 +67,7 @@ function confirmCard(item) {
   if (item.canConfirm) {
     return `
       <div class="card card--accent mt-confirm" id="mt-confirm">
-        <div>Für diese Mitteilung wird eine Lesebestätigung erwartet.</div>
+        <div>Für diese Schulinformation wird eine Lesebestätigung erwartet.</div>
         <button type="button" class="button-primary button-primary--inline" id="mt-confirm-button">Gelesen bestätigen</button>
       </div>`;
   }
@@ -105,7 +105,7 @@ function bindConfirm(container, body, item) {
 export async function renderMitteilung(container, { id }) {
   container.innerHTML = `
     <div class="view view--detail">
-      <a class="back-link" href="#/mehr/mitteilungen">‹ Mitteilungen</a>
+      <a class="back-link" href="#/mehr/mitteilungen">‹ Schulinformationen</a>
       <div id="mt-detail" class="view-body">${renderSkeleton(8)}</div>
     </div>`;
 
@@ -115,7 +115,7 @@ export async function renderMitteilung(container, { id }) {
     const item = items.find((i) => i.id === Number(id));
     if (!item) {
       // An old link can point past the visibility window.
-      body.innerHTML = renderEmptyState("Diese Mitteilung ist nicht mehr verfügbar.");
+      body.innerHTML = renderEmptyState("Diese Schulinformation ist nicht mehr verfügbar.");
       return;
     }
 

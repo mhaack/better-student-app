@@ -48,7 +48,7 @@ export function renderRechtliches(container) {
         <h3>Das Wichtigste in Kürze</h3>
         <p>
           bessere.schule hat keinen eigenen Server, der deine Schuldaten verarbeitet.
-          Noten, Stundenplan, Mitteilungen und alle anderen Daten aus beste.schule
+          Noten, Stundenplan, Schulinformationen und alle anderen Daten aus beste.schule
           lädt dein Browser direkt von beste.schule. Sie werden nur auf deinem Gerät
           angezeigt und nie an uns oder an Dritte übertragen. Es werden keine Cookies
           gesetzt.

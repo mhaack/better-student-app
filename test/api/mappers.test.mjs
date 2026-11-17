@@ -2,8 +2,9 @@
 // (docs/api-notes.md); the texts are made up.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { mapAnnouncement, mapGrade, mapGradeNotification, mapMe } from "../../public/js/api/mappers.js";
+import { mapAnnouncement, mapGrade, mapMe, mapNotification } from "../../public/js/api/mappers.js";
 import { rawAnnouncement } from "../support/announcements.mjs";
+import { historyFlashHistories } from "../support/grades.mjs";
 
 describe("mapAnnouncement", () => {
   test("date comes from read_from (there is no created_at)", () => {
@@ -95,9 +96,50 @@ describe("mapGrade", () => {
   test("leaves an unread grade unacknowledged", () => {
     assert.equal(mapGrade(rawGrade({ read: false, read_by_type: null }), "points_0_15").readByGuardian, false);
   });
+
+  const entry = (id, attr, old_value = null) => ({ id, action: "updated", attr, old_value });
+
+  test("takes the old value from the last value change", () => {
+    const histories = [
+      entry(1, null),
+      entry(2, "read_at"),
+      entry(3, "value", "3"),
+      entry(4, "read_at"),
+      entry(5, "read_at"),
+    ];
+    const { previous } = mapGrade(rawGrade({ histories }), "points_0_15");
+    assert.equal(previous.raw, "3");
+    assert.equal(previous.numeric, 3);
+  });
+
+  test("uses the highest id when the value changed twice", () => {
+    const histories = [entry(9, "value", "7"), entry(4, "value", "3")];
+    assert.equal(mapGrade(rawGrade({ histories }), "points_0_15").previous.raw, "7");
+  });
+
+  test("ignores read-marker entries", () => {
+    const histories = [entry(2, "read_at"), entry(3, "read_by_type")];
+    assert.equal(mapGrade(rawGrade({ histories }), "points_0_15").previous, null);
+  });
+
+  test("has no previous when the value was first saved empty", () => {
+    const histories = [entry(3, "value", null), entry(4, "value", " ")];
+    assert.equal(mapGrade(rawGrade({ histories }), "points_0_15").previous, null);
+  });
+
+  test("reads the old value from a real-shaped change log and keeps nothing of the people", () => {
+    const mapped = mapGrade(rawGrade({ histories: historyFlashHistories() }), "points_0_15");
+    assert.equal(mapped.previous.raw, "3");
+    const json = JSON.stringify(mapped);
+    for (const leak of ["conductor", "histories", "@", "0151"]) assert.ok(!json.includes(leak), leak);
+  });
+
+  test("has no previous without histories", () => {
+    assert.equal(mapGrade(rawGrade(), "points_0_15").previous, null);
+  });
 });
 
-describe("mapGradeNotification", () => {
+describe("mapNotification", () => {
   const rawNotification = (overrides) => ({
     id: "8f0c6d1e-2b4a-4c55-9e1f-3a7b9d2c4e60",
     notification_type: "grade",
@@ -107,20 +149,55 @@ describe("mapGradeNotification", () => {
     redirect_url: "https://beste.schule/students/1/grades",
     notifiable_type: "user",
     data: { collection_name: "Klausur Mechanik", subject_name: "Physik" },
-    grade: { id: 71300001, value: "10", given_at: "2026-10-13", student_id: 1, collection_id: 4370299 },
+    grade: {
+      id: 71300001,
+      value: "10",
+      student_id: 1,
+      collection: { id: 4370299, subject_id: 77, subject: { id: 77, name: "Physik" } },
+    },
     notifiable: { id: 5, email: "eltern@example.org", role: "guardian" },
     ...overrides,
   });
 
-  test("keeps the grade id, the action and when it happened", () => {
-    assert.deepEqual(mapGradeNotification(rawNotification()), {
-      gradeId: 71300001,
+  test("maps a grade entry to the flat shape", () => {
+    assert.deepEqual(mapNotification(rawNotification()), {
+      id: "8f0c6d1e-2b4a-4c55-9e1f-3a7b9d2c4e60",
+      type: "grade",
       action: "created",
       createdAt: "2026-11-07",
+      unread: true,
+      gradeId: 71300001,
+      studentId: 1,
+      subjectId: 77,
+      subjectName: "Physik",
+      collectionName: "Klausur Mechanik",
+      announcementId: null,
+      title: null,
     });
   });
 
+  test("maps an announcement entry without its message or the user", () => {
+    const n = mapNotification(
+      rawNotification({
+        notification_type: "announcement",
+        data: { title: "Information Bedrohungssituation" },
+        grade: undefined,
+        announcement: { id: 3866, title: "Information Bedrohungssituation", message: "Liebe Eltern ..." },
+      })
+    );
+    assert.equal(n.type, "announcement");
+    assert.equal(n.announcementId, 3866);
+    assert.equal(n.title, "Information Bedrohungssituation");
+    assert.equal(n.gradeId, null);
+    assert.equal("message" in n, false);
+    assert.equal("notifiable" in n, false);
+  });
+
+  test("a read entry is not unread", () => {
+    assert.equal(mapNotification(rawNotification({ read_at: "2026-11-08 10:00:00" })).unread, false);
+  });
+
   test("tolerates an entry without an embedded grade", () => {
-    assert.equal(mapGradeNotification(rawNotification({ grade: null })).gradeId, null);
+    assert.equal(mapNotification(rawNotification({ grade: null })).gradeId, null);
   });
 });

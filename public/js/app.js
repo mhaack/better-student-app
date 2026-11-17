@@ -1,12 +1,13 @@
 // Registers the beforeinstallprompt listener at boot; Chromium fires it once, early.
 import "./state/install.js";
-import { isAuthenticated, onAuthChange, clearSession } from "./state/auth-store.js";
+import { isAuthenticated, onAuthChange, clearSession, getSelectedStudentId } from "./state/auth-store.js";
 import { route, startRouter, currentBasePath, navigate } from "./router.js";
 import { isCallback, completeLogin } from "./auth/oauth.js";
-import { renderBottomNav, setMehrDot } from "./components/bottom-nav.js";
+import { NAV_DOTS_STALE, renderBottomNav, setNavDot } from "./components/bottom-nav.js";
 import { initSplash } from "./components/splash.js";
 import { renderLogin, establishSession } from "./views/login.js";
 import { renderHeute } from "./views/heute.js";
+import { renderBenachrichtigungen } from "./views/benachrichtigungen.js";
 import { renderNoten } from "./views/noten.js";
 import { renderFachDetail } from "./views/fach-detail.js";
 import { renderStundenplan } from "./views/stundenplan.js";
@@ -16,6 +17,8 @@ import { renderFerien } from "./views/ferien.js";
 import { renderMitteilungen, renderMitteilung } from "./views/mitteilungen.js";
 import { renderRechtliches } from "./views/rechtliches.js";
 import { getMitteilungenData } from "./data/mitteilungen.js";
+import { hasNewGrades } from "./data/noten.js";
+import { ensureContext } from "./state/session.js";
 
 const app = document.getElementById("app");
 
@@ -31,6 +34,17 @@ function ensureShell() {
     <div id="nav-container"></div>`;
 }
 
+/** Both cached for a minute and shared with their screens; a failure just leaves no dot. */
+function updateNavDots(navContainer) {
+  getMitteilungenData()
+    .then(({ unreadCount }) => setNavDot(navContainer, "/mehr", unreadCount > 0 && "ungelesene Schulinformationen"))
+    .catch(() => {});
+  ensureContext()
+    .then((context) => hasNewGrades(getSelectedStudentId(), context))
+    .then((hasNew) => setNavDot(navContainer, "/noten", hasNew && "neue Noten"))
+    .catch(() => {});
+}
+
 function withShell(viewFn) {
   return async (params) => {
     if (!isAuthenticated()) {
@@ -42,15 +56,16 @@ function withShell(viewFn) {
     ensureShell();
     const navContainer = app.querySelector("#nav-container");
     navContainer.innerHTML = renderBottomNav(currentBasePath());
-    // Cached for a minute.
-    getMitteilungenData()
-      .then(({ unreadCount }) => setMehrDot(navContainer, unreadCount > 0))
-      .catch(() => {});
+    updateNavDots(navContainer);
     await viewFn(app.querySelector("#view-container"), params);
   };
 }
 
+window.addEventListener(NAV_DOTS_STALE, () => updateNavDots(app.querySelector("#nav-container")));
+
 route(/^\/heute$/, withShell(renderHeute));
+// Under /heute so the Heute tab stays highlighted.
+route(/^\/heute\/benachrichtigungen$/, withShell(renderBenachrichtigungen));
 route(/^\/noten$/, withShell(renderNoten));
 route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFachDetail(container, params)));
 route(/^\/stundenplan$/, withShell(renderStundenplan));

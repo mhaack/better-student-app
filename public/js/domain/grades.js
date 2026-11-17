@@ -70,14 +70,16 @@ export function gradeTypeLabel(type) {
 /**
  * Adds `isNew`: not yet seen by the viewer's side. Grades carry one read flag
  * plus who read it, so for a guardian a grade only the child read is still new.
- * @param {Array<{ read: boolean, readByGuardian: boolean }>} grades
+ * `isChanged`: new again because a teacher changed the value (a change clears
+ * the read marker), so it is new with an old value on record.
+ * @param {Array<{ read: boolean, readByGuardian: boolean, previous?: object | null }>} grades
  * @param {"guardian" | "student" | null} role
  */
 export function markNewGrades(grades, role) {
-  return grades.map((grade) => ({
-    ...grade,
-    isNew: role === "guardian" ? !grade.readByGuardian : !grade.read,
-  }));
+  return grades.map((grade) => {
+    const isNew = role === "guardian" ? !grade.readByGuardian : !grade.read;
+    return { ...grade, isNew, isChanged: isNew && grade.previous != null };
+  });
 }
 
 /**

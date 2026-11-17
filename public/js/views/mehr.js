@@ -88,7 +88,7 @@ export async function renderMehr(container) {
       <a class="card mehr-ferien link-reset" href="#/mehr/ferien" id="mehr-ferien" hidden></a>
       ${switcher}
       <a class="card card-row mehr-link" href="#/mehr/mitteilungen">
-        <span class="row-title">Mitteilungen</span>
+        <span class="row-title">Schulinformationen</span>
         <span class="mehr-link-end">
           <span id="mehr-unread"></span>
           <span class="mt-chevron" aria-hidden="true">›</span>

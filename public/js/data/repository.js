@@ -7,7 +7,7 @@ import {
   mapYear,
   mapGroup,
   mapGrade,
-  mapGradeNotification,
+  mapNotification,
   mapPlanLesson,
   mapTimetableLesson,
   mapJournalNotes,
@@ -60,7 +60,8 @@ export async function fetchGrades(studentId, options) {
         ...(yearId ? { "filter[year]": yearId } : {}),
         ...(intervalId ? { "filter[interval]": intervalId } : {}),
         // `subject` is not an allowed include here; it hangs off the collection.
-        include: "collection.subject,teacher",
+        // `histories` is the change log: the old value of a changed grade.
+        include: "collection.subject,teacher,histories",
       },
     });
     return list.map((raw) => mapGrade(raw, scale));
@@ -148,14 +149,14 @@ export async function fetchAnnouncements() {
 }
 
 /**
- * The bell feed's grade entries: when a grade was entered or changed. The
- * route takes no filters or paging and covers every child of the account.
+ * The bell feed: grade and announcement entries. The route takes no filters or
+ * paging and covers every child of the account.
  */
-export async function fetchGradeNotifications() {
-  return cached("notifications:grades", async () => {
+export async function fetchNotifications() {
+  return cached("notifications", async () => {
     const res = await apiFetch("notifications");
     const list = Array.isArray(res?.data) ? res.data : [];
-    return list.filter((n) => n.notification_type === "grade").map(mapGradeNotification);
+    return list.map(mapNotification);
   });
 }
 
@@ -178,6 +179,30 @@ export async function fetchRole() {
 export async function respondToAnnouncement(id) {
   await apiFetch(`announcements/${id}/respond`, { method: "POST" });
   invalidate("announcements");
+}
+
+/**
+ * Marks one bell entry read — an inbox marker only: the grade's own read flag
+ * (NEU/GEÄNDERT) stays as it is. The response is discarded (personal data).
+ */
+export async function markNotificationRead(id) {
+  await apiFetch(`notifications/${encodeURIComponent(id)}/read`, { method: "POST" });
+  invalidate("notifications");
+}
+
+/** Marks the whole account's feed read, every child's entries included. */
+export async function markAllNotificationsRead() {
+  await apiFetch("notifications/read", { method: "POST" });
+  invalidate("notifications");
+}
+
+/**
+ * The Kenntnisnahme: sets the grade's read flag for the signed-in role, which
+ * clears NEU/GEÄNDERT. The response is discarded (personal data).
+ */
+export async function markGradeRead(id) {
+  await apiFetch(`grades/${encodeURIComponent(id)}/read`, { method: "POST" });
+  invalidate("grades");
 }
 
 export function isoDate(date) {
