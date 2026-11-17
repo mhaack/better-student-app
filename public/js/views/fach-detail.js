@@ -7,6 +7,7 @@ import { gradeMeta } from "../components/grade-meta.js";
 import { gradeCapsule } from "../components/grade-capsule.js";
 import { openGradeSheet } from "../components/grade-sheet.js";
 import { acknowledgeGrade, getFachDetailData } from "../data/fach-detail.js";
+import { NAV_DOTS_STALE } from "../components/bottom-nav.js";
 import { bindActivate } from "../components/detail-sheet.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 
@@ -93,6 +94,7 @@ function bindAcknowledge(container, data, subjectName, subjectId) {
         opener: row,
         onConfirm: async () => {
           await acknowledgeGrade(entry.grade.id, entry.grade.notice?.unreadIds ?? []);
+          window.dispatchEvent(new Event(NAV_DOTS_STALE));
           await renderFachDetail(container, { subjectId });
         },
       }

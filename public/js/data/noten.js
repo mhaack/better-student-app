@@ -73,3 +73,14 @@ export async function getNotenData(studentId, options) {
 
   return result;
 }
+
+/** Whether the Noten tab gets its dot: a grade in the current Halbjahr the viewer's side hasn't seen. */
+export async function hasNewGrades(studentId, context) {
+  const { subjects } = await getNotenData(studentId, {
+    yearId: context.year?.id,
+    intervalId: context.interval?.id,
+    scale: context.scale,
+    courses: context.courses,
+  });
+  return subjects.some((subject) => subject.hasNew);
+}
