@@ -12,16 +12,18 @@ import { scaleUnit } from "../util/format.js";
 
 /**
  * What the acknowledge card needs from the bell feed for an unseen grade: the
- * date it was entered (or changed) and its unread entries, so confirming the
- * grade clears the bell too. Null for a seen grade.
+ * date a new grade was entered and its unread entries, so confirming the grade
+ * clears the bell too. Null for a seen grade.
  */
 export function gradeNotice(grade, notifications) {
   if (!grade.isNew) return null;
   const entries = notifications.filter((n) => n.type === "grade" && n.gradeId === grade.id);
-  const action = grade.isChanged ? "updated" : "created";
-  const dated = entries
-    .filter((n) => n.action === action && n.createdAt)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  // An update entry's date isn't when the grade changed (docs/api-notes.md), so a change shows none.
+  const dated = grade.isChanged
+    ? null
+    : entries
+        .filter((n) => n.action === "created" && n.createdAt)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
   return {
     label: grade.isChanged ? "Geändert" : "Eingetragen",
     date: dated?.createdAt ?? null,

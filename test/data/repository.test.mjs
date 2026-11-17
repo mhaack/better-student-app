@@ -5,7 +5,6 @@ import { clearCache } from "../../public/js/data/cache.js";
 import {
   fetchGrades,
   fetchNotifications,
-  markAllNotificationsRead,
   markGradeRead,
   markNotificationRead,
 } from "../../public/js/data/repository.js";
@@ -56,22 +55,6 @@ describe("markNotificationRead", () => {
   test("returns nothing from the response", async () => {
     stubApi();
     assert.equal(await markNotificationRead("9611ee97-e230-4baa-a87f-d7ffe873a34b"), undefined);
-  });
-});
-
-describe("markAllNotificationsRead", () => {
-  test("posts to the feed's read route", async () => {
-    const calls = stubApi();
-    await markAllNotificationsRead();
-    assert.deepEqual(calls, [{ path: "/api/notifications/read", method: "POST" }]);
-  });
-
-  test("makes the next feed read hit the API again", async () => {
-    const calls = stubApi();
-    await fetchNotifications();
-    await markAllNotificationsRead();
-    await fetchNotifications();
-    assert.equal(calls.filter((c) => c.method === "GET").length, 2);
   });
 });
 

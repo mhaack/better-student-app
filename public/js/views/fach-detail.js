@@ -78,7 +78,7 @@ function trendChart(trendPoints, scale) {
 }
 
 /** A tap on an unseen grade opens its card; confirming redraws the page with the check. */
-function bindAcknowledge(container, data, subjectName, subjectId) {
+function bindAcknowledge(container, data, subjectName, params) {
   const entries = new Map(
     data.groups.flatMap((group) =>
       group.grades.map((grade) => [grade.id, { grade, weighting: `${group.type} · ${group.weightingPct} %` }])
@@ -93,16 +93,20 @@ function bindAcknowledge(container, data, subjectName, subjectId) {
       {
         opener: row,
         onConfirm: async () => {
+          const view = container.querySelector(".view--fach");
           await acknowledgeGrade(entry.grade.id, entry.grade.notice?.unreadIds ?? []);
           window.dispatchEvent(new Event(NAV_DOTS_STALE));
-          await renderFachDetail(container, { subjectId });
+          // The user may have left while it was sending; don't paint over the new screen.
+          if (view.isConnected) await renderFachDetail(container, params);
         },
       }
     );
   });
 }
 
-export async function renderFachDetail(container, { subjectId }) {
+/** `intervalId` (from a notification) picks a Halbjahr of this year; otherwise the current one. */
+export async function renderFachDetail(container, params) {
+  const { subjectId, intervalId } = params;
   container.innerHTML = `
     <div class="view view--detail view--fach">
       <a class="back-link" href="#/noten">‹ Noten</a>
@@ -115,10 +119,11 @@ export async function renderFachDetail(container, { subjectId }) {
     const subjectIdNum = Number(subjectId);
     const course = context.courses.find((c) => c.subjectId === subjectIdNum);
     const { scale } = context;
+    const interval = context.intervals.find((i) => i.id === Number(intervalId)) ?? context.interval;
 
     const data = await getFachDetailData(studentId, subjectIdNum, {
       yearId: context.year?.id,
-      intervalId: context.interval?.id,
+      intervalId: interval?.id,
       scale,
     });
 
@@ -138,7 +143,7 @@ export async function renderFachDetail(container, { subjectId }) {
             isPoints && course?.courseType
               ? `<div class="subject-header-badges">
                    <span class="badge-lk">${escapeHtml(course.courseType)}</span>
-                   <span class="text-meta">${escapeHtml(context.interval?.name ?? "")}</span>
+                   <span class="text-meta">${escapeHtml(interval?.name ?? "")}</span>
                  </div>`
               : ""
           }
@@ -168,7 +173,7 @@ export async function renderFachDetail(container, { subjectId }) {
       </div>
     `;
 
-    bindAcknowledge(container, data, course?.name ?? "", subjectId);
+    bindAcknowledge(container, data, course?.name ?? "", params);
 
     const toggle = container.querySelector("#formula-toggle");
     const text = container.querySelector("#formula-text");

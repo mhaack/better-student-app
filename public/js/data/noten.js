@@ -76,11 +76,12 @@ export async function getNotenData(studentId, options) {
 
 /** Whether the Noten tab gets its dot: a grade in the current Halbjahr the viewer's side hasn't seen. */
 export async function hasNewGrades(studentId, context) {
-  const { subjects } = await getNotenData(studentId, {
-    yearId: context.year?.id,
-    intervalId: context.interval?.id,
-    scale: context.scale,
-    courses: context.courses,
-  });
-  return subjects.some((subject) => subject.hasNew);
+  const { year, interval, scale, courses } = context;
+  const [grades, role] = await Promise.all([
+    // Same cache key as the Noten screen's default Halbjahr.
+    fetchGrades(studentId, { yearId: year?.id, intervalId: interval?.id, scale }),
+    fetchRole(),
+  ]);
+  const courseSubjects = new Set(courses.map((c) => c.subjectId));
+  return markNewGrades(grades, role).some((g) => g.isNew && courseSubjects.has(g.subjectId));
 }

@@ -67,7 +67,7 @@ route(/^\/heute$/, withShell(renderHeute));
 // Under /heute so the Heute tab stays highlighted.
 route(/^\/heute\/benachrichtigungen$/, withShell(renderBenachrichtigungen));
 route(/^\/noten$/, withShell(renderNoten));
-route(/^\/noten\/(?<subjectId>\d+)$/, withShell((container, params) => renderFachDetail(container, params)));
+route(/^\/noten\/(?<subjectId>\d+)(?:\/(?<intervalId>\d+))?$/, withShell((container, params) => renderFachDetail(container, params)));
 route(/^\/stundenplan$/, withShell(renderStundenplan));
 route(/^\/termine$/, withShell(renderTermine));
 route(/^\/mehr$/, withShell(renderMehr));

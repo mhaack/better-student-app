@@ -190,12 +190,6 @@ export async function markNotificationRead(id) {
   invalidate("notifications");
 }
 
-/** Marks the whole account's feed read, every child's entries included. */
-export async function markAllNotificationsRead() {
-  await apiFetch("notifications/read", { method: "POST" });
-  invalidate("notifications");
-}
-
 /**
  * The Kenntnisnahme: sets the grade's read flag for the signed-in role, which
  * clears NEU/GEÄNDERT. The response is discarded (personal data).

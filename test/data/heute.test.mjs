@@ -46,16 +46,20 @@ describe("latestGrades", () => {
     assert.equal(result.date, "2026-11-03");
   });
 
-  test("leaves out a changed grade", () => {
-    const changed = { ...grade(70935361, "2026-10-26", "Was ist Kunst?"), isChanged: true };
+  test("keeps a grade corrected before anyone saw it, on the day it was entered", () => {
+    const corrected = { ...grade(71300001, "2026-11-06", "Klausur Mechanik"), isChanged: true };
     const other = grade(71005722, "2026-11-03", "Freiwillige Leistung AB");
     const result = latestGrades(
-      [changed, other],
-      [notification(70935361, "2026-11-06"), notification(71005722, "2026-11-03")],
+      [corrected, other],
+      [
+        notification(71300001, "2026-11-06"),
+        notification(71300001, "2026-11-06", "updated"),
+        notification(71005722, "2026-11-03"),
+      ],
       NOW
     );
-    assert.deepEqual(result.grades, [other]);
-    assert.equal(result.date, "2026-11-03");
+    assert.deepEqual(result.grades, [corrected]);
+    assert.equal(result.date, "2026-11-06");
   });
 
   test("ignores announcement entries", () => {

@@ -2324,6 +2324,9 @@ button {
   background: var(--surface);
 }
 
+/* An unread entry with nowhere to go: tapping only marks it read. */
+.nt-card[role="button"] { cursor: pointer; }
+
 .nt-card:active,
 .nt-row:active {
   background: var(--pressed);
