@@ -124,8 +124,3 @@ export function formatMean(value) {
   if (value === null || value === undefined) return "–";
   return value.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
-
-/** A share 0–1 as a whole percentage: 0.259 -> "26 %". */
-export function formatPercent(share) {
-  return `${Math.round((share ?? 0) * 100)} %`;
-}

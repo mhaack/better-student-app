@@ -8,6 +8,7 @@
   --border: #E4DED5;
   --border-strong: #D9D2C8;
   --chart-grid: #EDE7DE;
+  --chart-leader: #B9B0A5;
 
   --text-primary: #1A1714;
   --text-secondary: #57504A;
@@ -86,6 +87,7 @@
   --border: #2E2A24;
   --border-strong: #3A352E;
   --chart-grid: #2E2A24;
+  --chart-leader: #5A534B;
 
   --text-primary: #F3F0EA;
   --text-secondary: #B3ABA1;
@@ -144,6 +146,7 @@
     --border: #2E2A24;
     --border-strong: #3A352E;
     --chart-grid: #2E2A24;
+  --chart-leader: #5A534B;
 
     --text-primary: #F3F0EA;
     --text-secondary: #B3ABA1;

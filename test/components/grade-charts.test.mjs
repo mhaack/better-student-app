@@ -94,58 +94,75 @@ describe("barChart", () => {
 });
 
 describe("donutChart", () => {
+  const KA = { kaLabel: "Klassenarbeiten" };
+  const labels = (html) => [...html.matchAll(/<tspan class="gc-label__n">(\d+)×<\/tspan> <tspan class="gc-label__value">([^<]+)</g)].map((m) => `${m[1]}× ${m[2]}`);
+
   test("draws one segment per non-empty Note in its sequence colour", () => {
-    const html = donutChart(notes(SEK1), { kaLabel: "Klassenarbeiten" });
+    const html = donutChart(notes(SEK1), KA);
     assert.equal(count(html, 'class="gc-seg '), 5);
     assert.ok(html.includes("gc-seg gc-seq-1"));
     assert.ok(!html.includes("gc-seg gc-seq-6"));
   });
 
-  test("shows the count and Noten in the centre", () => {
-    const html = donutChart(notes(SEK1), { kaLabel: "Klassenarbeiten" });
-    assert.ok(html.includes('class="gc-donut__count" x="95" y="99" text-anchor="middle">27</text>'));
+  test("labels each segment with its count and Note, without percentages", () => {
+    const html = donutChart(notes(SEK1), KA);
+    assert.deepEqual(labels(html), ["7× Note 1", "10× Note 2", "6× Note 3", "3× Note 4", "1× Note 5"]);
+    assert.equal(count(html, 'class="gc-leader"'), 5);
+    assert.ok(!html.includes("%"));
+  });
+
+  test("labels point values with P in the colour of their Note", () => {
+    const html = donutChart(points([entry(14), entry(14), entry(8)]), { kaLabel: "Klausuren" });
+    assert.deepEqual(labels(html), ["2× 14 P", "1× 8 P"]);
+    assert.ok(html.includes('<path class="gc-seg gc-seq-1"'));
+    assert.ok(html.includes('<path class="gc-seg gc-seq-3"'));
+  });
+
+  test("keeps crowded labels at least a line apart in each column", () => {
+    const many = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 4].map((p) => entry(p));
+    const html = donutChart(points(many), { kaLabel: "Klausuren" });
+    const placed = [...html.matchAll(/<text class="gc-label" x="[\d.]+" y="([\d.]+)" text-anchor="(start|end)"/g)];
+    for (const side of ["start", "end"]) {
+      const ys = placed.filter((m) => m[2] === side).map((m) => Number(m[1])).sort((x, y) => x - y);
+      for (let k = 1; k < ys.length; k++) assert.ok(ys[k] - ys[k - 1] >= 19.99, `${ys[k]} too close to ${ys[k - 1]}`);
+    }
+  });
+
+  test("grows taller when a label column needs more room", () => {
+    const viewBoxHeight = (html) => Number(html.match(/viewBox="0 0 306 ([\d.]+)"/)[1]);
+    const few = donutChart(notes(SEK1), KA);
+    const many = donutChart(points([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0].map((p) => entry(p))), KA);
+    assert.equal(viewBoxHeight(few), 176);
+    assert.ok(viewBoxHeight(many) > 176);
+  });
+
+  test("shows the count and Noten in the centre and every value in the aria-label", () => {
+    const html = donutChart(notes(SEK1), KA);
+    assert.ok(html.includes('class="gc-donut__count" x="153" y="94" text-anchor="middle">27</text>'));
     assert.ok(html.includes(">Noten</text>"));
-    assert.ok(html.includes('aria-label="Kreisdiagramm, Anteil je Note, 27 Noten"'));
+    assert.ok(html.includes('aria-label="Kreisdiagramm, Anteil je Note, 27 Noten. 7-mal Note 1; 10-mal Note 2;'));
+  });
+
+  test("says Punktzahl in the aria-label for points", () => {
+    const html = donutChart(points([entry(14), entry(8)]), KA);
+    assert.ok(html.includes("Anteil je Punktzahl, 2 Noten. 1-mal 14 Punkte; 1-mal 8 Punkte"));
   });
 
   test("draws a full ring when all grades are the same Note", () => {
-    const html = donutChart(notes([entry(2), entry(2)]), { kaLabel: "Klassenarbeiten" });
+    const html = donutChart(notes([entry(2), entry(2)]), KA);
     assert.ok(html.includes('<circle class="gc-ring gc-seq-2"'));
     assert.ok(!html.includes("gc-seg"));
-  });
-
-  test("lists every Note with count and share, empty ones dashed", () => {
-    const html = donutChart(notes(SEK1), { kaLabel: "Klassenarbeiten" });
-    assert.equal(count(html, '<li class="gc-share'), 6);
-    assert.ok(html.includes('<span class="gc-share__n">10×</span><span class="gc-share__pct">37 %</span>'));
-    assert.ok(
-      html.includes(
-        '<li class="gc-share gc-share--empty"><span class="gc-swatch gc-swatch--empty" aria-hidden="true"></span><span>Note 6</span><span class="gc-share__n">0×</span><span class="gc-share__pct">0 %</span>',
-      ),
-    );
+    assert.deepEqual(labels(html), ["2× Note 2"]);
   });
 
   test("ends with the colour footnote naming the KA series", () => {
     const html = donutChart(notes(SEK1), { kaLabel: "Klausuren" });
-    assert.ok(html.endsWith('<p class="gc-note">Note 1 kräftig → Note 6 blass. Klausuren und sonstige Leistungen zusammen.</p>'));
+    assert.ok(html.endsWith('<p class="gc-note">Kräftiger = besser. Klausuren und sonstige Leistungen zusammen.</p>'));
   });
 
-  test("lists every point value 15 to 0 in the colour of its Note", () => {
-    const html = donutChart(points([entry(14), entry(14), entry(8)]), { kaLabel: "Klausuren" });
-    assert.equal((html.match(/<li /g) ?? []).length, 16);
-    assert.ok(html.includes('<span class="gc-swatch gc-seq-1" aria-hidden="true"></span><span>14 P</span><span class="gc-share__n">2×</span>'));
-    assert.ok(html.includes('<path class="gc-seg gc-seq-3"'));
-    assert.ok(html.includes("Anteil je Punktzahl"));
-    assert.ok(html.includes("gc-shares--points"));
-  });
-
-  test("explains the point colours in the footnote", () => {
+  test("explains that points are coloured by their Note", () => {
     const html = donutChart(points([entry(14), entry(8)]), { kaLabel: "Klausuren" });
-    assert.ok(html.includes('<p class="gc-note">15 P kräftig → 0 P blass, in den Farben der Noten. Klausuren und sonstige Leistungen zusammen.</p>'));
-  });
-
-  test("leaves the footnote out when asked to", () => {
-    assert.ok(!donutChart(notes(SEK1), { kaLabel: "Klausuren", footnote: false }).includes("gc-note"));
+    assert.ok(html.includes('<p class="gc-note">Kräftiger = besser (Farbe je Notenstufe). Klausuren und sonstige Leistungen zusammen.</p>'));
   });
 });
 

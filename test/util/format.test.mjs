@@ -11,7 +11,6 @@ import {
   formatMean,
   formatMonthYear,
   formatOverallAverage,
-  formatPercent,
   formatWeekday,
   formatWeekdayDate,
   periodLabel,
@@ -210,13 +209,5 @@ describe("formatMean", () => {
 
   test("shows a dash without a value", () => {
     assert.equal(formatMean(null), "–");
-  });
-});
-
-describe("formatPercent", () => {
-  test("rounds a share to a whole percentage", () => {
-    assert.equal(formatPercent(0.259), "26 %");
-    assert.equal(formatPercent(1), "100 %");
-    assert.equal(formatPercent(0), "0 %");
   });
 });

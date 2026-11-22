@@ -2741,9 +2741,6 @@ button {
   background: var(--series-sl);
 }
 
-.gc-swatch--empty {
-  border: 1px dashed var(--border-strong);
-}
 
 /* One class per Note colours a donut segment (fill), the lone ring (stroke) and its swatch (background). */
 .gc-seq-1 { --gc-seq: var(--seq-1); }
@@ -2766,21 +2763,15 @@ button {
   background: var(--gc-seq);
 }
 
-.gc-pie {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-
 .gc-donut {
   display: block;
-  width: 190px;
-  height: 190px;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
 .gc-donut__count {
-  font-size: 34px;
+  font-size: 30px;
   fill: var(--text-primary);
 }
 
@@ -2790,57 +2781,27 @@ button {
 }
 
 .gc-donut__unit {
-  font-size: 11px;
+  font-size: 10px;
   fill: var(--text-muted);
 }
 
-.gc-shares {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.gc-leader {
+  fill: none;
+  stroke: var(--chart-leader);
+  stroke-width: 1;
 }
 
-/* 16 point values: two columns, 15–8 then 7–0, instead of one long list. */
-.gc-shares--points {
-  display: grid;
-  grid-template-rows: repeat(8, auto);
-  grid-auto-flow: column;
-  column-gap: 20px;
-}
-
-.gc-share {
-  display: grid;
-  grid-template-columns: 12px 1fr auto auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 24px;
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.gc-share .gc-swatch {
-  width: 12px;
-  height: 12px;
-}
-
-.gc-share--empty {
-  color: var(--text-disabled);
-}
-
-.gc-share__n {
+.gc-label {
   font-size: 12px;
-  color: var(--text-muted);
+  fill: var(--text-primary);
 }
 
-.gc-share__pct {
-  min-width: 36px;
-  text-align: right;
+.gc-label__n {
+  fill: var(--text-muted);
+}
+
+.gc-label__value {
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .gc-note {

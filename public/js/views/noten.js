@@ -278,9 +278,8 @@ function chartsHtml(data, scale) {
       <span class="chart-stat-text">${dist.count === 1 ? "Note" : "Noten"} · ${meanText}${extras.length ? ` <span class="chart-stat-extra">${extras.join(" ")}</span>` : ""}</span>
     </div>`;
 
-  // Oberstufe titles stay short to leave room for the scale switch.
   let title = "Verteilung nach Note";
-  if (isDonut) title = isPoints ? "Anteil" : `Anteil je Note${selectedSubjects ? ` · ${subjectsText}` : ""}`;
+  if (isDonut) title = `Anteil je ${shownUnit === "points" ? "Punktzahl" : "Note"}${selectedSubjects ? ` · ${subjectsText}` : ""}`;
   else if (isPoints) title = "Verteilung";
   const unitToggle =
     isPoints ? segmented(UNITS, shownUnit, { label: "Skala", attr: "data-unit", modifier: " segmented--compact" }) : "";
@@ -288,7 +287,7 @@ function chartsHtml(data, scale) {
   let chart;
   if (!dist.count) chart = '<div class="chart-empty">Für diese Auswahl gibt es noch keine Noten.</div>';
   else if (showTable) chart = distributionTable(dist, { kaLabel });
-  else chart = isDonut ? donutChart(dist, { kaLabel, footnote: !selectedSubjects }) : barChart(dist, { kaLabel });
+  else chart = isDonut ? donutChart(dist, { kaLabel }) : barChart(dist, { kaLabel });
 
   return `
     ${stat}

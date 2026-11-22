@@ -2,7 +2,6 @@
 // They render the body only; the view owns the card, its title and toggles.
 import { pointsToNote } from "../domain/grade-distribution.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatPercent } from "../util/format.js";
 
 const BAR_WIDTH = 306;
 const BAR_HEIGHT = 220;
@@ -15,11 +14,17 @@ const MAX_TICK_INTERVALS = 4;
 const TICK_STEPS = [1, 2, 4, 5, 10, 20, 25, 50, 100];
 const POINT_LABEL_EVERY = 3;
 
-const DONUT_SIZE = 190;
-const DONUT_RING = 34;
-const DONUT_GAP = (2 * Math.PI) / 180;
-// "kräftig/blass", not "dunkel/hell": the dark theme flips the ramp so Note 1 stays strongest.
-const DONUT_NOTE = { notes: "Note 1 kräftig → Note 6 blass.", points: "15 P kräftig → 0 P blass, in den Farben der Noten." };
+const DONUT_WIDTH = 306;
+const DONUT_OUTER = 64;
+const DONUT_INNER = 38;
+const DONUT_GAP = 0.035;
+// Labels sit in a column left and right of the ring, at least one line apart.
+const LABEL_LINE = 20;
+const LABEL_EDGE = 14;
+const LEADER_OUT = 12;
+const LABEL_COLUMN = 26;
+// "Kräftiger", not the design's "Dunkel": the dark theme flips the ramp so Note 1 stays strongest.
+const DONUT_NOTE = { notes: "Kräftiger = besser.", points: "Kräftiger = besser (Farbe je Notenstufe)." };
 
 const SL_LABEL = "Sonstige Leistungen";
 
@@ -119,70 +124,90 @@ export function barChart(dist, { kaLabel }) {
   ])}`;
 }
 
-function polar(radius, angle) {
-  const c = DONUT_SIZE / 2;
-  return `${round(c + radius * Math.cos(angle))},${round(c + radius * Math.sin(angle))}`;
-}
-
-function ringSegment(start, end) {
-  const outer = DONUT_SIZE / 2 - 2;
-  const inner = outer - DONUT_RING;
-  const large = end - start > Math.PI ? 1 : 0;
-  return (
-    `M${polar(outer, start)}A${outer},${outer} 0 ${large} 1 ${polar(outer, end)}` +
-    `L${polar(inner, end)}A${inner},${inner} 0 ${large} 0 ${polar(inner, start)}Z`
-  );
-}
-
 /** Points take the colour of their Note, so the ramp stays six steps. */
 function seqClass(bucket, unit) {
   return `gc-seq-${unit === "points" ? pointsToNote(bucket.value) : bucket.value}`;
 }
 
-function donutSegments(buckets, count, unit) {
-  const filled = buckets.filter((bucket) => bucket.total);
-  // An arc can't start and end on the same point, so a lone Note is a full circle.
-  if (filled.length === 1) {
-    const radius = DONUT_SIZE / 2 - 2 - DONUT_RING / 2;
-    const c = DONUT_SIZE / 2;
-    return `<circle class="gc-ring ${seqClass(filled[0], unit)}" cx="${c}" cy="${c}" r="${radius}" stroke-width="${DONUT_RING}"/>`;
-  }
+/** Each non-empty bucket as an arc, clockwise from the top, best value first. */
+function donutSegments(buckets, count) {
   let angle = -Math.PI / 2;
-  return filled
+  return buckets
+    .filter((bucket) => bucket.total)
     .map((bucket) => {
-      const end = angle + 2 * Math.PI * (bucket.total / count);
-      const path = `<path class="gc-seg ${seqClass(bucket, unit)}" d="${ringSegment(angle + DONUT_GAP / 2, end - DONUT_GAP / 2)}"/>`;
-      angle = end;
-      return path;
-    })
-    .join("");
+      const start = angle;
+      angle += (2 * Math.PI * bucket.total) / count;
+      return { bucket, start, end: angle, mid: (start + angle) / 2 };
+    });
+}
+
+/** Spreads one column's labels to at least LABEL_LINE apart, inside the box. */
+function placeLabels(segments, cy, height) {
+  for (const s of segments) s.labelY = cy + (DONUT_OUTER + 14) * Math.sin(s.mid);
+  segments.sort((a, b) => a.labelY - b.labelY);
+  segments.forEach((s, k) => {
+    s.labelY = Math.max(s.labelY, k ? segments[k - 1].labelY + LABEL_LINE : LABEL_EDGE);
+  });
+  for (let k = segments.length - 1; k >= 0; k--) {
+    const limit = k < segments.length - 1 ? segments[k + 1].labelY - LABEL_LINE : height - LABEL_EDGE;
+    segments[k].labelY = Math.min(segments[k].labelY, limit);
+  }
 }
 
 /**
- * Share per Note 1–6 (or per point 15–0) as a donut with the count inside, and
- * a list of every value below. The colour footnote is left out under a
- * subject filter, as in the design.
+ * Share per Note 1–6 (or per point 15–0) as a donut with the count inside.
+ * Each segment has a hairline to a "10× Note 2" label; no percentages, by design.
  */
-export function donutChart(dist, { kaLabel, footnote = true }) {
+export function donutChart(dist, { kaLabel }) {
   const { buckets, count, unit } = dist;
-  const per = unit === "points" ? "Punktzahl" : "Note";
-  const c = DONUT_SIZE / 2;
-  const svg =
-    `<svg class="gc-donut" viewBox="0 0 ${DONUT_SIZE} ${DONUT_SIZE}" role="img" aria-label="Kreisdiagramm, Anteil je ${per}, ${count} ${notenWord(count)}">` +
-    donutSegments(buckets, count, unit) +
-    `<text class="gc-donut__count" x="${c}" y="${c + 4}" text-anchor="middle">${count}</text>` +
-    `<text class="gc-donut__unit" x="${c}" y="${c + 24}" text-anchor="middle">${notenWord(count)}</text></svg>`;
-  const rows = buckets
-    .map((bucket) => {
-      const swatch = bucket.total ? `gc-swatch ${seqClass(bucket, unit)}` : "gc-swatch gc-swatch--empty";
-      return (
-        `<li class="gc-share${bucket.total ? "" : " gc-share--empty"}"><span class="${swatch}" aria-hidden="true"></span>` +
-        `<span>${escapeHtml(bucketName(unit, bucket, true))}</span><span class="gc-share__n">${bucket.total}×</span>` +
-        `<span class="gc-share__pct">${formatPercent(bucket.share)}</span></li>`
-      );
+  const segments = donutSegments(buckets, count);
+  const right = segments.filter((s) => Math.cos(s.mid) >= 0);
+  const left = segments.filter((s) => Math.cos(s.mid) < 0);
+  // The card grows with the taller label column.
+  const height = Math.max(2 * DONUT_OUTER + 48, Math.max(right.length, left.length) * LABEL_LINE + 24);
+  const cx = DONUT_WIDTH / 2;
+  const cy = height / 2;
+  placeLabels(right, cy, height);
+  placeLabels(left, cy, height);
+  const at = (radius, angle) => [round(cx + radius * Math.cos(angle)), round(cy + radius * Math.sin(angle))];
+
+  const marks = segments
+    .map((s) => {
+      const color = seqClass(s.bucket, unit);
+      let shape;
+      if (segments.length === 1) {
+        // An arc can't start and end on the same point, so a lone value is a full circle.
+        shape = `<circle class="gc-ring ${color}" cx="${cx}" cy="${round(cy)}" r="${(DONUT_OUTER + DONUT_INNER) / 2}" stroke-width="${DONUT_OUTER - DONUT_INNER}"/>`;
+      } else {
+        const a = s.start + DONUT_GAP / 2;
+        const b = s.end - DONUT_GAP / 2;
+        const large = b - a > Math.PI ? 1 : 0;
+        shape =
+          `<path class="gc-seg ${color}" d="M${at(DONUT_OUTER, a)}A${DONUT_OUTER},${DONUT_OUTER} 0 ${large} 1 ${at(DONUT_OUTER, b)}` +
+          `L${at(DONUT_INNER, b)}A${DONUT_INNER},${DONUT_INNER} 0 ${large} 0 ${at(DONUT_INNER, a)}Z"/>`;
+      }
+      const side = Math.cos(s.mid) >= 0 ? 1 : -1;
+      const columnX = cx + side * (DONUT_OUTER + LABEL_COLUMN);
+      const y = round(s.labelY);
+      const leader =
+        `<polyline class="gc-leader" points="${at(DONUT_OUTER + 3, s.mid)} ${at(DONUT_OUTER + LEADER_OUT, s.mid)} ` +
+        `${columnX},${y} ${columnX + side * 4},${y}"/>`;
+      const label =
+        `<text class="gc-label" x="${columnX + side * 7}" y="${round(y + 4)}" text-anchor="${side > 0 ? "start" : "end"}">` +
+        `<tspan class="gc-label__n">${s.bucket.total}×</tspan> <tspan class="gc-label__value">${escapeHtml(bucketName(unit, s.bucket, true))}</tspan></text>`;
+      return shape + leader + label;
     })
     .join("");
-  return `<div class="gc-pie">${svg}<ul class="gc-shares${unit === "points" ? " gc-shares--points" : ""}">${rows}</ul></div>${footnote ? `<p class="gc-note">${DONUT_NOTE[unit]} ${escapeHtml(kaLabel)} und sonstige Leistungen zusammen.</p>` : ""}`;
+
+  const per = unit === "points" ? "Punktzahl" : "Note";
+  const summary = segments.map((s) => `${s.bucket.total}-mal ${bucketName(unit, s.bucket)}`).join("; ");
+  const svg =
+    `<svg class="gc-donut" viewBox="0 0 ${DONUT_WIDTH} ${height}" role="img" ` +
+    `aria-label="${escapeHtml(`Kreisdiagramm, Anteil je ${per}, ${count} ${notenWord(count)}${summary ? `. ${summary}` : ""}`)}">` +
+    marks +
+    `<text class="gc-donut__count" x="${cx}" y="${round(cy + 6)}" text-anchor="middle">${count}</text>` +
+    `<text class="gc-donut__unit" x="${cx}" y="${round(cy + 22)}" text-anchor="middle">${notenWord(count)}</text></svg>`;
+  return `<div class="gc-chart">${svg}</div><p class="gc-note">${DONUT_NOTE[unit]} ${escapeHtml(kaLabel)} und sonstige Leistungen zusammen.</p>`;
 }
 
 /** The same numbers as a table; the accessible alternative to both charts. */
