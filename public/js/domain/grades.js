@@ -5,6 +5,8 @@
 /** @typedef {'grade_1_6' | 'points_0_15'} GradeScale */
 
 const PLUS_MINUS_OFFSET = 0.25;
+// Oberstufe: Klausuren and the other grades each make up half the Kursnote.
+const OBERSTUFE_KLAUSUR_SHARE = 0.5;
 
 // Collection types are codes each teacher types freely ("SO", "so", "KL", ...).
 // LK here is Leistungskontrolle, not Leistungskurs. Keys are lowercase.
@@ -185,6 +187,24 @@ export function evaluateCalculationRule(rule, variables) {
 }
 
 /**
+ * Each grade's weight in an estimated average. The API's `weighting` is 1
+ * everywhere, so in the Oberstufe the Klausuren get half the total as a group.
+ * @param {Array<{ collection: { type: string, weighting: number } }>} grades
+ * @param {GradeScale} scale
+ * @returns {number[]} in the order of `grades`
+ */
+export function gradeWeights(grades, scale) {
+  const base = grades.map((g) => g.collection.weighting || 1);
+  const isKlausur = grades.map((g) => gradeTypeLabel(g.collection.type) === "Klausur");
+  const klausurWeight = base.reduce((sum, w, i) => sum + (isKlausur[i] ? w : 0), 0);
+  const otherWeight = base.reduce((sum, w, i) => sum + (isKlausur[i] ? 0 : w), 0);
+  if (scale !== "points_0_15" || !klausurWeight || !otherWeight) return base;
+  return base.map((w, i) =>
+    isKlausur[i] ? (w / klausurWeight) * OBERSTUFE_KLAUSUR_SHARE : (w / otherWeight) * (1 - OBERSTUFE_KLAUSUR_SHARE)
+  );
+}
+
+/**
  * @param {Array<{ numeric: number|null, scale: GradeScale, collection: { type: string, weighting: number } }>} grades
  * @param {{ calculation_rule?: string, calculation_for?: string, value?: number } | null} finalgradeDetail
  * @param {GradeScale} scale
@@ -209,8 +229,9 @@ export function subjectAverage(grades, finalgradeDetail, scale) {
 
   if (usable.length === 0) return { value: null, scale, source: "unavailable" };
 
-  const totalWeight = usable.reduce((sum, g) => sum + (g.collection.weighting || 1), 0);
-  const weightedSum = usable.reduce((sum, g) => sum + g.numeric * (g.collection.weighting || 1), 0);
+  const weights = gradeWeights(usable, scale);
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  const weightedSum = usable.reduce((sum, g, i) => sum + g.numeric * weights[i], 0);
   const value = totalWeight > 0 ? weightedSum / totalWeight : null;
   return finish(value, "estimated");
 

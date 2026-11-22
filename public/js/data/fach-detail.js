@@ -6,7 +6,7 @@ import {
   markGradeRead,
   markNotificationRead,
 } from "./repository.js";
-import { gradeTypeLabel, markNewGrades, subjectAverage } from "../domain/grades.js";
+import { gradeTypeLabel, gradeWeights, markNewGrades, subjectAverage } from "../domain/grades.js";
 import { toTrendPoints, SCALE_BOUNDS } from "../domain/trend.js";
 import { scaleUnit } from "../util/format.js";
 
@@ -41,23 +41,23 @@ export async function acknowledgeGrade(gradeId, notificationIds) {
 }
 
 /** Groups by normalised type label, so "SO" and "so" land together. */
-export function groupByType(grades) {
+export function groupByType(grades, scale) {
+  const weights = gradeWeights(grades, scale);
   const byType = new Map();
-  for (const grade of grades) {
+  grades.forEach((grade, i) => {
     const type = gradeTypeLabel(grade.collection.type);
-    if (!byType.has(type)) byType.set(type, []);
-    byType.get(type).push(grade);
-  }
+    if (!byType.has(type)) byType.set(type, { list: [], weight: 0 });
+    byType.get(type).list.push(grade);
+    byType.get(type).weight += weights[i];
+  });
 
-  const totalWeight = grades.reduce((sum, g) => sum + (g.collection.weighting || 1), 0) || 1;
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
 
   return [...byType.entries()]
-    .map(([type, list]) => ({
+    .map(([type, { list, weight }]) => ({
       type,
       grades: list.sort((a, b) => new Date(b.givenAt) - new Date(a.givenAt)),
-      weightingPct: Math.round(
-        (list.reduce((sum, g) => sum + (g.collection.weighting || 1), 0) / totalWeight) * 100
-      ),
+      weightingPct: Math.round((weight / totalWeight) * 100),
       average: mean(list),
     }))
     // Klausuren lead regardless of weight; the rest by share.
@@ -112,7 +112,7 @@ export async function getFachDetailData(studentId, subjectId, options) {
     ) ?? null;
 
   const average = subjectAverage(grades, finalgrade, scale);
-  const groups = groupByType(grades);
+  const groups = groupByType(grades, scale);
 
   const chronological = [...grades]
     .filter((g) => g.numeric !== null)

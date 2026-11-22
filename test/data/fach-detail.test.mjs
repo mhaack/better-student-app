@@ -44,6 +44,21 @@ describe("groupByType", () => {
     );
   });
 
+  test("gives Klausuren half the Oberstufe weight", () => {
+    const groups = groupByType(
+      [grade("K", 13, "2026-10-09"), grade("SO", 13, "2026-11-17"), grade("So", 14, "2026-09-23"), grade("LK", 13, "2026-09-11")],
+      "points_0_15"
+    );
+    assert.deepEqual(
+      groups.map((g) => [g.type, g.weightingPct]),
+      [
+        ["Klausur", 50],
+        ["Sonstige", 33],
+        ["Leistungskontrolle", 17],
+      ]
+    );
+  });
+
   test("lists a group's grades newest first", () => {
     const [group] = groupByType([grade("KL", 10, "2026-09-15"), grade("Klausur", 8, "2026-11-03")]);
     assert.deepEqual(
