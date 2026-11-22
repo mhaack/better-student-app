@@ -2,7 +2,7 @@ import { getSelectedStudentId } from "../state/auth-store.js";
 import { ensureContext } from "../state/session.js";
 import { getGradeChart, getGradeUnit, setGradeUnit } from "../state/settings.js";
 import { chartSelection, getNotenData } from "../data/noten.js";
-import { pointsToGradeLabel } from "../domain/grades.js";
+import { pointsToNote } from "../domain/grade-distribution.js";
 import { escapeHtml } from "../util/dom.js";
 import { formatAverage, formatOverallAverage, plural, scaleUnit } from "../util/format.js";
 import { MINI_TREND_WIDTH } from "../domain/trend.js";
@@ -167,11 +167,11 @@ function renderBody(container, page) {
 /** The Gesamtdurchschnitt block, identical on Übersicht and Diagramme. */
 function averageHeader(value, scale) {
   const isPoints = scale === "points_0_15";
-  const scaleLabel = isPoints ? "Ø Punkte<br>Skala 0–15" : "Gesamtdurchschnitt<br>Noten 1–6";
+  const scaleLabel = isPoints ? "Ø Punkte<br>Skala 0–15" : "Ø Note<br>Skala 1–6";
   const averageUnit = scaleUnit(scale, value);
   const noteEquivalent =
     isPoints && value !== null
-      ? `<div class="grade-equivalent">entspricht etwa ${escapeHtml(pointsToGradeLabel(value))}</div>`
+      ? `<div class="grade-equivalent">entspricht etwa ${pointsToNote(value)}</div>`
       : "";
   return `
     <div class="average-header${isPoints ? " average-header--points" : ""}">
@@ -204,14 +204,17 @@ function overviewHtml(data, scale) {
 /** The filter button stays put across re-renders, so the sheet can hand focus back to it. */
 function renderChartsPane(container, body, page) {
   body.innerHTML = `
-    <div class="noten-charts-average"></div>
+    ${averageHeader(page.data.overallAverage.value, page.scale)}
     <div class="noten-charts">
-      <button type="button" class="chart-filter" aria-haspopup="dialog"></button>
+      <div class="chart-toolbar">
+        <div class="chart-stat"></div>
+        <button type="button" class="chart-filter" aria-haspopup="dialog"></button>
+      </div>
       <div class="noten-charts-content"></div>
     </div>`;
   const filterButton = body.querySelector(".chart-filter");
   const content = body.querySelector(".noten-charts-content");
-  const averageBox = body.querySelector(".noten-charts-average");
+  const stat = body.querySelector(".chart-stat");
   const { subjects } = page.data.chart;
 
   function update() {
@@ -219,7 +222,7 @@ function renderChartsPane(container, body, page) {
     filterButton.innerHTML = `${ICONS.listFilter}<span class="chart-filter-label">${escapeHtml(subjectFilterLabel(selectedSubjects, subjects))}</span><span class="chart-filter-caret" aria-hidden="true">${ICONS.chevronDown}</span>`;
     const shownUnit = page.scale === "points_0_15" ? getGradeUnit() : "notes";
     const selection = chartSelection(page.data, { scale: page.scale, unit: shownUnit, selected: selectedSubjects });
-    averageBox.innerHTML = averageHeader(selection.average, page.scale);
+    stat.innerHTML = `<span class="chart-stat-count">${selection.dist.count}</span><span class="chart-stat-text">${selection.dist.count === 1 ? "Note" : "Noten"}</span>`;
     content.innerHTML = chartsHtml(selection, page.scale, shownUnit);
   }
 
@@ -259,11 +262,6 @@ function chartsHtml({ dist, subjectCount }, scale, shownUnit) {
   const converted = isPoints && shownUnit === "notes";
   const subjectsText = plural(subjectCount, ["Fach", "Fächer"]);
 
-  const stat = `
-    <div class="chart-stat">
-      <span class="chart-stat-count">${dist.count}</span>
-      <span class="chart-stat-text">${dist.count === 1 ? "Note" : "Noten"}${selectedSubjects ? ` <span class="chart-stat-extra">· ${subjectsText}</span>` : ""}</span>
-    </div>`;
 
   let title = "Verteilung nach Note";
   if (isDonut) title = `Anteil je ${shownUnit === "points" ? "Punktzahl" : "Note"}${selectedSubjects ? ` · ${subjectsText}` : ""}`;
@@ -277,7 +275,6 @@ function chartsHtml({ dist, subjectCount }, scale, shownUnit) {
   else chart = isDonut ? donutChart(dist, { kaLabel }) : barChart(dist, { kaLabel });
 
   return `
-    ${stat}
     <div class="card chart-card">
       <div class="chart-card-head">
         <span class="eyebrow">${escapeHtml(title)}</span>

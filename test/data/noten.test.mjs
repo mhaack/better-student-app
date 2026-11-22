@@ -127,25 +127,37 @@ describe("getNotenData", () => {
     assert.equal(overallAverage.value, 2.5);
   });
 
-  test("counts each course's grades in course order, including courses without any", async () => {
+  test("counts each course's grades alphabetically, including courses without any", async () => {
     stubApi([valuedGrade(1, 6, "1", "SO"), valuedGrade(2, 5, "3", "SO"), valuedGrade(3, 6, "2", "KL")]);
     const { chart } = await getNotenData(STUDENT, options("grade_1_6", COURSES));
-    assert.deepEqual(chart.subjects, [
-      { subjectId: 5, name: "Biologie", count: 1 },
-      { subjectId: 6, name: "Mathematik", count: 2 },
-      { subjectId: 7, name: "Geschichte", count: 0 },
-    ]);
+    assert.deepEqual(
+      chart.subjects.map((s) => [s.name, s.count]),
+      [
+        ["Biologie", 1],
+        ["Geschichte", 0],
+        ["Mathematik", 2],
+      ]
+    );
+  });
+
+  test("lists Oberstufe Leistungskurse first for the subject filter", async () => {
+    stubApi([]);
+    const courses = [
+      { subjectId: 5, name: "Biologie", courseType: "GK" },
+      { subjectId: 6, name: "Mathematik", courseType: "LK" },
+      { subjectId: 7, name: "Chemie", courseType: "GK" },
+      { subjectId: 8, name: "Englisch", courseType: "LK" },
+    ];
+    const { chart } = await getNotenData(STUDENT, options("points_0_15", courses));
+    assert.deepEqual(
+      chart.subjects.map((s) => s.name),
+      ["Englisch", "Mathematik", "Biologie", "Chemie"]
+    );
   });
 });
 
 describe("chartSelection", () => {
-  const avg = (value) => ({ value });
   const DATA = {
-    subjects: [
-      { subjectId: 5, courseType: "LK", average: avg(13) },
-      { subjectId: 6, courseType: "GK", average: avg(7) },
-      { subjectId: 7, courseType: "GK", average: avg(null) },
-    ],
     chart: {
       entries: [
         { subjectId: 5, value: 13, kind: "ka" },
@@ -161,15 +173,9 @@ describe("chartSelection", () => {
     assert.equal(subjectCount, 2);
   });
 
-  test("shows the Übersicht's Gesamtdurchschnitt, Leistungskurse twice", () => {
-    const { average } = chartSelection(DATA, { scale: "points_0_15", unit: "notes", selected: null });
-    assert.equal(average, 11);
-  });
-
-  test("keeps only the selected subjects' grades and averages", () => {
-    const { dist, average, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([6]) });
+  test("keeps only the selected subjects' grades", () => {
+    const { dist, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([6]) });
     assert.equal(dist.count, 1);
-    assert.equal(average, 7);
     assert.equal(subjectCount, 1);
   });
 
@@ -182,9 +188,8 @@ describe("chartSelection", () => {
   });
 
   test("is empty for a selection without grades", () => {
-    const { dist, average, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([7]) });
+    const { dist, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([7]) });
     assert.equal(dist.count, 0);
-    assert.equal(average, null);
     assert.equal(subjectCount, 0);
   });
 });

@@ -83,16 +83,18 @@ function chartData(grades, courses, scale) {
     for (const g of counted) {
       entries.push({ subjectId: course.subjectId, value: toValue(g.numeric), kind: gradeKind(g.collection.type) });
     }
-    return { subjectId: course.subjectId, name: course.name, count: counted.length };
+    return { subjectId: course.subjectId, name: course.name, courseType: course.courseType, count: counted.length };
   });
+  // The Fächer sheet: Oberstufe Leistungskurse first, then alphabetical.
+  const lkFirst = (s) => (scale === "points_0_15" && s.courseType === "LK" ? 0 : 1);
+  subjects.sort((a, b) => lkFirst(a) - lkFirst(b) || a.name.localeCompare(b.name, "de"));
   return { entries, subjects };
 }
 
 /**
- * The Diagramme for the chosen subjects: their distribution, their
- * Gesamtdurchschnitt (the same calculation as the Übersicht), and how many of
- * them have grades (the "· n Fächer" in the stat line).
- * @param {{ subjects: Array<object>, chart: { entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> } }} data from getNotenData
+ * The Diagramme for the chosen subjects: their distribution and how many of
+ * them have grades (the "· n Fächer" in the donut's title).
+ * @param {{ chart: { entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> } }} data from getNotenData
  * @param {{ scale: import('../domain/grades.js').GradeScale, unit: "notes" | "points", selected: Set<number> | null }} options
  */
 export function chartSelection(data, { scale, unit, selected }) {
@@ -100,7 +102,6 @@ export function chartSelection(data, { scale, unit, selected }) {
   const entries = data.chart.entries.filter((e) => chosen(e.subjectId));
   return {
     dist: gradeDistribution(entries, { scale, unit }),
-    average: overallAverage(data.subjects.filter((s) => chosen(s.subjectId)), scale),
     subjectCount: new Set(entries.map((e) => e.subjectId)).size,
   };
 }
