@@ -107,6 +107,26 @@ describe("getNotenData", () => {
     assert.deepEqual(chart.entries, []);
   });
 
+  test("counts Leistungskurse twice in the Oberstufe overall average", async () => {
+    stubApi([valuedGrade(1, 5, "13", "SO"), valuedGrade(2, 6, "8", "SO")]);
+    const courses = [
+      { subjectId: 5, name: "Biologie", courseType: "LK" },
+      { subjectId: 6, name: "Mathematik", courseType: "GK" },
+    ];
+    const { overallAverage } = await getNotenData(STUDENT, options("points_0_15", courses));
+    assert.ok(Math.abs(overallAverage.value - 11.3333) < 1e-3, `expected ~11.3333, got ${overallAverage.value}`);
+  });
+
+  test("counts every subject once in the Sek I overall average", async () => {
+    stubApi([valuedGrade(1, 5, "1", "SO"), valuedGrade(2, 6, "4", "SO")]);
+    const courses = [
+      { subjectId: 5, name: "Biologie", courseType: "LK" },
+      { subjectId: 6, name: "Mathematik", courseType: "GK" },
+    ];
+    const { overallAverage } = await getNotenData(STUDENT, options("grade_1_6", courses));
+    assert.equal(overallAverage.value, 2.5);
+  });
+
   test("counts each course's grades in course order, including courses without any", async () => {
     stubApi([valuedGrade(1, 6, "1", "SO"), valuedGrade(2, 5, "3", "SO"), valuedGrade(3, 6, "2", "KL")]);
     const { chart } = await getNotenData(STUDENT, options("grade_1_6", COURSES));

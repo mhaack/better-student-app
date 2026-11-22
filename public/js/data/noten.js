@@ -55,8 +55,11 @@ export async function getNotenData(studentId, options) {
   });
 
   const withValue = subjects.filter((s) => s.average.value !== null);
-  const overallValue = withValue.length
-    ? withValue.reduce((sum, s) => sum + s.average.value, 0) / withValue.length
+  // Oberstufe: Leistungskurse count twice, as in the Abitur.
+  const weight = (s) => (scale === "points_0_15" && s.courseType === "LK" ? 2 : 1);
+  const totalWeight = withValue.reduce((sum, s) => sum + weight(s), 0);
+  const overallValue = totalWeight
+    ? withValue.reduce((sum, s) => sum + s.average.value * weight(s), 0) / totalWeight
     : null;
 
   const result = {
