@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   applyButtonState,
-  gradeCountLabel,
   initialDraft,
   matchesSearch,
   resolveDraft,
@@ -102,17 +101,6 @@ describe("applyButtonState", () => {
       label: "Mindestens ein Fach wählen",
       disabled: true,
     });
-  });
-});
-
-describe("gradeCountLabel", () => {
-  test("uses the singular for one grade", () => {
-    assert.equal(gradeCountLabel(1), "1 Note");
-  });
-
-  test("uses the plural otherwise", () => {
-    assert.equal(gradeCountLabel(0), "0 Noten");
-    assert.equal(gradeCountLabel(6), "6 Noten");
   });
 });
 

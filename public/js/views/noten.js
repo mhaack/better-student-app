@@ -4,11 +4,12 @@ import { getGradeChart, getGradeUnit, setGradeUnit } from "../state/settings.js"
 import { chartSelection, getNotenData } from "../data/noten.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatAverage, formatMean, formatOverallAverage, scaleUnit } from "../util/format.js";
+import { formatAverage, formatMean, formatOverallAverage, plural, scaleUnit } from "../util/format.js";
 import { MINI_TREND_WIDTH } from "../domain/trend.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { barChart, donutChart, distributionTable } from "../components/grade-charts.js";
 import { ICONS } from "../components/icons.js";
+import { segmented, setPressed } from "../components/segmented.js";
 import { openSubjectFilterSheet, subjectFilterLabel } from "../components/subject-filter-sheet.js";
 
 const VIEWS = [
@@ -76,24 +77,6 @@ function subjectGroup(title, subjects, scale) {
         ${subjects.map((s) => subjectRow(s, scale)).join("")}
       </div>
     </div>`;
-}
-
-function segmented(options, current, { label, attr, modifier = "" }) {
-  return `
-    <div class="segmented${modifier}" role="group" aria-label="${label}">
-      ${options
-        .map(
-          (o) =>
-            `<button type="button" class="segmented-option" ${attr}="${o.value}" aria-pressed="${o.value === current}">${o.label}</button>`
-        )
-        .join("")}
-    </div>`;
-}
-
-function setPressed(root, attr, value) {
-  for (const button of root.querySelectorAll(`[${attr}]`)) {
-    button.setAttribute("aria-pressed", String(button.getAttribute(attr) === value));
-  }
 }
 
 export async function renderNoten(container) {
@@ -265,7 +248,7 @@ function chartsHtml(data, scale) {
   const { dist, subjectCount } = chartSelection(data.chart, { scale, unit: shownUnit, selected: selectedSubjects });
   const kaLabel = isPoints ? "Klausuren" : "Klassenarbeiten";
   const converted = isPoints && shownUnit === "notes";
-  const subjectsText = `${subjectCount} ${subjectCount === 1 ? "Fach" : "Fächer"}`;
+  const subjectsText = plural(subjectCount, ["Fach", "Fächer"]);
 
   const extras = [
     converted ? "(umgerechnet)" : "",
@@ -282,7 +265,7 @@ function chartsHtml(data, scale) {
   if (isDonut) title = `Anteil je ${shownUnit === "points" ? "Punktzahl" : "Note"}${selectedSubjects ? ` · ${subjectsText}` : ""}`;
   else if (isPoints) title = "Verteilung";
   const unitToggle =
-    isPoints ? segmented(UNITS, shownUnit, { label: "Skala", attr: "data-unit", modifier: " segmented--compact" }) : "";
+    isPoints ? segmented(UNITS, shownUnit, { label: "Skala", attr: "data-unit", modifier: "compact" }) : "";
 
   let chart;
   if (!dist.count) chart = '<div class="chart-empty">Für diese Auswahl gibt es noch keine Noten.</div>';

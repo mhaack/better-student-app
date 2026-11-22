@@ -2759,10 +2759,6 @@ button {
   stroke: var(--gc-seq);
 }
 
-.gc-swatch[class*="gc-seq-"] {
-  background: var(--gc-seq);
-}
-
 .gc-donut {
   display: block;
   width: 100%;
@@ -2893,7 +2889,13 @@ button {
 }
 
 .sf-search-icon {
+  display: flex;
   flex: none;
+}
+
+.sf-search-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .sf-search input {
@@ -2953,6 +2955,9 @@ button {
 }
 
 .sf-box svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
   visibility: hidden;
 }
 

@@ -121,26 +121,10 @@ describe("gradeDistribution", () => {
     );
   });
 
-  test("gives each bucket its share of all counted grades", () => {
-    const dist = gradeDistribution(
-      [
-        { subjectId: 1, value: 2, kind: "ka" },
-        { subjectId: 1, value: 2, kind: "sl" },
-        { subjectId: 1, value: 2, kind: "sl" },
-        { subjectId: 1, value: 4, kind: "sl" },
-      ],
-      { scale: "grade_1_6", unit: "notes" }
-    );
-    assert.deepEqual(
-      dist.buckets.map((b) => b.share),
-      [0, 0.75, 0, 0.25, 0, 0]
-    );
-  });
-
-  test("has no mean and zero shares without grades", () => {
+  test("has no mean and empty buckets without grades", () => {
     const dist = gradeDistribution([], { scale: "grade_1_6", unit: "notes" });
     assert.equal(dist.count, 0);
     assert.equal(dist.mean, null);
-    assert.ok(dist.buckets.every((b) => b.total === 0 && b.share === 0));
+    assert.ok(dist.buckets.every((b) => b.total === 0));
   });
 });

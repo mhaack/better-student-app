@@ -5,7 +5,7 @@
 
 import { fetchJournalNotes, isoDate } from "./repository.js";
 import { lessonsForDate } from "./timetable.js";
-import { calendarDaysBetween, countdownLabel, periodLabel } from "../util/format.js";
+import { calendarDaysBetween, countdownLabel, periodLabel, plural } from "../util/format.js";
 import { getPlannedKlausuren, withPlannedKlausuren } from "./klausuren.js";
 
 // Tab per note type; anything unknown is "Sonstiges".
@@ -112,7 +112,6 @@ export function termineList(entries, filter, { nextFerien = null, ferien = [], f
   ].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-const plural = (count, [one, many]) => `${count} ${count === 1 ? one : many}`;
 
 /**
  * "3 Hausaufgaben bis zu den Herbstferien"; on the Ferien tab

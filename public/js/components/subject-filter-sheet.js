@@ -1,12 +1,9 @@
 import { escapeHtml } from "../util/dom.js";
+import { plural } from "../util/format.js";
+import { ICONS } from "./icons.js";
 import { closeDetailSheet, mountSheet } from "./detail-sheet.js";
 
 /** @typedef {{ subjectId: string | number, name: string, count: number }} FilterSubject */
-
-const SEARCH_ICON =
-  '<svg class="sf-search-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
-const CHECK_ICON =
-  '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M3.5 8.3l3 3 6-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /** The filter button's text: no filter, one or two names, or a count. */
 export function subjectFilterLabel(selected, subjects) {
@@ -40,11 +37,7 @@ export function applyButtonState(draft, subjects) {
   if (!resolved) return { label: "Alle Fächer anzeigen", disabled: false };
   const n = resolved.size;
   if (n === 0) return { label: "Mindestens ein Fach wählen", disabled: true };
-  return { label: `${n} ${n === 1 ? "Fach" : "Fächer"} anzeigen`, disabled: false };
-}
-
-export function gradeCountLabel(count) {
-  return `${count} ${count === 1 ? "Note" : "Noten"}`;
+  return { label: `${plural(n, ["Fach", "Fächer"])} anzeigen`, disabled: false };
 }
 
 export function matchesSearch(name, query) {
@@ -72,7 +65,7 @@ export function openSubjectFilterSheet(container, { subjects, selected, onApply 
         <h2 id="sf-title" class="detail-title sf-title">Fächer</h2>
         <button type="button" class="sf-all">Alle</button>
       </div>
-      <label class="sf-search">${SEARCH_ICON}<input type="search" placeholder="Fach suchen" aria-label="Fach suchen" autocomplete="off"></label>
+      <label class="sf-search"><span class="sf-search-icon" aria-hidden="true">${ICONS.search}</span><input type="search" placeholder="Fach suchen" aria-label="Fach suchen" autocomplete="off"></label>
       <div class="sf-list">
         ${rows}
         <p class="sf-none" hidden>Kein Fach gefunden.</p>
@@ -130,8 +123,8 @@ function subjectRow(subject, index, checked) {
   return `
     <label class="sf-row${disabled ? " is-disabled" : ""}">
       <input type="checkbox" data-index="${index}"${checked ? " checked" : ""}${disabled ? " disabled" : ""}>
-      <span class="sf-box">${CHECK_ICON}</span>
+      <span class="sf-box" aria-hidden="true">${ICONS.check}</span>
       <span class="sf-name">${escapeHtml(subject.name)}</span>
-      <span class="sf-count">${gradeCountLabel(subject.count)}</span>
+      <span class="sf-count">${plural(subject.count, ["Note", "Noten"])}</span>
     </label>`;
 }
