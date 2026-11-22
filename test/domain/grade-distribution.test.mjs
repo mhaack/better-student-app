@@ -27,7 +27,6 @@ const toEntries = (subjects) =>
     ...ka.map((value) => ({ subjectId, value, kind: "ka" })),
     ...sl.map((value) => ({ subjectId, value, kind: "sl" })),
   ]);
-const round1 = (value) => Math.round(value * 10) / 10;
 
 describe("pointsToNote", () => {
   test("maps each band of three points to one Note and 0 points to a 6", () => {
@@ -71,11 +70,10 @@ describe("gradeKind", () => {
 });
 
 describe("gradeDistribution", () => {
-  test("counts the Sek I sample as 27 Noten with Ø 2,3", () => {
+  test("counts the Sek I sample as 27 Noten", () => {
     const dist = gradeDistribution(toEntries(SEK1), { scale: "grade_1_6", unit: "notes" });
     assert.equal(dist.unit, "notes");
     assert.equal(dist.count, 27);
-    assert.equal(round1(dist.mean), 2.3);
     assert.deepEqual(
       dist.buckets.map((b) => b.label),
       ["1", "2", "3", "4", "5", "6"]
@@ -93,17 +91,15 @@ describe("gradeDistribution", () => {
     );
   });
 
-  test("gives Mathematik and Englisch alone 10 Noten with Ø 2,1", () => {
+  test("gives Mathematik and Englisch alone 10 Noten", () => {
     const entries = toEntries(SEK1).filter((e) => e.subjectId === 1 || e.subjectId === 2);
     const dist = gradeDistribution(entries, { scale: "grade_1_6", unit: "notes" });
     assert.equal(dist.count, 10);
-    assert.equal(round1(dist.mean), 2.1);
   });
 
-  test("buckets the Oberstufe sample by points from 15 down to 0 with Ø 11,0", () => {
+  test("buckets the Oberstufe sample by points from 15 down to 0", () => {
     const dist = gradeDistribution(toEntries(OBER), { scale: "points_0_15", unit: "points" });
     assert.equal(dist.count, 26);
-    assert.equal(round1(dist.mean), 11);
     assert.equal(dist.buckets.length, 16);
     assert.equal(dist.buckets[0].label, "15");
     assert.equal(dist.buckets.at(-1).label, "0");
@@ -111,20 +107,18 @@ describe("gradeDistribution", () => {
     assert.deepEqual([thirteen.ka, thirteen.sl, thirteen.total], [2, 3, 5]);
   });
 
-  test("converts Oberstufe points to Noten with Ø 2,0", () => {
+  test("converts Oberstufe points to Noten", () => {
     const dist = gradeDistribution(toEntries(OBER), { scale: "points_0_15", unit: "notes" });
     assert.equal(dist.count, 26);
-    assert.equal(round1(dist.mean), 2);
     assert.deepEqual(
       dist.buckets.map((b) => b.total),
       [9, 11, 4, 2, 0, 0]
     );
   });
 
-  test("has no mean and empty buckets without grades", () => {
+  test("has empty buckets without grades", () => {
     const dist = gradeDistribution([], { scale: "grade_1_6", unit: "notes" });
     assert.equal(dist.count, 0);
-    assert.equal(dist.mean, null);
     assert.ok(dist.buckets.every((b) => b.total === 0));
   });
 });

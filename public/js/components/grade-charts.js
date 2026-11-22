@@ -45,9 +45,9 @@ function niceAxis(max) {
   return { top: Math.ceil(needed / step) * step, step };
 }
 
-/** "Note 2", "14 Punkte"; `short` gives "14 P" as shown elsewhere in the app. */
+/** "Note 2", "14 Punkte"; `short` is for the donut labels: "2", "14 P". */
 function bucketName(unit, bucket, short = false) {
-  if (unit !== "points") return `Note ${bucket.label}`;
+  if (unit !== "points") return short ? bucket.label : `Note ${bucket.label}`;
   return `${bucket.label} ${short ? "P" : "Punkte"}`;
 }
 

@@ -4,7 +4,7 @@ import { getGradeChart, getGradeUnit, setGradeUnit } from "../state/settings.js"
 import { chartSelection, getNotenData } from "../data/noten.js";
 import { pointsToGradeLabel } from "../domain/grades.js";
 import { escapeHtml } from "../util/dom.js";
-import { formatAverage, formatMean, formatOverallAverage, plural, scaleUnit } from "../util/format.js";
+import { formatAverage, formatOverallAverage, plural, scaleUnit } from "../util/format.js";
 import { MINI_TREND_WIDTH } from "../domain/trend.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
 import { barChart, donutChart, distributionTable } from "../components/grade-charts.js";
@@ -164,29 +164,35 @@ function renderBody(container, page) {
   body.innerHTML = overviewHtml(page.data, page.scale);
 }
 
-function overviewHtml(data, scale) {
+/** The Gesamtdurchschnitt block, identical on Übersicht and Diagramme. */
+function averageHeader(value, scale) {
   const isPoints = scale === "points_0_15";
   const scaleLabel = isPoints ? "Ø Punkte<br>Skala 0–15" : "Gesamtdurchschnitt<br>Noten 1–6";
-  const list =
-    isPoints && data.hasCourseTypes
-      ? subjectGroup("Leistungskurse", data.lk, scale) + subjectGroup("Grundkurse", data.gk, scale)
-      : `<div class="stack">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
-  const averageUnit = scaleUnit(scale, data.overallAverage.value);
+  const averageUnit = scaleUnit(scale, value);
   const noteEquivalent =
-    isPoints && data.overallAverage.value !== null
-      ? `<div class="grade-equivalent">entspricht etwa ${escapeHtml(pointsToGradeLabel(data.overallAverage.value))}</div>`
+    isPoints && value !== null
+      ? `<div class="grade-equivalent">entspricht etwa ${escapeHtml(pointsToGradeLabel(value))}</div>`
       : "";
-
   return `
     <div class="average-header${isPoints ? " average-header--points" : ""}">
       <div>
         <div class="average-row">
-          <div class="average-value">${formatOverallAverage(data.overallAverage.value, scale)}${averageUnit ? `<span class="average-unit">${averageUnit}</span>` : ""}</div>
+          <div class="average-value">${formatOverallAverage(value, scale)}${averageUnit ? `<span class="average-unit">${averageUnit}</span>` : ""}</div>
           <div class="average-label">${scaleLabel}</div>
         </div>
         ${noteEquivalent}
       </div>
-    </div>
+    </div>`;
+}
+
+function overviewHtml(data, scale) {
+  const list =
+    scale === "points_0_15" && data.hasCourseTypes
+      ? subjectGroup("Leistungskurse", data.lk, scale) + subjectGroup("Grundkurse", data.gk, scale)
+      : `<div class="stack">${data.subjects.map((s) => subjectRow(s, scale)).join("")}</div>`;
+
+  return `
+    ${averageHeader(data.overallAverage.value, scale)}
     ${list}
     <div class="noten-footnote">
       Verlauf: links früh, rechts aktuell — oben ist immer besser.
@@ -198,18 +204,23 @@ function overviewHtml(data, scale) {
 /** The filter button stays put across re-renders, so the sheet can hand focus back to it. */
 function renderChartsPane(container, body, page) {
   body.innerHTML = `
+    <div class="noten-charts-average"></div>
     <div class="noten-charts">
       <button type="button" class="chart-filter" aria-haspopup="dialog"></button>
       <div class="noten-charts-content"></div>
     </div>`;
   const filterButton = body.querySelector(".chart-filter");
   const content = body.querySelector(".noten-charts-content");
+  const averageBox = body.querySelector(".noten-charts-average");
   const { subjects } = page.data.chart;
 
   function update() {
     filterButton.dataset.active = String(selectedSubjects !== null);
     filterButton.innerHTML = `${ICONS.listFilter}<span class="chart-filter-label">${escapeHtml(subjectFilterLabel(selectedSubjects, subjects))}</span><span class="chart-filter-caret" aria-hidden="true">${ICONS.chevronDown}</span>`;
-    content.innerHTML = chartsHtml(page.data, page.scale);
+    const shownUnit = page.scale === "points_0_15" ? getGradeUnit() : "notes";
+    const selection = chartSelection(page.data, { scale: page.scale, unit: shownUnit, selected: selectedSubjects });
+    averageBox.innerHTML = averageHeader(selection.average, page.scale);
+    content.innerHTML = chartsHtml(selection, page.scale, shownUnit);
   }
 
   filterButton.addEventListener("click", () => {
@@ -241,24 +252,17 @@ function renderChartsPane(container, body, page) {
   update();
 }
 
-function chartsHtml(data, scale) {
+function chartsHtml({ dist, subjectCount }, scale, shownUnit) {
   const isPoints = scale === "points_0_15";
   const isDonut = getGradeChart() === "donut";
-  const shownUnit = isPoints ? getGradeUnit() : "notes";
-  const { dist, subjectCount } = chartSelection(data.chart, { scale, unit: shownUnit, selected: selectedSubjects });
   const kaLabel = isPoints ? "Klausuren" : "Klassenarbeiten";
   const converted = isPoints && shownUnit === "notes";
   const subjectsText = plural(subjectCount, ["Fach", "Fächer"]);
 
-  const extras = [
-    converted ? "(umgerechnet)" : "",
-    selectedSubjects ? `· ${subjectsText}` : "",
-  ].filter(Boolean);
-  const meanText = `Ø ${formatMean(dist.mean)}${shownUnit === "points" && dist.mean !== null ? " P" : ""}`;
   const stat = `
     <div class="chart-stat">
       <span class="chart-stat-count">${dist.count}</span>
-      <span class="chart-stat-text">${dist.count === 1 ? "Note" : "Noten"} · ${meanText}${extras.length ? ` <span class="chart-stat-extra">${extras.join(" ")}</span>` : ""}</span>
+      <span class="chart-stat-text">${dist.count === 1 ? "Note" : "Noten"}${selectedSubjects ? ` <span class="chart-stat-extra">· ${subjectsText}</span>` : ""}</span>
     </div>`;
 
   let title = "Verteilung nach Note";

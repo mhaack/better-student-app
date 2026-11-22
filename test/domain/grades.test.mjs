@@ -9,6 +9,7 @@ import {
   markNewGrades,
   evaluateCalculationRule,
   gradeWeights,
+  overallAverage,
   subjectAverage,
 } from "../../public/js/domain/grades.js";
 
@@ -158,6 +159,23 @@ describe("evaluateCalculationRule", () => {
 
   test("does not eval arbitrary JS", () => {
     assert.throws(() => evaluateCalculationRule("require('fs')", {}));
+  });
+});
+
+describe("overallAverage", () => {
+  const subject = (value, courseType = "GK") => ({ average: { value }, courseType });
+
+  test("counts Oberstufe Leistungskurse twice", () => {
+    assert.ok(Math.abs(overallAverage([subject(13, "LK"), subject(8)], "points_0_15") - 11.3333) < 1e-3);
+  });
+
+  test("counts every Sek I subject once", () => {
+    assert.equal(overallAverage([subject(1, "LK"), subject(4)], "grade_1_6"), 2.5);
+  });
+
+  test("leaves out subjects without an average", () => {
+    assert.equal(overallAverage([subject(12), subject(null)], "points_0_15"), 12);
+    assert.equal(overallAverage([subject(null)], "points_0_15"), null);
   });
 });
 

@@ -187,6 +187,20 @@ export function evaluateCalculationRule(rule, variables) {
 }
 
 /**
+ * The Gesamtdurchschnitt: the mean of the subject averages; subjects without
+ * one are left out. Oberstufe Leistungskurse count twice, as in the Abitur.
+ * @param {Array<{ average: { value: number | null }, courseType?: string }>} subjects
+ * @param {GradeScale} scale
+ * @returns {number | null}
+ */
+export function overallAverage(subjects, scale) {
+  const weight = (s) => (scale === "points_0_15" && s.courseType === "LK" ? 2 : 1);
+  const withValue = subjects.filter((s) => s.average.value !== null);
+  const totalWeight = withValue.reduce((sum, s) => sum + weight(s), 0);
+  return totalWeight ? withValue.reduce((sum, s) => sum + s.average.value * weight(s), 0) / totalWeight : null;
+}
+
+/**
  * Each grade's weight in an estimated average. The API's `weighting` is 1
  * everywhere, so in the Oberstufe the Klausuren get half the total as a group.
  * @param {Array<{ collection: { type: string, weighting: number } }>} grades

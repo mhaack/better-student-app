@@ -123,9 +123,3 @@ export function formatOverallAverage(value, scale) {
 export function plural(count, [one, many]) {
   return `${count} ${count === 1 ? one : many}`;
 }
-
-/** A chart's Ø, one decimal on either scale ("2,3", "11,0"). */
-export function formatMean(value) {
-  if (value === null || value === undefined) return "–";
-  return value.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-}

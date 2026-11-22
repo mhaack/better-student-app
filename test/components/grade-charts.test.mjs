@@ -104,9 +104,9 @@ describe("donutChart", () => {
     assert.ok(!html.includes("gc-seg gc-seq-6"));
   });
 
-  test("labels each segment with its count and Note, without percentages", () => {
+  test("labels each segment with its count and Note number, without percentages", () => {
     const html = donutChart(notes(SEK1), KA);
-    assert.deepEqual(labels(html), ["7× Note 1", "10× Note 2", "6× Note 3", "3× Note 4", "1× Note 5"]);
+    assert.deepEqual(labels(html), ["7× 1", "10× 2", "6× 3", "3× 4", "1× 5"]);
     assert.equal(count(html, 'class="gc-leader"'), 5);
     assert.ok(!html.includes("%"));
   });
@@ -152,7 +152,7 @@ describe("donutChart", () => {
     const html = donutChart(notes([entry(2), entry(2)]), KA);
     assert.ok(html.includes('<circle class="gc-ring gc-seq-2"'));
     assert.ok(!html.includes("gc-seg"));
-    assert.deepEqual(labels(html), ["2× Note 2"]);
+    assert.deepEqual(labels(html), ["2× 2"]);
   });
 
   test("ends with the colour footnote naming the KA series", () => {

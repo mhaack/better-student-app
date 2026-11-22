@@ -27,7 +27,7 @@ export function gradeKind(collectionType) {
 /**
  * @param {DistributionEntry[]} entries values are whole Notes on grade_1_6, points on points_0_15
  * @param {{ scale: import('./grades.js').GradeScale, unit: "notes" | "points" }} options
- * @returns {{ unit: "notes" | "points", count: number, mean: number | null,
+ * @returns {{ unit: "notes" | "points", count: number,
  *   buckets: Array<{ label: string, value: number, ka: number, sl: number, total: number }> }}
  */
 export function gradeDistribution(entries, { scale, unit }) {
@@ -41,16 +41,14 @@ export function gradeDistribution(entries, { scale, unit }) {
   }));
   const byValue = new Map(buckets.map((bucket) => [bucket.value, bucket]));
 
-  let sum = 0;
   for (const entry of entries) {
     const value = toUnit(entry.value);
     const bucket = byValue.get(value);
     if (!bucket) continue;
     bucket[entry.kind === "ka" ? "ka" : "sl"] += 1;
     bucket.total += 1;
-    sum += value;
   }
 
   const count = buckets.reduce((total, bucket) => total + bucket.total, 0);
-  return { unit, count, mean: count ? sum / count : null, buckets };
+  return { unit, count, buckets };
 }

@@ -1,5 +1,5 @@
 import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
-import { markNewGrades, subjectAverage } from "../domain/grades.js";
+import { markNewGrades, overallAverage, subjectAverage } from "../domain/grades.js";
 import { gradeDistribution, gradeKind, wholeNote } from "../domain/grade-distribution.js";
 import { toTrendPoints, MINI_TREND_WIDTH } from "../domain/trend.js";
 
@@ -54,17 +54,9 @@ export async function getNotenData(studentId, options) {
     };
   });
 
-  const withValue = subjects.filter((s) => s.average.value !== null);
-  // Oberstufe: Leistungskurse count twice, as in the Abitur.
-  const weight = (s) => (scale === "points_0_15" && s.courseType === "LK" ? 2 : 1);
-  const totalWeight = withValue.reduce((sum, s) => sum + weight(s), 0);
-  const overallValue = totalWeight
-    ? withValue.reduce((sum, s) => sum + s.average.value * weight(s), 0) / totalWeight
-    : null;
-
   const result = {
     scale,
-    overallAverage: { value: overallValue, scale },
+    overallAverage: { value: overallAverage(subjects, scale), scale },
     subjects,
     chart: chartData(grades, courses, scale),
   };
@@ -97,15 +89,18 @@ function chartData(grades, courses, scale) {
 }
 
 /**
- * The Diagramme for the chosen subjects: their distribution, and how many of
+ * The Diagramme for the chosen subjects: their distribution, their
+ * Gesamtdurchschnitt (the same calculation as the Übersicht), and how many of
  * them have grades (the "· n Fächer" in the stat line).
- * @param {{ entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> }} chart from getNotenData
+ * @param {{ subjects: Array<object>, chart: { entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> } }} data from getNotenData
  * @param {{ scale: import('../domain/grades.js').GradeScale, unit: "notes" | "points", selected: Set<number> | null }} options
  */
-export function chartSelection(chart, { scale, unit, selected }) {
-  const entries = selected ? chart.entries.filter((e) => selected.has(e.subjectId)) : chart.entries;
+export function chartSelection(data, { scale, unit, selected }) {
+  const chosen = (subjectId) => !selected || selected.has(subjectId);
+  const entries = data.chart.entries.filter((e) => chosen(e.subjectId));
   return {
     dist: gradeDistribution(entries, { scale, unit }),
+    average: overallAverage(data.subjects.filter((s) => chosen(s.subjectId)), scale),
     subjectCount: new Set(entries.map((e) => e.subjectId)).size,
   };
 }

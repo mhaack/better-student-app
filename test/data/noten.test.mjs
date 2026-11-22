@@ -139,29 +139,42 @@ describe("getNotenData", () => {
 });
 
 describe("chartSelection", () => {
-  const CHART = {
-    entries: [
-      { subjectId: 5, value: 13, kind: "ka" },
-      { subjectId: 5, value: 9, kind: "sl" },
-      { subjectId: 6, value: 4, kind: "sl" },
+  const avg = (value) => ({ value });
+  const DATA = {
+    subjects: [
+      { subjectId: 5, courseType: "LK", average: avg(13) },
+      { subjectId: 6, courseType: "GK", average: avg(7) },
+      { subjectId: 7, courseType: "GK", average: avg(null) },
     ],
+    chart: {
+      entries: [
+        { subjectId: 5, value: 13, kind: "ka" },
+        { subjectId: 5, value: 9, kind: "sl" },
+        { subjectId: 6, value: 4, kind: "sl" },
+      ],
+    },
   };
 
   test("takes every subject when nothing is selected", () => {
-    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: null });
+    const { dist, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: null });
     assert.equal(dist.count, 3);
     assert.equal(subjectCount, 2);
   });
 
-  test("keeps only the selected subjects' grades", () => {
-    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: new Set([5]) });
-    assert.equal(dist.count, 2);
-    assert.equal(dist.mean, 11);
+  test("shows the Übersicht's Gesamtdurchschnitt, Leistungskurse twice", () => {
+    const { average } = chartSelection(DATA, { scale: "points_0_15", unit: "notes", selected: null });
+    assert.equal(average, 11);
+  });
+
+  test("keeps only the selected subjects' grades and averages", () => {
+    const { dist, average, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([6]) });
+    assert.equal(dist.count, 1);
+    assert.equal(average, 7);
     assert.equal(subjectCount, 1);
   });
 
   test("converts Oberstufe points to Noten when asked", () => {
-    const { dist } = chartSelection(CHART, { scale: "points_0_15", unit: "notes", selected: null });
+    const { dist } = chartSelection(DATA, { scale: "points_0_15", unit: "notes", selected: null });
     assert.deepEqual(
       dist.buckets.map((b) => b.total),
       [1, 0, 1, 1, 0, 0]
@@ -169,9 +182,9 @@ describe("chartSelection", () => {
   });
 
   test("is empty for a selection without grades", () => {
-    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: new Set([7]) });
+    const { dist, average, subjectCount } = chartSelection(DATA, { scale: "points_0_15", unit: "points", selected: new Set([7]) });
     assert.equal(dist.count, 0);
-    assert.equal(dist.mean, null);
+    assert.equal(average, null);
     assert.equal(subjectCount, 0);
   });
 });
