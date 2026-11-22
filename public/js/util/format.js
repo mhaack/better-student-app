@@ -118,3 +118,8 @@ export function formatOverallAverage(value, scale) {
     ? value.toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 1 })
     : value.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+/** "1 Note", "3 Noten". */
+export function plural(count, [one, many]) {
+  return `${count} ${count === 1 ? one : many}`;
+}

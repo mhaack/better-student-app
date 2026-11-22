@@ -102,6 +102,9 @@ inherits the subject of its collection.
   and every subject average the app shows is its own estimate ("geschätzt").
   The detail route `finalgrades/{id}` returns exactly the same fields as the
   list, so there is no reason to fetch it per id.
+- The estimate can't rely on `collection.weighting` (always 1, Klausuren
+  included): in the Oberstufe Klausuren and the other grades each count half
+  (`gradeWeights` in `domain/grades.js`). Sek I keeps the API weighting.
 - **Timetable lesson**: `{ id, weekday (1 = Monday), nr (period), weeks: ["A"],
   subject, group, teachers[], rooms[], time: { nr, from, to } }`. The
   timetable also carries `weeks[]` mapping ISO calendar weeks to A/B, plus

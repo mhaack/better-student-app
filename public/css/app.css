@@ -2093,9 +2093,15 @@ button {
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
   pointer-events: none;
   color: var(--text-primary);
-  font-size: 12px;
+}
+
+.picker-caret svg,
+.chart-filter-caret svg {
+  width: 18px;
+  height: 18px;
 }
 
 .average-row {
@@ -2443,4 +2449,574 @@ button {
   font-size: 12px;
   color: var(--text-muted);
   text-align: right;
+}
+
+/* ── Noten: header, Übersicht | Diagramme, chart pane ── */
+
+/* Title left, Halbjahr pill right, sharing a bottom line. */
+.noten-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.noten-head .picker-wrap {
+  align-self: auto;
+  min-width: 0;
+}
+
+.noten-head .interval-picker {
+  max-width: 100%;
+  min-height: 32px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Segmented control: buttons with aria-pressed on a track. */
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--seg-track);
+  border-radius: var(--radius-sm);
+}
+
+.segmented-option {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.segmented-option[aria-pressed="true"] {
+  background: var(--seg-thumb);
+  box-shadow: 0 1px 3px rgba(26, 23, 20, 0.12);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.segmented-option:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+/* Settings row (Mehr): sits at the right of its label. */
+.segmented--small {
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+}
+
+.segmented--small .segmented-option {
+  flex: none;
+  min-height: 34px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+/* Inside the chart card: the Oberstufe 0–15 P | 1–6 switch. */
+.segmented--compact {
+  flex: none;
+  gap: 0;
+  padding: 2px;
+  border-radius: 9px;
+}
+
+.segmented--compact .segmented-option {
+  flex: none;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.noten-charts,
+.noten-charts-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chart-filter {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-filter[data-active="true"] {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg);
+}
+
+.chart-filter:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.chart-filter svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.chart-filter-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-filter-caret {
+  display: flex;
+  flex: none;
+}
+
+.chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chart-toolbar .chart-filter {
+  align-self: auto;
+  min-width: 0;
+}
+
+.chart-stat {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.chart-stat-count {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.chart-stat-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 18px;
+}
+
+.chart-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.chart-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.chart-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.chart-table-link {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-table-link:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Noten charts (components/grade-charts.js) ── */
+/* Noten › Diagramme: chart bodies from components/grade-charts.js (design: noten-diagramme B3–B8). */
+.gc-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gc-bars text,
+.gc-donut text {
+  font-family: var(--font-sans);
+}
+
+.gc-grid {
+  stroke: var(--chart-grid);
+}
+
+.gc-baseline {
+  stroke: var(--border-strong);
+}
+
+.gc-tick {
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.gc-total {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-primary);
+}
+
+.gc-xlabel {
+  font-size: 12px;
+  fill: var(--text-primary);
+}
+
+.gc-xlabel--dense {
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.gc-bar--ka {
+  fill: var(--series-ka);
+}
+
+.gc-bar--sl {
+  fill: var(--series-sl);
+}
+
+.gc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.gc-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gc-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.gc-swatch--ka {
+  background: var(--series-ka);
+}
+
+.gc-swatch--sl {
+  background: var(--series-sl);
+}
+
+
+/* One class per Note colours a donut segment (fill), the lone ring (stroke) and its swatch (background). */
+.gc-seq-1 { --gc-seq: var(--seq-1); }
+.gc-seq-2 { --gc-seq: var(--seq-2); }
+.gc-seq-3 { --gc-seq: var(--seq-3); }
+.gc-seq-4 { --gc-seq: var(--seq-4); }
+.gc-seq-5 { --gc-seq: var(--seq-5); }
+.gc-seq-6 { --gc-seq: var(--seq-6); }
+
+.gc-seg {
+  fill: var(--gc-seq);
+}
+
+.gc-ring {
+  fill: none;
+  stroke: var(--gc-seq);
+}
+
+.gc-donut {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gc-donut__count {
+  font-size: 30px;
+  fill: var(--text-primary);
+}
+
+/* Beats the sans family on .gc-donut text. */
+.gc-donut .gc-donut__count {
+  font-family: var(--font-serif);
+}
+
+.gc-donut__unit {
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.gc-leader {
+  fill: none;
+  stroke: var(--chart-leader);
+  stroke-width: 1;
+}
+
+.gc-label {
+  font-size: 12px;
+  fill: var(--text-primary);
+}
+
+.gc-label__n {
+  fill: var(--text-muted);
+}
+
+.gc-label__value {
+  font-weight: 600;
+}
+
+.gc-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.gc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.gc-table th,
+.gc-table td {
+  padding: 6px 4px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.gc-table th:first-child {
+  text-align: left;
+}
+
+.gc-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.gc-table tbody th {
+  font-weight: 400;
+}
+
+.gc-table__total {
+  font-weight: 600;
+}
+
+/* ── Fächer filter sheet (components/subject-filter-sheet.js) ── */
+/* Fächer filter sheet (components/subject-filter-sheet.js) */
+.detail-sheet.sf-sheet {
+  background: var(--bg);
+  gap: 12px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  /* The list scrolls, so the apply button stays at the bottom. */
+  overflow: hidden;
+}
+
+.sf-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sf-title {
+  margin: 0;
+  font-size: 26px;
+}
+
+.sf-all {
+  min-height: 40px;
+  padding: 0 4px;
+  margin-right: -4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sf-search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.sf-search:focus-within {
+  border-color: var(--text-primary);
+}
+
+.sf-search-icon {
+  display: flex;
+  flex: none;
+}
+
+.sf-search-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sf-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: 400 16px var(--font-sans);
+  color: var(--text-primary);
+}
+
+.sf-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.sf-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sf-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 46px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.sf-row[hidden] {
+  display: none;
+}
+
+.sf-row input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+
+.sf-box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--text-disabled);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg);
+}
+
+.sf-box svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
+  visibility: hidden;
+}
+
+.sf-row input:checked + .sf-box {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.sf-row input:checked + .sf-box svg {
+  visibility: visible;
+}
+
+.sf-row input:focus-visible + .sf-box {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.sf-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.sf-count {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sf-row.is-disabled {
+  cursor: default;
+}
+
+.sf-row.is-disabled .sf-box {
+  border-color: var(--border-strong);
+}
+
+.sf-row.is-disabled .sf-name,
+.sf-row.is-disabled .sf-count {
+  color: var(--text-disabled);
+}
+
+.sf-none {
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.sf-apply {
+  flex: none;
+  min-height: 50px;
+  border-radius: 14px;
 }

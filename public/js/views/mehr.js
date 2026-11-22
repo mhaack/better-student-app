@@ -8,15 +8,20 @@ import { relativeDays } from "../components/next-card.js";
 import { ferienRangeLabel } from "./ferien.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
-import { getCutoffHour, setCutoffHour } from "../state/settings.js";
+import { getCutoffHour, setCutoffHour, getGradeChart, setGradeChart } from "../state/settings.js";
 import { CUTOFF_HOUR_OPTIONS } from "../domain/school-day.js";
 import { escapeHtml } from "../util/dom.js";
+import { segmented, setPressed } from "../components/segmented.js";
 import { navigate } from "../router.js";
 
 const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Hell" },
   { value: "dark", label: "Dunkel" },
+];
+const GRADE_CHART_OPTIONS = [
+  { value: "bar", label: "Balken" },
+  { value: "donut", label: "Kreis" },
 ];
 
 /** Installed, prompt available, iOS (manual steps), or nothing at all. */
@@ -121,6 +126,13 @@ export async function renderMehr(container) {
               ).join("")}
             </select>
           </label>
+          <div class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label">Notendiagramm</span>
+              <span class="settings-hint">Darstellung unter Noten › Diagramme</span>
+            </span>
+            ${segmented(GRADE_CHART_OPTIONS, getGradeChart(), { label: "Notendiagramm", attr: "data-grade-chart", modifier: "small" })}
+          </div>
         </div>
       </div>
       ${installSection()}
@@ -157,6 +169,13 @@ export async function renderMehr(container) {
 
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
     setThemePreference(e.target.value);
+  });
+
+  container.querySelector("[data-grade-chart]").parentElement.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-grade-chart]");
+    if (!button) return;
+    setGradeChart(button.dataset.gradeChart);
+    setPressed(container, "data-grade-chart", button.dataset.gradeChart);
   });
 
   container.querySelector("#student-switcher")?.addEventListener("change", (e) => {

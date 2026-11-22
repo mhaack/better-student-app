@@ -8,6 +8,7 @@ import {
   formatAverage,
   formatDayMonth,
   formatFullDate,
+  plural,
   formatMonthYear,
   formatOverallAverage,
   formatWeekday,
@@ -196,5 +197,16 @@ describe("formatOverallAverage", () => {
 
   test("shows a dash without a value", () => {
     assert.equal(formatOverallAverage(undefined, "points_0_15"), "–");
+  });
+});
+
+describe("plural", () => {
+  test("uses the singular for one", () => {
+    assert.equal(plural(1, ["Note", "Noten"]), "1 Note");
+  });
+
+  test("uses the plural for zero and more", () => {
+    assert.equal(plural(0, ["Fach", "Fächer"]), "0 Fächer");
+    assert.equal(plural(6, ["Note", "Noten"]), "6 Noten");
   });
 });

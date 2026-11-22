@@ -8,6 +8,8 @@ import {
   gradeTypeLabel,
   markNewGrades,
   evaluateCalculationRule,
+  gradeWeights,
+  overallAverage,
   subjectAverage,
 } from "../../public/js/domain/grades.js";
 
@@ -75,6 +77,12 @@ describe("gradeTypeLabel", () => {
   test("maps K, KL and Klausur to Klausur", () => {
     for (const raw of ["K", "KL", "Klausur"]) {
       assert.equal(gradeTypeLabel(raw), "Klausur", raw);
+    }
+  });
+
+  test("maps KA and Klassenarbeit to Klassenarbeit", () => {
+    for (const raw of ["KA", "ka", "Klassenarbeit"]) {
+      assert.equal(gradeTypeLabel(raw), "Klassenarbeit", raw);
     }
   });
 
@@ -154,6 +162,39 @@ describe("evaluateCalculationRule", () => {
   });
 });
 
+describe("overallAverage", () => {
+  const subject = (value, courseType = "GK") => ({ average: { value }, courseType });
+
+  test("counts Oberstufe Leistungskurse twice", () => {
+    assert.ok(Math.abs(overallAverage([subject(13, "LK"), subject(8)], "points_0_15") - 11.3333) < 1e-3);
+  });
+
+  test("counts every Sek I subject once", () => {
+    assert.equal(overallAverage([subject(1, "LK"), subject(4)], "grade_1_6"), 2.5);
+  });
+
+  test("leaves out subjects without an average", () => {
+    assert.equal(overallAverage([subject(12), subject(null)], "points_0_15"), 12);
+    assert.equal(overallAverage([subject(null)], "points_0_15"), null);
+  });
+});
+
+describe("gradeWeights", () => {
+  const g = (type, weighting = 1) => ({ collection: { type, weighting } });
+
+  test("splits Oberstufe weight half Klausuren, half the rest", () => {
+    assert.deepEqual(gradeWeights([g("K"), g("SO"), g("SO")], "points_0_15"), [0.5, 0.25, 0.25]);
+  });
+
+  test("keeps the API weighting in Sek I", () => {
+    assert.deepEqual(gradeWeights([g("KA", 2), g("SO")], "grade_1_6"), [2, 1]);
+  });
+
+  test("keeps the API weighting without a Klausur", () => {
+    assert.deepEqual(gradeWeights([g("SO"), g("LK")], "points_0_15"), [1, 1]);
+  });
+});
+
 describe("subjectAverage", () => {
   test("falls back to weighted mean and labels it estimated", () => {
     const grades = [
@@ -163,6 +204,26 @@ describe("subjectAverage", () => {
     const result = subjectAverage(grades, null, "grade_1_6");
     assert.equal(result.source, "estimated");
     assert.ok(Math.abs(result.value - 1.6667) < 1e-3, `expected ~1.6667, got ${result.value}`);
+  });
+
+  test("counts the Klausuren half of an Oberstufe estimate, however few they are", () => {
+    // Biologie LK: Klausur Cytologie 13 P, then 13, 14, 13 P Sonstige.
+    const grades = [
+      { numeric: 13, scale: "points_0_15", collection: { type: "K", weighting: 1 } },
+      { numeric: 13, scale: "points_0_15", collection: { type: "SO", weighting: 1 } },
+      { numeric: 14, scale: "points_0_15", collection: { type: "So", weighting: 1 } },
+      { numeric: 13, scale: "points_0_15", collection: { type: "LK", weighting: 1 } },
+    ];
+    const result = subjectAverage(grades, null, "points_0_15");
+    assert.ok(Math.abs(result.value - 13.1667) < 1e-3, `expected ~13.1667, got ${result.value}`);
+  });
+
+  test("uses the plain mean in the Oberstufe until there is a Klausur and another grade", () => {
+    const grades = [
+      { numeric: 9, scale: "points_0_15", collection: { type: "SO", weighting: 1 } },
+      { numeric: 12, scale: "points_0_15", collection: { type: "SO", weighting: 1 } },
+    ];
+    assert.equal(subjectAverage(grades, null, "points_0_15").value, 10.5);
   });
 
   test("uses api_value when the school provides a student-level final grade", () => {
