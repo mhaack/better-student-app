@@ -8,7 +8,7 @@ import { relativeDays } from "../components/next-card.js";
 import { ferienRangeLabel } from "./ferien.js";
 import { getThemePreference, setThemePreference } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
-import { getCutoffHour, setCutoffHour } from "../state/settings.js";
+import { getCutoffHour, setCutoffHour, getGradeChart, setGradeChart } from "../state/settings.js";
 import { CUTOFF_HOUR_OPTIONS } from "../domain/school-day.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
@@ -17,6 +17,10 @@ const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Hell" },
   { value: "dark", label: "Dunkel" },
+];
+const GRADE_CHART_OPTIONS = [
+  { value: "bar", label: "Balken" },
+  { value: "donut", label: "Kreis" },
 ];
 
 /** Installed, prompt available, iOS (manual steps), or nothing at all. */
@@ -121,6 +125,18 @@ export async function renderMehr(container) {
               ).join("")}
             </select>
           </label>
+          <div class="settings-row">
+            <span class="settings-text">
+              <span class="settings-label" id="grade-chart-label">Notendiagramm</span>
+              <span class="settings-hint">Darstellung unter Noten › Diagramme</span>
+            </span>
+            <div class="segmented segmented--small" role="group" aria-labelledby="grade-chart-label">
+              ${GRADE_CHART_OPTIONS.map(
+                (o) =>
+                  `<button type="button" class="segmented-option" data-grade-chart="${o.value}" aria-pressed="${o.value === getGradeChart()}">${o.label}</button>`
+              ).join("")}
+            </div>
+          </div>
         </div>
       </div>
       ${installSection()}
@@ -158,6 +174,15 @@ export async function renderMehr(container) {
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
     setThemePreference(e.target.value);
   });
+
+  for (const button of container.querySelectorAll("[data-grade-chart]")) {
+    button.addEventListener("click", () => {
+      setGradeChart(button.dataset.gradeChart);
+      for (const other of container.querySelectorAll("[data-grade-chart]")) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+    });
+  }
 
   container.querySelector("#student-switcher")?.addEventListener("change", (e) => {
     setSelectedStudentId(Number(e.target.value));

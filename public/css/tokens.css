@@ -59,6 +59,18 @@
   --hero-ink: #F6F3EE;
   --hero-muted: #B8AFA4;
   --hero-line: #3A342E;
+  /* Noten charts: KA/Sonstige series and the donut's Note 1 (strong) → Note 6 (faint) ramp. */
+  --series-ka: #A8341C;
+  --series-sl: #E58A5C;
+  --seq-1: #7A2410;
+  --seq-2: #A8341C;
+  --seq-3: #CC5A36;
+  --seq-4: #E58A5C;
+  --seq-5: #F0B08A;
+  --seq-6: #F7D3BA;
+  /* Segmented controls: the track and the pressed segment on it. */
+  --seg-track: #EAE4DB;
+  --seg-thumb: #FFFFFF;
 
   --radius-lg: 24px;
   --radius-md: 16px;
@@ -112,6 +124,17 @@
   --hero-ink: #1A1714;
   --hero-muted: #57504A;
   --hero-line: #D9D2C8;
+  /* On dark the ramp flips: Note 1 brightest, Note 6 closest to the surface. */
+  --series-ka: #D4573B;
+  --series-sl: #F2A47E;
+  --seq-1: #FF8A63;
+  --seq-2: #E8653F;
+  --seq-3: #C94F31;
+  --seq-4: #A43F27;
+  --seq-5: #803220;
+  --seq-6: #5E271A;
+  --seg-track: #26221D;
+  --seg-thumb: #3A352E;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -159,5 +182,16 @@
     --hero-ink: #1A1714;
     --hero-muted: #57504A;
     --hero-line: #D9D2C8;
+    /* On dark the ramp flips: Note 1 brightest, Note 6 closest to the surface. */
+    --series-ka: #D4573B;
+    --series-sl: #F2A47E;
+    --seq-1: #FF8A63;
+    --seq-2: #E8653F;
+    --seq-3: #C94F31;
+    --seq-4: #A43F27;
+    --seq-5: #803220;
+    --seq-6: #5E271A;
+    --seg-track: #26221D;
+    --seg-thumb: #3A352E;
   }
 }

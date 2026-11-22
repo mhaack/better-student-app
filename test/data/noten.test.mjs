@@ -1,8 +1,8 @@
-// The Noten tab's dot: an unseen grade in one of the student's courses, this Halbjahr.
+// The Noten screen's data and the Noten tab's dot.
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, mock, test } from "node:test";
 import { clearCache } from "../../public/js/data/cache.js";
-import { hasNewGrades } from "../../public/js/data/noten.js";
+import { chartSelection, getNotenData, hasNewGrades } from "../../public/js/data/noten.js";
 
 const STUDENT = 7;
 const CONTEXT = {
@@ -21,7 +21,14 @@ const rawGrade = (id, subjectId, read, readByType = null) => ({
   collection: { id, name: "Test", subject_id: subjectId, subject: { id: subjectId, name: "Fach" } },
 });
 
-/** Answers /api/grades and /api/me; records the paths asked for. */
+/** A valued grade in a collection of the given type, as /api/grades returns it. */
+const valuedGrade = (id, subjectId, value, type) => ({
+  ...rawGrade(id, subjectId, true, "guardian"),
+  value,
+  collection: { id, name: "Test", type, subject_id: subjectId, subject: { id: subjectId, name: "Fach" } },
+});
+
+/** Answers /api/grades, /api/finalgrades (none) and /api/me; records the paths asked for. */
 function stubApi(grades, role = "guardian") {
   const paths = [];
   mock.method(globalThis, "fetch", async (url) => {
@@ -31,6 +38,7 @@ function stubApi(grades, role = "guardian") {
       assert.equal(searchParams.get("filter[interval]"), "33");
       return { ok: true, status: 200, text: async () => JSON.stringify({ data: grades }) };
     }
+    if (pathname === "/api/finalgrades") return { ok: true, status: 200, text: async () => JSON.stringify({ data: [] }) };
     if (pathname === "/api/me") return { ok: true, status: 200, text: async () => JSON.stringify({ data: { role } }) };
     return { ok: false, status: 404, text: async () => "{}" };
   });
@@ -60,5 +68,90 @@ describe("hasNewGrades", () => {
     const paths = stubApi([rawGrade(1, 5, false)]);
     await hasNewGrades(STUDENT, CONTEXT);
     assert.deepEqual([...new Set(paths)].sort(), ["/api/grades", "/api/me"]);
+  });
+});
+
+describe("getNotenData", () => {
+  const options = (scale, courses) => ({ yearId: 3, intervalId: 33, scale, courses });
+  const COURSES = [
+    { subjectId: 5, name: "Biologie" },
+    { subjectId: 6, name: "Mathematik" },
+    { subjectId: 7, name: "Geschichte" },
+  ];
+
+  test("lists each counted grade for the charts as a whole Note with its kind", async () => {
+    stubApi([valuedGrade(1, 5, "2+", "KA"), valuedGrade(2, 5, "2-", "SO"), valuedGrade(3, 6, "4", "LK")]);
+    const { chart } = await getNotenData(STUDENT, options("grade_1_6", COURSES));
+    assert.deepEqual(chart.entries, [
+      { subjectId: 5, value: 2, kind: "ka" },
+      { subjectId: 5, value: 2, kind: "sl" },
+      { subjectId: 6, value: 4, kind: "sl" },
+    ]);
+  });
+
+  test("keeps Oberstufe grades as points", async () => {
+    stubApi([valuedGrade(1, 5, "13", "Klausur"), valuedGrade(2, 5, "0", "SO")]);
+    const { chart } = await getNotenData(STUDENT, options("points_0_15", COURSES));
+    assert.deepEqual(
+      chart.entries.map((e) => [e.value, e.kind]),
+      [
+        [13, "ka"],
+        [0, "sl"],
+      ]
+    );
+  });
+
+  test("leaves out grades without a value and grades outside the student's courses", async () => {
+    stubApi([valuedGrade(1, 5, "", "SO"), valuedGrade(2, 5, "fehlt", "SO"), valuedGrade(3, 99, "1", "SO")]);
+    const { chart } = await getNotenData(STUDENT, options("grade_1_6", COURSES));
+    assert.deepEqual(chart.entries, []);
+  });
+
+  test("counts each course's grades in course order, including courses without any", async () => {
+    stubApi([valuedGrade(1, 6, "1", "SO"), valuedGrade(2, 5, "3", "SO"), valuedGrade(3, 6, "2", "KL")]);
+    const { chart } = await getNotenData(STUDENT, options("grade_1_6", COURSES));
+    assert.deepEqual(chart.subjects, [
+      { subjectId: 5, name: "Biologie", count: 1 },
+      { subjectId: 6, name: "Mathematik", count: 2 },
+      { subjectId: 7, name: "Geschichte", count: 0 },
+    ]);
+  });
+});
+
+describe("chartSelection", () => {
+  const CHART = {
+    entries: [
+      { subjectId: 5, value: 13, kind: "ka" },
+      { subjectId: 5, value: 9, kind: "sl" },
+      { subjectId: 6, value: 4, kind: "sl" },
+    ],
+  };
+
+  test("takes every subject when nothing is selected", () => {
+    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: null });
+    assert.equal(dist.count, 3);
+    assert.equal(subjectCount, 2);
+  });
+
+  test("keeps only the selected subjects' grades", () => {
+    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: new Set([5]) });
+    assert.equal(dist.count, 2);
+    assert.equal(dist.mean, 11);
+    assert.equal(subjectCount, 1);
+  });
+
+  test("converts Oberstufe points to Noten when asked", () => {
+    const { dist } = chartSelection(CHART, { scale: "points_0_15", unit: "notes", selected: null });
+    assert.deepEqual(
+      dist.buckets.map((b) => b.total),
+      [1, 0, 1, 1, 0, 0]
+    );
+  });
+
+  test("is empty for a selection without grades", () => {
+    const { dist, subjectCount } = chartSelection(CHART, { scale: "points_0_15", unit: "points", selected: new Set([7]) });
+    assert.equal(dist.count, 0);
+    assert.equal(dist.mean, null);
+    assert.equal(subjectCount, 0);
   });
 });

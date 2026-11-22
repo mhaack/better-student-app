@@ -8,8 +8,10 @@ import {
   formatAverage,
   formatDayMonth,
   formatFullDate,
+  formatMean,
   formatMonthYear,
   formatOverallAverage,
+  formatPercent,
   formatWeekday,
   formatWeekdayDate,
   periodLabel,
@@ -196,5 +198,25 @@ describe("formatOverallAverage", () => {
 
   test("shows a dash without a value", () => {
     assert.equal(formatOverallAverage(undefined, "points_0_15"), "–");
+  });
+});
+
+describe("formatMean", () => {
+  test("always shows one decimal with a comma", () => {
+    assert.equal(formatMean(2.296), "2,3");
+    assert.equal(formatMean(11.04), "11,0");
+    assert.equal(formatMean(2), "2,0");
+  });
+
+  test("shows a dash without a value", () => {
+    assert.equal(formatMean(null), "–");
+  });
+});
+
+describe("formatPercent", () => {
+  test("rounds a share to a whole percentage", () => {
+    assert.equal(formatPercent(0.259), "26 %");
+    assert.equal(formatPercent(1), "100 %");
+    assert.equal(formatPercent(0), "0 %");
   });
 });

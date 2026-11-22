@@ -16,6 +16,8 @@ const GRADE_TYPE_LABELS = {
   k: "Klausur",
   kl: "Klausur",
   klausur: "Klausur",
+  ka: "Klassenarbeit",
+  klassenarbeit: "Klassenarbeit",
 };
 
 /**

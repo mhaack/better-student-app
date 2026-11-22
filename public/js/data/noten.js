@@ -1,5 +1,6 @@
 import { fetchGrades, fetchFinalgrades, fetchRole } from "./repository.js";
 import { markNewGrades, subjectAverage } from "../domain/grades.js";
+import { gradeDistribution, gradeKind, wholeNote } from "../domain/grade-distribution.js";
 import { toTrendPoints, MINI_TREND_WIDTH } from "../domain/trend.js";
 
 const TREND_POINTS_COUNT = 4;
@@ -62,6 +63,7 @@ export async function getNotenData(studentId, options) {
     scale,
     overallAverage: { value: overallValue, scale },
     subjects,
+    chart: chartData(grades, courses, scale),
   };
 
   if (scale === "points_0_15") {
@@ -72,6 +74,37 @@ export async function getNotenData(studentId, options) {
   }
 
   return result;
+}
+
+/**
+ * Every single grade with a value, for the Diagramme; subject averages never
+ * enter it (they may be estimates).
+ */
+function chartData(grades, courses, scale) {
+  const toValue = scale === "points_0_15" ? Math.round : wholeNote;
+  const entries = [];
+  const subjects = courses.map((course) => {
+    const counted = grades.filter((g) => g.subjectId === course.subjectId && g.numeric !== null);
+    for (const g of counted) {
+      entries.push({ subjectId: course.subjectId, value: toValue(g.numeric), kind: gradeKind(g.collection.type) });
+    }
+    return { subjectId: course.subjectId, name: course.name, count: counted.length };
+  });
+  return { entries, subjects };
+}
+
+/**
+ * The Diagramme for the chosen subjects: their distribution, and how many of
+ * them have grades (the "· n Fächer" in the stat line).
+ * @param {{ entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> }} chart from getNotenData
+ * @param {{ scale: import('../domain/grades.js').GradeScale, unit: "notes" | "points", selected: Set<number> | null }} options
+ */
+export function chartSelection(chart, { scale, unit, selected }) {
+  const entries = selected ? chart.entries.filter((e) => selected.has(e.subjectId)) : chart.entries;
+  return {
+    dist: gradeDistribution(entries, { scale, unit }),
+    subjectCount: new Set(entries.map((e) => e.subjectId)).size,
+  };
 }
 
 /** Whether the Noten tab gets its dot: a grade in the current Halbjahr the viewer's side hasn't seen. */

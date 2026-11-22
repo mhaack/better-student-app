@@ -78,6 +78,12 @@ describe("gradeTypeLabel", () => {
     }
   });
 
+  test("maps KA and Klassenarbeit to Klassenarbeit", () => {
+    for (const raw of ["KA", "ka", "Klassenarbeit"]) {
+      assert.equal(gradeTypeLabel(raw), "Klassenarbeit", raw);
+    }
+  });
+
   test("ignores surrounding whitespace", () => {
     assert.equal(gradeTypeLabel(" so "), "Sonstige");
   });
