@@ -156,7 +156,7 @@ function placeLabels(segments, cy, height) {
 
 /**
  * Share per Note 1–6 (or per point 15–0) as a donut with the count inside.
- * Each segment has a hairline to a "10× Note 2" label; no percentages, by design.
+ * Each segment has a hairline to a "10× 2" / "3× 14 P" label; no percentages, by design.
  */
 export function donutChart(dist, { kaLabel }) {
   const { buckets, count, unit } = dist;
