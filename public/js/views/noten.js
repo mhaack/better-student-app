@@ -14,7 +14,7 @@ import { openSubjectFilterSheet, subjectFilterLabel } from "../components/subjec
 
 const VIEWS = [
   { value: "overview", label: "Übersicht" },
-  { value: "charts", label: "Diagramme" },
+  { value: "charts", label: "Diagramm" },
 ];
 const UNITS = [
   { value: "points", label: "0–15 P" },
@@ -164,7 +164,7 @@ function renderBody(container, page) {
   body.innerHTML = overviewHtml(page.data, page.scale);
 }
 
-/** The Gesamtdurchschnitt block, identical on Übersicht and Diagramme. */
+/** The Gesamtdurchschnitt block, identical on Übersicht and Diagramm. */
 function averageHeader(value, scale) {
   const isPoints = scale === "points_0_15";
   const scaleLabel = isPoints ? "Ø Punkte<br>Skala 0–15" : "Ø Note<br>Skala 1–6";

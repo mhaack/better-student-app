@@ -72,7 +72,7 @@ export async function getNotenData(studentId, options) {
 }
 
 /**
- * Every single grade with a value, for the Diagramme; subject averages never
+ * Every single grade with a value, for the Diagramm; subject averages never
  * enter it (they may be estimates).
  */
 function chartData(grades, courses, scale) {
@@ -92,7 +92,7 @@ function chartData(grades, courses, scale) {
 }
 
 /**
- * The Diagramme for the chosen subjects: their distribution and how many of
+ * The Diagramm for the chosen subjects: their distribution and how many of
  * them have grades (the "· n Fächer" in the donut's title).
  * @param {{ chart: { entries: Array<{ subjectId: number, value: number, kind: "ka" | "sl" }> } }} data from getNotenData
  * @param {{ scale: import('../domain/grades.js').GradeScale, unit: "notes" | "points", selected: Set<number> | null }} options

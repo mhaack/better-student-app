@@ -1,4 +1,4 @@
-// The Noten › Diagramme chart bodies: stacked bars, donut and table as HTML strings.
+// The Noten › Diagramm chart bodies: stacked bars, donut and table as HTML strings.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { barChart, distributionTable, donutChart } from "../../public/js/components/grade-charts.js";

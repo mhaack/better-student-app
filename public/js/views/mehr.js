@@ -129,7 +129,7 @@ export async function renderMehr(container) {
           <div class="settings-row">
             <span class="settings-text">
               <span class="settings-label">Notendiagramm</span>
-              <span class="settings-hint">Darstellung unter Noten › Diagramme</span>
+              <span class="settings-hint">Darstellung unter Noten › Diagramm</span>
             </span>
             ${segmented(GRADE_CHART_OPTIONS, getGradeChart(), { label: "Notendiagramm", attr: "data-grade-chart", modifier: "small" })}
           </div>

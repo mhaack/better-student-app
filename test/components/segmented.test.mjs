@@ -1,4 +1,4 @@
-// The toggle row used for Übersicht | Diagramme, Balken | Kreis and 0–15 P | 1–6.
+// The toggle row used for Übersicht | Diagramm, Balken | Kreis and 0–15 P | 1–6.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { segmented } from "../../public/js/components/segmented.js";

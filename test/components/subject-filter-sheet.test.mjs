@@ -3,7 +3,6 @@ import { describe, test } from "node:test";
 import {
   applyButtonState,
   initialDraft,
-  matchesSearch,
   resolveDraft,
   selectableIds,
   subjectFilterLabel,
@@ -104,22 +103,3 @@ describe("applyButtonState", () => {
   });
 });
 
-describe("matchesSearch", () => {
-  test("matches every subject for an empty or blank query", () => {
-    assert.equal(matchesSearch("Mathematik", ""), true);
-    assert.equal(matchesSearch("Mathematik", "  "), true);
-  });
-
-  test("matches part of the name regardless of case", () => {
-    assert.equal(matchesSearch("Mathematik", "MATHE"), true);
-    assert.equal(matchesSearch("Englisch", "lisch"), true);
-  });
-
-  test("matches umlauts regardless of case", () => {
-    assert.equal(matchesSearch("Ästhetik", "äst"), true);
-  });
-
-  test("rejects names without the query", () => {
-    assert.equal(matchesSearch("Deutsch", "bio"), false);
-  });
-});

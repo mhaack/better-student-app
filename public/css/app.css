@@ -2451,7 +2451,7 @@ button {
   text-align: right;
 }
 
-/* ── Noten: header, Übersicht | Diagramme, chart pane ── */
+/* ── Noten: header, Übersicht | Diagramm, chart pane ── */
 
 /* Title left, Halbjahr pill right, sharing a bottom line. */
 .noten-head {
@@ -2666,7 +2666,7 @@ button {
 }
 
 /* ── Noten charts (components/grade-charts.js) ── */
-/* Noten › Diagramme: chart bodies from components/grade-charts.js (design: noten-diagramme B3–B8). */
+/* Noten › Diagramm: chart bodies from components/grade-charts.js (design: noten-diagramme B3–B8). */
 .gc-chart svg {
   display: block;
   width: 100%;
@@ -2879,48 +2879,6 @@ button {
   color: var(--text-primary);
 }
 
-.sf-search {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.sf-search:focus-within {
-  border-color: var(--text-primary);
-}
-
-.sf-search-icon {
-  display: flex;
-  flex: none;
-}
-
-.sf-search-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.sf-search input {
-  flex: 1;
-  min-width: 0;
-  min-height: 38px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font: 400 16px var(--font-sans);
-  color: var(--text-primary);
-}
-
-.sf-search input::placeholder {
-  color: var(--text-muted);
-}
-
 .sf-list {
   flex: 1 1 auto;
   min-height: 0;
@@ -2936,10 +2894,6 @@ button {
   min-height: 46px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-}
-
-.sf-row[hidden] {
-  display: none;
 }
 
 .sf-row input {
@@ -3007,12 +2961,6 @@ button {
 .sf-row.is-disabled .sf-name,
 .sf-row.is-disabled .sf-count {
   color: var(--text-disabled);
-}
-
-.sf-none {
-  margin: 16px 0;
-  font-size: 14px;
-  color: var(--text-muted);
 }
 
 .sf-apply {
