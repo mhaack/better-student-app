@@ -1,4 +1,4 @@
-// The Noten › Diagramme charts as HTML strings: stacked bars, donut, table.
+// The Noten › Diagramm charts as HTML strings: stacked bars, donut, table.
 // They render the body only; the view owns the card, its title and toggles.
 import { pointsToNote } from "../domain/grade-distribution.js";
 import { escapeHtml } from "../util/dom.js";

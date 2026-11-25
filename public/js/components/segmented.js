@@ -1,4 +1,4 @@
-// A row of toggle buttons with one pressed: Übersicht | Diagramme, Balken | Kreis, 0–15 P | 1–6.
+// A row of toggle buttons with one pressed: Übersicht | Diagramm, Balken | Kreis, 0–15 P | 1–6.
 import { escapeHtml } from "../util/dom.js";
 
 /**

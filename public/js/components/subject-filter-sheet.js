@@ -40,11 +40,6 @@ export function applyButtonState(draft, subjects) {
   return { label: `${plural(n, ["Fach", "Fächer"])} anzeigen`, disabled: false };
 }
 
-export function matchesSearch(name, query) {
-  const q = query.trim().toLocaleLowerCase("de");
-  return !q || name.toLocaleLowerCase("de").includes(q);
-}
-
 /**
  * The Fächer sheet: checkboxes per subject, applied only by the bottom button.
  * Closing any other way leaves the filter as it was.
@@ -65,10 +60,8 @@ export function openSubjectFilterSheet(container, { subjects, selected, onApply 
         <h2 id="sf-title" class="detail-title sf-title">Fächer</h2>
         <button type="button" class="sf-all">Alle</button>
       </div>
-      <label class="sf-search"><span class="sf-search-icon" aria-hidden="true">${ICONS.search}</span><input type="search" placeholder="Fach suchen" aria-label="Fach suchen" autocomplete="off"></label>
       <div class="sf-list">
         ${rows}
-        <p class="sf-none" hidden>Kein Fach gefunden.</p>
       </div>
       <button type="button" class="button-primary sf-apply"></button>
     </div>`,
@@ -76,7 +69,6 @@ export function openSubjectFilterSheet(container, { subjects, selected, onApply 
 
   const boxes = [...backdrop.querySelectorAll(".sf-row input")];
   const apply = backdrop.querySelector(".sf-apply");
-  const search = backdrop.querySelector(".sf-search input");
 
   function update() {
     const { label, disabled } = applyButtonState(draft, subjects);
@@ -99,23 +91,12 @@ export function openSubjectFilterSheet(container, { subjects, selected, onApply 
     update();
   });
 
-  search.addEventListener("input", () => {
-    let shown = 0;
-    for (const box of boxes) {
-      const match = matchesSearch(subjects[Number(box.dataset.index)].name, search.value);
-      box.closest(".sf-row").hidden = !match;
-      if (match) shown++;
-    }
-    backdrop.querySelector(".sf-none").hidden = shown > 0;
-  });
-
   apply.addEventListener("click", () => {
     onApply(resolveDraft(draft, subjects));
     closeDetailSheet(container);
   });
 
   update();
-  search.focus({ preventScroll: true });
 }
 
 function subjectRow(subject, index, checked) {
