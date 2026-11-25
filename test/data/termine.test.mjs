@@ -434,4 +434,10 @@ describe("withBellTimes", () => {
     assert.equal(fifth.timeLabel, "11:40–12:25");
     assert.equal(ninth.timeLabel, undefined);
   });
+
+  test("keeps start and end for the Jetzt display", () => {
+    const [fifth] = withBellTimes([lesson(5, MA)], timetable);
+    assert.equal(fifth.from, "11:40");
+    assert.equal(fifth.to, "12:25");
+  });
 });

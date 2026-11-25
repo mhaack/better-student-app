@@ -7,10 +7,13 @@ import { closeDetailSheet, bindActivate } from "../components/detail-sheet.js";
 import { openExamSheet } from "../components/exam-sheet.js";
 import { categoryMarker, lessonMarkers } from "../components/marker.js";
 import { lessonStatusLabel, openLessonSheet } from "../components/lesson-sheet.js";
+import { progressBar, everyMinute } from "../components/jetzt.js";
+import { jetztState } from "../domain/jetzt.js";
 
 // Up to 3 weeks ahead of the default week.
 const MAX_WEEK_OFFSET = 3;
 const SWIPE_THRESHOLD_PX = 50;
+const JETZT_OFF = { kind: "off" };
 
 function cellContent(lesson, day, dayIndex) {
   if (!lesson) return "";
@@ -73,9 +76,10 @@ function cellContent(lesson, day, dayIndex) {
 function headerRow(days) {
   const cells = days
     .map((d, i) => {
+      const today = d.isToday && d.isSchoolDay;
       const content = `
-        <div class="sp-day-label${d.isToday ? " sp-day-label--today" : ""}">${escapeHtml(d.label)}</div>
-        <div class="sp-day-date">${escapeHtml(d.dateLabel)}</div>`;
+        <div class="sp-day-label${today ? " sp-day-label--today" : ""}">${escapeHtml(d.label)}</div>
+        <div class="sp-day-date${today ? " sp-day-date--today" : ""}">${today ? "heute" : escapeHtml(d.dateLabel)}</div>`;
       if (!d.exams.length) return `<div class="sp-day-head">${content}</div>`;
       const label = `${formatWeekday(d.iso, "long")} ${d.dateLabel} – Test anzeigen`;
       return `
@@ -91,7 +95,28 @@ function gridRow(row, days) {
   const cells = row.cells
     .map((lesson, dayIndex) => `<div class="sp-grid-cell">${cellContent(lesson, days[dayIndex], dayIndex)}</div>`)
     .join("");
-  return `<div class="sp-grid-row"><div class="sp-period">${row.period}</div>${cells}</div>`;
+  return `<div class="sp-grid-row"><div class="sp-period" data-row-period="${row.period}">${row.period}</div>${cells}</div>`;
+}
+
+/**
+ * The Jetzt display in today's column: past lessons faded, a bar in the
+ * running one. Patched in place each minute, so an open sheet keeps its cell.
+ */
+function markJetzt(body, days) {
+  const today = days.findIndex((d) => d.isToday && d.isSchoolDay);
+  const state = today < 0 ? JETZT_OFF : jetztState(new Date(), days[today].lessons);
+  const running = state.kind === "lesson" ? state.period : null;
+
+  for (const cell of body.querySelectorAll(`.sp-cell[data-day-index="${today}"]`)) {
+    const period = Number(cell.dataset.period);
+    cell.classList.toggle("sp-cell--past", state.kind !== "off" && state.past.includes(period));
+    cell.classList.toggle("sp-cell--now", period === running);
+    cell.querySelector(".sp-cell-bar")?.remove();
+    if (period === running) cell.insertAdjacentHTML("beforeend", progressBar(state.progress, "sp-cell-bar", "Laufende Stunde"));
+  }
+  for (const num of body.querySelectorAll("[data-row-period]")) {
+    num.classList.toggle("sp-period--now", Number(num.dataset.rowPeriod) === running);
+  }
 }
 
 function weekLabelFor(weeksFromNow) {
@@ -178,6 +203,7 @@ export async function renderStundenplan(container) {
     if (day?.exams.length) openExamSheet(container, day.exams, headEl);
   });
 
+  everyMinute(body, () => markJetzt(body, currentDays));
   const days = await loadAndRender(container, studentId, student, weekOffset, loadState);
   if (days) currentDays = days;
 }
@@ -234,6 +260,7 @@ async function loadAndRender(container, studentId, student, weekOffset, loadStat
       <div class="sp-legend">${changesLine}</div>
       <div class="sp-legend-hint">Stunde antippen für Details</div>
     `;
+    markJetzt(body, data.days);
     return data.days;
   } catch (err) {
     if (loadState.seq !== seq) return null;

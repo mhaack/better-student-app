@@ -150,7 +150,7 @@ export function withBellTimes(lessons, timetable) {
   const bell = bellTimes(timetable);
   return lessons.map((l) => {
     const time = bell.get(l.period);
-    return time ? { ...l, timeLabel: `${time.from}–${time.to}` } : l;
+    return time ? { ...l, from: time.from, to: time.to, timeLabel: `${time.from}–${time.to}` } : l;
   });
 }
 

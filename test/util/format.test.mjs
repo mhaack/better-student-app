@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, mock, test } from "node:test";
 import {
   calendarDaysBetween,
+  formatClock,
   countdownLabel,
   daysUntil,
   formatAverage,
@@ -70,6 +71,17 @@ describe("formatWeekdayDate", () => {
 
   test("writes the weekday out, with a comma, when asked", () => {
     assert.equal(formatWeekdayDate("2025-09-18", "long"), "Donnerstag, 18.09.25");
+  });
+});
+
+describe("formatClock", () => {
+  test("drops the hour's leading zero", () => {
+    assert.equal(formatClock("09:45"), "9:45");
+    assert.equal(formatClock("11:40"), "11:40");
+  });
+
+  test("gives an empty string without a time", () => {
+    assert.equal(formatClock(undefined), "");
   });
 });
 

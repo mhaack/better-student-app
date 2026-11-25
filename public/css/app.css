@@ -729,7 +729,16 @@ button {
 }
 
 .sp-day-label--today {
+  padding: 0 8px;
+  line-height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+.sp-day-date--today {
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .sp-day-date {
@@ -801,6 +810,29 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sp-cell--past {
+  opacity: .45;
+}
+
+.sp-cell--now {
+  padding-bottom: 12px;
+}
+
+.sp-period--now {
+  color: var(--text-primary);
+}
+
+.sp-cell-bar {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--now-cell-track);
+  overflow: hidden;
 }
 
 .detail-backdrop {
@@ -1908,6 +1940,100 @@ button {
   color: var(--text-secondary);
   font-weight: 400;
   text-decoration: line-through;
+}
+
+.heute-lesson--past .heute-lesson__subject,
+.heute-lesson--past .heute-lesson__meta {
+  color: var(--text-disabled);
+}
+
+.heute-lesson--past.heute-lesson--changed .heute-lesson__subject,
+.heute-lesson--past.heute-lesson--changed .heute-lesson__meta {
+  color: var(--accent-faded);
+}
+
+.heute-lesson--past .pill {
+  opacity: .55;
+}
+
+.heute-now {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px -12px;
+  padding: 10px 12px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(26, 23, 20, .06);
+}
+
+.heute-now--next {
+  border-style: dashed;
+  border-color: var(--now-next-border);
+  box-shadow: none;
+  padding-bottom: 10px;
+}
+
+.heute-now .heute-lesson {
+  border-bottom: 0;
+  min-height: 34px;
+}
+
+.heute-now .heute-lesson__period {
+  color: var(--text-primary);
+}
+
+.heute-now__top,
+.heute-now__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.heute-now__bar {
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.heute-now__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.heute-now__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.heute-now__progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--now-track);
+  overflow: hidden;
+}
+
+.heute-now__progress > span,
+.sp-cell-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--text-primary);
+  transition: width .6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heute-now__progress > span,
+  .sp-cell-bar > span {
+    transition: none;
+  }
 }
 
 .heute-grades {
