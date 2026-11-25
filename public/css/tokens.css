@@ -1,4 +1,3 @@
-/* Design tokens extracted from project/Schulblick Layoutrichtungen.dc.html, direction 2a (hybrid). */
 :root {
   --font-sans: 'Instrument Sans', system-ui, sans-serif;
   --font-serif: 'Instrument Serif', serif;
@@ -28,7 +27,6 @@
 
   --pressed: #EFEAE2;
 
-  /* The logo's rainbow, innermost arc first; same in dark mode. */
   --rainbow-1: #CDB8F0;
   --rainbow-2: #A9D3F0;
   --rainbow-3: #BFE3B4;
@@ -36,7 +34,6 @@
   --rainbow-5: #F9CBA7;
   --rainbow-6: #F4B6C2;
 
-  /* Grade capsule and its Kenntnisnahme state (design: schulblick-neu-sticker). */
   --capsule-bg: var(--surface);
   --capsule-border: var(--border-strong);
   --sticker-bg: #A8341C;
@@ -47,20 +44,16 @@
   --grade-previous: #8A827A;
   --seen-bg: #ECE7DF;
   --seen-fg: #57504A;
-  /* Benachrichtigungen: the Schulinfo card's megaphone tile. */
   --info-tile-bg: #EAE4DB;
-  /* Ferien and free days in the Termine list: one peach card, a label tells them apart. */
   --frei-bg: #FCEADB;
   --frei-line: #F9CBA7;
   --frei-ink: #3D1E0C;
   --frei-ink-2: #6B3410;
   --frei-accent: #7A3E14;
-  /* Heute's test card: dark on light, flipped to light in dark mode. */
   --hero-bg: #1A1714;
   --hero-ink: #F6F3EE;
   --hero-muted: #B8AFA4;
   --hero-line: #3A342E;
-  /* Noten charts: KA/Sonstige series and the donut's Note 1 (strong) → Note 6 (faint) ramp. */
   --series-ka: #A8341C;
   --series-sl: #E58A5C;
   --seq-1: #7A2410;
@@ -69,7 +62,6 @@
   --seq-4: #E58A5C;
   --seq-5: #F0B08A;
   --seq-6: #F7D3BA;
-  /* Segmented controls: the track and the pressed segment on it. */
   --seg-track: #EAE4DB;
   --seg-thumb: #FFFFFF;
 
@@ -107,7 +99,6 @@
 
   --pressed: #26221D;
 
-  /* Accent is too light for white text; the sticker gets its own red (4.8:1). */
   --capsule-bg: transparent;
   --capsule-border: #F3F0EA;
   --sticker-bg: #C4492E;
@@ -126,7 +117,6 @@
   --hero-ink: #1A1714;
   --hero-muted: #57504A;
   --hero-line: #D9D2C8;
-  /* On dark the ramp flips: Note 1 brightest, Note 6 closest to the surface. */
   --series-ka: #D4573B;
   --series-sl: #F2A47E;
   --seq-1: #FF8A63;
@@ -166,7 +156,6 @@
 
     --pressed: #26221D;
 
-    /* Accent is too light for white text; the sticker gets its own red (4.8:1). */
     --capsule-bg: transparent;
     --capsule-border: #F3F0EA;
     --sticker-bg: #C4492E;
@@ -185,7 +174,6 @@
     --hero-ink: #1A1714;
     --hero-muted: #57504A;
     --hero-line: #D9D2C8;
-    /* On dark the ramp flips: Note 1 brightest, Note 6 closest to the surface. */
     --series-ka: #D4573B;
     --series-sl: #F2A47E;
     --seq-1: #FF8A63;
