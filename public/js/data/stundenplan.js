@@ -68,6 +68,7 @@ export async function getStundenplanData(weekOffset = 0, studentId = null) {
         label: WEEKDAY_LABELS[index],
         dateLabel: formatDayMonth(isoDate(date)),
         isToday: isoDate(date) === todayIso,
+        isSchoolDay: !(timetable.noSchoolDates ?? []).includes(isoDate(date)),
         countdown: countdownLabel(calendarDaysBetween(todayIso, isoDate(date))),
         lessons: withBellTimes(lessonsForDate(date, dayPlans, timetable), timetable),
       })),

@@ -6,7 +6,7 @@ import { unreadNotificationCount } from "../data/notifications.js";
 import { navigate } from "../router.js";
 import { mitteilungRow } from "./mitteilungen.js";
 import { escapeHtml } from "../util/dom.js";
-import { weekdayOrDate, formatWeekdayDate, formatFullDate } from "../util/format.js";
+import { weekdayOrDate, formatWeekdayDate, formatFullDate, formatClock } from "../util/format.js";
 import { newSticker, gradeValue } from "../components/grade-capsule.js";
 import { ICONS } from "../components/icons.js";
 import { renderSkeleton, renderErrorState, bindErrorState } from "../components/states.js";
@@ -14,6 +14,8 @@ import { openDetailSheet, bindActivate, markTruncatedRows } from "../components/
 import { openExamSheet } from "../components/exam-sheet.js";
 import { openLessonSheet, lessonStatusLabel } from "../components/lesson-sheet.js";
 import { categoryMarker, lessonMarkers } from "../components/marker.js";
+import { progressBar, everyMinute } from "../components/jetzt.js";
+import { jetztState } from "../domain/jetzt.js";
 
 const STATUS_PILL = {
   room_change: '<span class="pill pill--room">→ Raum</span>',
@@ -22,6 +24,7 @@ const STATUS_PILL = {
 };
 // More rows go behind "+n weitere".
 const MAX_GRADE_ROWS = 2;
+const JETZT_OFF = { kind: "off" };
 
 /** The black card for a test today or tomorrow. */
 function testCard(test) {
@@ -44,7 +47,7 @@ function lessonMeta(lesson) {
   return lesson.room ?? lesson.teacher ?? "";
 }
 
-function lessonRow(lesson) {
+function lessonRow(lesson, past = false) {
   const status = lesson.status === "regular" ? "" : ` heute-lesson--${lesson.status === "cancelled" ? "cancelled" : "changed"}`;
   const label = [
     `${lesson.period}. Stunde, ${lesson.subject ?? lesson.subjectShort ?? ""}`,
@@ -55,7 +58,7 @@ function lessonRow(lesson) {
     .filter(Boolean)
     .join(", ");
   return `
-    <div class="heute-lesson${status}" role="button" tabindex="0" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
+    <div class="heute-lesson${status}${past ? " heute-lesson--past" : ""}" role="button" tabindex="0" data-period="${lesson.period}" aria-label="${escapeHtml(label)}">
       <span class="heute-lesson__period">${escapeHtml(lesson.period)}</span>
       <span class="heute-lesson__main">
         <span class="heute-lesson__subject">${escapeHtml(lesson.subject ?? "–")}</span>
@@ -66,10 +69,46 @@ function lessonRow(lesson) {
     </div>`;
 }
 
-function planSection(day, changeCount) {
-  const rows = day.lessons.length
-    ? day.lessons.map(lessonRow).join("")
-    : '<div class="empty-state">Keine Stunden.</div>';
+/** The running lesson ("Jetzt") or, in a break, the next one ("Gleich") as a card. */
+function nowCard(lesson, state) {
+  if (state.kind === "lesson") {
+    return `
+    <div class="heute-now" role="group" aria-label="Jetzt: ${lesson.period}. Stunde, noch ${state.restMin} Minuten">
+      <div class="heute-now__top">
+        <span class="heute-now__label">Jetzt</span>
+        <span class="heute-now__meta">${escapeHtml(`${formatClock(state.from)}–${formatClock(state.to)}`)}</span>
+      </div>
+      ${lessonRow(lesson)}
+      <div class="heute-now__bar">
+        ${progressBar(state.progress, "heute-now__progress", "Verlauf der Stunde")}
+        <span class="heute-now__meta">noch ${state.restMin} Min</span>
+      </div>
+    </div>`;
+  }
+  const from = formatClock(state.from);
+  return `
+    <div class="heute-now heute-now--next" role="group" aria-label="Gleich: ${lesson.period}. Stunde ab ${escapeHtml(from)}">
+      <div class="heute-now__top">
+        <span class="heute-now__label">Gleich · ${state.free ? "Freistunde" : "Pause"}</span>
+        <span class="heute-now__meta">${escapeHtml(`ab ${from} · in ${state.inMin} Min`)}</span>
+      </div>
+      ${lessonRow(lesson)}
+    </div>`;
+}
+
+function lessonRows(day, state) {
+  if (!day.lessons.length) return '<div class="empty-state">Keine Stunden.</div>';
+  return day.lessons
+    .map((lesson) => {
+      if (state.kind === "off") return lessonRow(lesson);
+      if (state.period === lesson.period) return nowCard(lesson, state);
+      return lessonRow(lesson, state.past.includes(lesson.period));
+    })
+    .join("");
+}
+
+function planSection(day, changeCount, state) {
+  const rows = lessonRows(day, state);
   const changes = changeCount ? `${changeCount} ${changeCount === 1 ? "Änderung" : "Änderungen"}` : "";
   return `
     <div class="section section--tight">
@@ -200,14 +239,21 @@ export async function renderHeute(container) {
     container.querySelector("#heute-title").textContent = data.title;
     container.querySelector("#heute-subtitle").textContent = `${data.dateLabel}${klasse ? ` · ${klasse}` : ""}`;
 
+    const jetzt = () => (data.isToday ? jetztState(new Date(), data.day.lessons) : JETZT_OFF);
     const body = container.querySelector("#heute-body");
     body.innerHTML = `
       ${testCard(data.test)}
-      ${planSection(data.day, data.changeCount)}
+      ${planSection(data.day, data.changeCount, jetzt())}
       ${gradesCard(data.latestGrades)}
       ${termineSection(data.termine)}
       <div id="heute-mitteilungen" hidden></div>
     `;
+    if (data.isToday && data.day.lessons.length) {
+      const lessons = body.querySelector(".heute-lessons");
+      everyMinute(lessons, () => {
+        lessons.innerHTML = lessonRows(data.day, jetzt());
+      });
+    }
     fillMitteilungen(container);
     fillBell(container, studentId, scale);
     markTruncatedRows(body, "[data-note-index]", ".heute-termin__kind");

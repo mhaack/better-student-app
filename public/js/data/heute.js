@@ -125,6 +125,8 @@ export async function getHeuteData(studentId, scale) {
 
   return {
     title: schoolDayLabel(day, now),
+    // After the cutoff the shown day is a later one: no Jetzt display.
+    isToday: dayIso === todayIso,
     dateLabel: formatWeekdayDate(dayIso, "long"),
     day: shownDay,
     changeCount: shownDay.lessons.filter((l) => l.status !== "regular").length,

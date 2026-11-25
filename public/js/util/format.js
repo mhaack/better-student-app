@@ -80,6 +80,11 @@ export function formatDayMonth(iso) {
   return date ? `${date.getDate()}.${date.getMonth() + 1}.` : "";
 }
 
+/** "09:45" → "9:45", like a printed bell schedule. */
+export function formatClock(hm) {
+  return hm ? String(hm).replace(/^0(?=\d:)/, "") : "";
+}
+
 /** "November 2026" */
 export function formatMonthYear(iso) {
   const date = localDate(iso);
