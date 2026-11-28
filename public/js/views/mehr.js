@@ -6,18 +6,25 @@ import { getMitteilungenData } from "../data/mitteilungen.js";
 import { getFerienData } from "../data/ferien.js";
 import { relativeDays } from "../components/next-card.js";
 import { ferienRangeLabel } from "./ferien.js";
-import { getThemePreference, setThemePreference } from "../state/theme.js";
+import { getThemePreference, setThemePreference, applyAccent } from "../state/theme.js";
 import { canInstall, promptInstall, isStandalone, isIos } from "../state/install.js";
-import { getCutoffHour, setCutoffHour, getGradeChart, setGradeChart } from "../state/settings.js";
+import { getCutoffHour, setCutoffHour, getGradeChart, setGradeChart, getAccent, setAccent } from "../state/settings.js";
 import { CUTOFF_HOUR_OPTIONS } from "../domain/school-day.js";
 import { escapeHtml } from "../util/dom.js";
 import { segmented, setPressed } from "../components/segmented.js";
+import { accentPicker, bindAccentPicker } from "../components/accent-picker.js";
 import { navigate } from "../router.js";
 
 const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Hell" },
   { value: "dark", label: "Dunkel" },
+];
+const ACCENT_OPTIONS = [
+  { value: "rost", label: "Rost" },
+  { value: "pflaume", label: "Pflaume" },
+  { value: "gruen", label: "Grün" },
+  { value: "petrol", label: "Petrol" },
 ];
 const GRADE_CHART_OPTIONS = [
   { value: "bar", label: "Balken" },
@@ -126,6 +133,7 @@ export async function renderMehr(container) {
               ).join("")}
             </select>
           </label>
+          ${accentPicker(ACCENT_OPTIONS, getAccent())}
           <div class="settings-row">
             <span class="settings-text">
               <span class="settings-label">Notendiagramm</span>
@@ -169,6 +177,11 @@ export async function renderMehr(container) {
 
   container.querySelector("#theme-picker").addEventListener("change", (e) => {
     setThemePreference(e.target.value);
+  });
+
+  bindAccentPicker(container, (value) => {
+    setAccent(value);
+    applyAccent(value);
   });
 
   container.querySelector("[data-grade-chart]").parentElement.addEventListener("click", (e) => {

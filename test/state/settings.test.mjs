@@ -1,7 +1,14 @@
 // Device-local preferences; a broken or missing storage falls back to the defaults.
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
-import { getGradeChart, getGradeUnit, setGradeChart, setGradeUnit } from "../../public/js/state/settings.js";
+import {
+  getAccent,
+  getGradeChart,
+  getGradeUnit,
+  setAccent,
+  setGradeChart,
+  setGradeUnit,
+} from "../../public/js/state/settings.js";
 
 function memoryStorage() {
   const data = new Map();
@@ -70,5 +77,23 @@ describe("setGradeUnit", () => {
   test("remembers the converted Noten", () => {
     setGradeUnit("notes");
     assert.equal(getGradeUnit(), "notes");
+  });
+});
+
+describe("getAccent", () => {
+  test("defaults to Rost", () => {
+    assert.equal(getAccent(), "rost");
+  });
+
+  test("ignores a stored color it doesn't offer", () => {
+    window.localStorage.setItem("schulblick.accent", "pink");
+    assert.equal(getAccent(), "rost");
+  });
+});
+
+describe("setAccent", () => {
+  test("remembers Petrol", () => {
+    setAccent("petrol");
+    assert.equal(getAccent(), "petrol");
   });
 });

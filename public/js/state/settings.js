@@ -8,6 +8,10 @@ const DEFAULT_GRADE_CHART = "bar";
 const GRADE_UNIT_KEY = "schulblick.gradeUnit";
 const GRADE_UNIT_OPTIONS = ["points", "notes"];
 const DEFAULT_GRADE_UNIT = "points";
+// ACCENT_KEY and ACCENT_OPTIONS are duplicated in /theme-init.js; keep them in sync.
+const ACCENT_KEY = "schulblick.accent";
+const ACCENT_OPTIONS = ["rost", "pflaume", "gruen", "petrol"];
+const DEFAULT_ACCENT = "rost";
 
 /** The cutoff hour for "Heute"; anything not on the offered list falls back. */
 export function getCutoffHour() {
@@ -43,6 +47,15 @@ export function getGradeUnit() {
 
 export function setGradeUnit(value) {
   writeSetting(GRADE_UNIT_KEY, value);
+}
+
+/** The accent palette, a [data-accent] in tokens.css; default Rost. */
+export function getAccent() {
+  return readChoice(ACCENT_KEY, ACCENT_OPTIONS, DEFAULT_ACCENT);
+}
+
+export function setAccent(value) {
+  writeSetting(ACCENT_KEY, value);
 }
 
 /** A stored value if it is one of `options`, else the fallback. */

@@ -1,3 +1,46 @@
+/* Accent palettes: data-accent on <html> picks one (rost without it). The
+   role tokens below read only --a-*; a palette set on any element scopes
+   --a-* there too, which the Akzentfarbe swatches use to show each color. */
+:root,
+[data-accent="rost"] {
+  --a-accent: #A8341C; --a-tint: #FBE9E3; --a-line: #E8B9A9; --a-faded: #C98F80; --a-rgb: 168, 52, 28;
+  --a-sl: #E58A5C;
+  --a-seq-1: #7A2410; --a-seq-2: #A8341C; --a-seq-3: #CC5A36; --a-seq-4: #E58A5C; --a-seq-5: #F0B08A; --a-seq-6: #F7D3BA;
+  --a-d-accent: #FFB098; --a-d-sticker: #C4492E; --a-d-tint: #33231C; --a-d-line: #5A3A2C; --a-d-faded: #9A6A5B;
+  --a-d-series-ka: #D4573B; --a-d-series-sl: #F2A47E;
+  --a-d-seq-1: #FF8A63; --a-d-seq-2: #E8653F; --a-d-seq-3: #C94F31; --a-d-seq-4: #A43F27; --a-d-seq-5: #803220; --a-d-seq-6: #5E271A;
+}
+
+[data-accent="pflaume"] {
+  --a-accent: #6B3A7A; --a-tint: #F3E8F5; --a-line: #D9BFE0; --a-faded: #AC91B1; --a-rgb: 107, 58, 122;
+  --a-sl: #C08ACD;
+  --a-seq-1: #43204F; --a-seq-2: #654670; --a-seq-3: #876B90; --a-seq-4: #AA91B1; --a-seq-5: #CCB6D1; --a-seq-6: #EEDCF2;
+  --a-d-accent: #D9AEE3; --a-d-sticker: #8E4FA0; --a-d-tint: #2A1F2E; --a-d-line: #4D3755; --a-d-faded: #826986;
+}
+
+[data-accent="gruen"] {
+  --a-accent: #2D6A35; --a-tint: #E7F2E5; --a-line: #B5D6B0; --a-faded: #8BAA8C; --a-rgb: 45, 106, 53;
+  --a-sl: #5FA85B;
+  --a-seq-1: #1A4320; --a-seq-2: #406544; --a-seq-3: #668768; --a-seq-4: #8DAA8D; --a-seq-5: #B3CCB1; --a-seq-6: #D9EED5;
+  --a-d-accent: #9AD392; --a-d-sticker: #3A8243; --a-d-tint: #1A251A; --a-d-line: #2F4A30; --a-d-faded: #5F7E58;
+}
+
+[data-accent="petrol"] {
+  --a-accent: #0F6688; --a-tint: #E2F1F6; --a-line: #A8D2E2; --a-faded: #7CA8B8; --a-rgb: 15, 102, 136;
+  --a-sl: #5FB0CF;
+  --a-seq-1: #0A4660; --a-seq-2: #32677D; --a-seq-3: #5A889B; --a-seq-4: #82A9B8; --a-seq-5: #AACAD6; --a-seq-6: #D2EBF3;
+  --a-d-accent: #8CCBE3; --a-d-sticker: #167BA2; --a-d-tint: #162428; --a-d-line: #2A4A56; --a-d-faded: #577A86;
+}
+
+/* Only Rost has its own dark chart ramp; the others keep the light charts in dark mode, as designed. */
+[data-accent="pflaume"],
+[data-accent="gruen"],
+[data-accent="petrol"] {
+  --a-d-series-ka: var(--a-d-accent); --a-d-series-sl: var(--a-sl);
+  --a-d-seq-1: var(--a-seq-1); --a-d-seq-2: var(--a-seq-2); --a-d-seq-3: var(--a-seq-3);
+  --a-d-seq-4: var(--a-seq-4); --a-d-seq-5: var(--a-seq-5); --a-d-seq-6: var(--a-seq-6);
+}
+
 :root {
   --font-sans: 'Instrument Sans', system-ui, sans-serif;
   --font-serif: 'Instrument Serif', serif;
@@ -14,10 +57,9 @@
   --text-muted: #6F6862;
   --text-disabled: #8A827A;
 
-  --accent: #A8341C;
-  --accent-bg: #FBE9E3;
-  --accent-border: #E8B9A9;
-  --accent-hover: #7d2413;
+  --accent: var(--a-accent);
+  --accent-bg: var(--a-tint);
+  --accent-border: var(--a-line);
 
   --chip-bg: #F0EBE3;
   --chip-text: #57504A;
@@ -36,9 +78,9 @@
 
   --capsule-bg: var(--surface);
   --capsule-border: var(--border-strong);
-  --sticker-bg: #A8341C;
+  --sticker-bg: var(--a-accent);
   --sticker-text: #FFFFFF;
-  --sticker-shadow: 0 2px 5px rgba(168, 52, 28, 0.28);
+  --sticker-shadow: 0 2px 5px rgba(var(--a-rgb), 0.28);
   --sticker-changed-bg: #1A1714;
   --sticker-changed-text: #F6F3EE;
   --grade-previous: #8A827A;
@@ -57,15 +99,15 @@
   --now-track: #EAE4DB;
   --now-cell-track: rgba(26, 23, 20, 0.12);
   --now-next-border: #CFC7BC;
-  --accent-faded: #C98F80;
-  --series-ka: #A8341C;
-  --series-sl: #E58A5C;
-  --seq-1: #7A2410;
-  --seq-2: #A8341C;
-  --seq-3: #CC5A36;
-  --seq-4: #E58A5C;
-  --seq-5: #F0B08A;
-  --seq-6: #F7D3BA;
+  --accent-faded: var(--a-faded);
+  --series-ka: var(--a-accent);
+  --series-sl: var(--a-sl);
+  --seq-1: var(--a-seq-1);
+  --seq-2: var(--a-seq-2);
+  --seq-3: var(--a-seq-3);
+  --seq-4: var(--a-seq-4);
+  --seq-5: var(--a-seq-5);
+  --seq-6: var(--a-seq-6);
   --seg-track: #EAE4DB;
   --seg-thumb: #FFFFFF;
 
@@ -90,10 +132,9 @@
   --text-muted: #9C948A;
   --text-disabled: #6B6259;
 
-  --accent: #FFB098;
-  --accent-bg: #33231C;
-  --accent-border: #5A3A2C;
-  --accent-hover: #FFC9B7;
+  --accent: var(--a-d-accent);
+  --accent-bg: var(--a-d-tint);
+  --accent-border: var(--a-d-line);
 
   --chip-bg: #2A241D;
   --chip-text: #B8AFA4;
@@ -105,7 +146,7 @@
 
   --capsule-bg: transparent;
   --capsule-border: #F3F0EA;
-  --sticker-bg: #C4492E;
+  --sticker-bg: var(--a-d-sticker);
   --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
   --sticker-changed-bg: #F3F0EA;
   --sticker-changed-text: #14120F;
@@ -124,15 +165,15 @@
   --now-track: rgba(243, 240, 234, 0.12);
   --now-cell-track: rgba(243, 240, 234, 0.16);
   --now-next-border: #4A443C;
-  --accent-faded: #9A6A5B;
-  --series-ka: #D4573B;
-  --series-sl: #F2A47E;
-  --seq-1: #FF8A63;
-  --seq-2: #E8653F;
-  --seq-3: #C94F31;
-  --seq-4: #A43F27;
-  --seq-5: #803220;
-  --seq-6: #5E271A;
+  --accent-faded: var(--a-d-faded);
+  --series-ka: var(--a-d-series-ka);
+  --series-sl: var(--a-d-series-sl);
+  --seq-1: var(--a-d-seq-1);
+  --seq-2: var(--a-d-seq-2);
+  --seq-3: var(--a-d-seq-3);
+  --seq-4: var(--a-d-seq-4);
+  --seq-5: var(--a-d-seq-5);
+  --seq-6: var(--a-d-seq-6);
   --seg-track: #26221D;
   --seg-thumb: #3A352E;
 }
@@ -151,10 +192,9 @@
     --text-muted: #9C948A;
     --text-disabled: #6B6259;
 
-    --accent: #FFB098;
-    --accent-bg: #33231C;
-    --accent-border: #5A3A2C;
-    --accent-hover: #FFC9B7;
+    --accent: var(--a-d-accent);
+    --accent-bg: var(--a-d-tint);
+    --accent-border: var(--a-d-line);
 
     --chip-bg: #2A241D;
     --chip-text: #B8AFA4;
@@ -166,7 +206,7 @@
 
     --capsule-bg: transparent;
     --capsule-border: #F3F0EA;
-    --sticker-bg: #C4492E;
+    --sticker-bg: var(--a-d-sticker);
     --sticker-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
     --sticker-changed-bg: #F3F0EA;
     --sticker-changed-text: #14120F;
@@ -185,15 +225,15 @@
     --now-track: rgba(243, 240, 234, 0.12);
     --now-cell-track: rgba(243, 240, 234, 0.16);
     --now-next-border: #4A443C;
-    --accent-faded: #9A6A5B;
-    --series-ka: #D4573B;
-    --series-sl: #F2A47E;
-    --seq-1: #FF8A63;
-    --seq-2: #E8653F;
-    --seq-3: #C94F31;
-    --seq-4: #A43F27;
-    --seq-5: #803220;
-    --seq-6: #5E271A;
+    --accent-faded: var(--a-d-faded);
+    --series-ka: var(--a-d-series-ka);
+    --series-sl: var(--a-d-series-sl);
+    --seq-1: var(--a-d-seq-1);
+    --seq-2: var(--a-d-seq-2);
+    --seq-3: var(--a-d-seq-3);
+    --seq-4: var(--a-d-seq-4);
+    --seq-5: var(--a-d-seq-5);
+    --seq-6: var(--a-d-seq-6);
     --seg-track: #26221D;
     --seg-thumb: #3A352E;
   }

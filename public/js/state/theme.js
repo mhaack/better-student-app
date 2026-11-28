@@ -39,3 +39,12 @@ export function applyTheme(value) {
         : "light";
   document.getElementById("theme-color-meta")?.setAttribute("content", THEME_COLOR[resolved]);
 }
+
+/** Switches the palette in tokens.css; the default needs no attribute. */
+export function applyAccent(value) {
+  if (value && value !== "rost") {
+    document.documentElement.dataset.accent = value;
+  } else {
+    delete document.documentElement.dataset.accent;
+  }
+}
