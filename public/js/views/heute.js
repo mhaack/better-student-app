@@ -24,7 +24,7 @@ const STATUS_PILL = {
 };
 // More rows go behind "+n weitere".
 const MAX_GRADE_ROWS = 2;
-const JETZT_OFF = { kind: "off" };
+const JETZT_OFF = { kind: "off", past: [] };
 
 /** The black card for a test today or tomorrow. */
 function testCard(test) {
@@ -100,8 +100,7 @@ function lessonRows(day, state) {
   if (!day.lessons.length) return '<div class="empty-state">Keine Stunden.</div>';
   return day.lessons
     .map((lesson) => {
-      if (state.kind === "off") return lessonRow(lesson);
-      if (state.period === lesson.period) return nowCard(lesson, state);
+      if (state.kind !== "off" && state.period === lesson.period) return nowCard(lesson, state);
       return lessonRow(lesson, state.past.includes(lesson.period));
     })
     .join("");

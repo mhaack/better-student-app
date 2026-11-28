@@ -8,7 +8,7 @@ import { openExamSheet } from "../components/exam-sheet.js";
 import { categoryMarker, lessonMarkers } from "../components/marker.js";
 import { lessonStatusLabel, openLessonSheet } from "../components/lesson-sheet.js";
 import { progressBar, everyMinute } from "../components/jetzt.js";
-import { jetztState } from "../domain/jetzt.js";
+import { jetztState, pastPeriods } from "../domain/jetzt.js";
 
 // Up to 3 weeks ahead of the default week.
 const MAX_WEEK_OFFSET = 3;
@@ -99,20 +99,24 @@ function gridRow(row, days) {
 }
 
 /**
- * The Jetzt display in today's column: past lessons faded, a bar in the
- * running one. Patched in place each minute, so an open sheet keeps its cell.
+ * The Jetzt display: past lessons of the week faded, a bar in the running
+ * one. Patched in place each minute, so an open sheet keeps its cell.
  */
 function markJetzt(body, days) {
+  const now = new Date();
   const today = days.findIndex((d) => d.isToday && d.isSchoolDay);
-  const state = today < 0 ? JETZT_OFF : jetztState(new Date(), days[today].lessons);
+  const state = today < 0 ? JETZT_OFF : jetztState(now, days[today].lessons);
   const running = state.kind === "lesson" ? state.period : null;
+  const past = days.map((d) => pastPeriods(now, d));
 
-  for (const cell of body.querySelectorAll(`.sp-cell[data-day-index="${today}"]`)) {
+  for (const cell of body.querySelectorAll(".sp-cell")) {
+    const dayIndex = Number(cell.dataset.dayIndex);
     const period = Number(cell.dataset.period);
-    cell.classList.toggle("sp-cell--past", state.kind !== "off" && state.past.includes(period));
-    cell.classList.toggle("sp-cell--now", period === running);
+    const isRunning = dayIndex === today && period === running;
+    cell.classList.toggle("sp-cell--past", past[dayIndex]?.includes(period) ?? false);
+    cell.classList.toggle("sp-cell--now", isRunning);
     cell.querySelector(".sp-cell-bar")?.remove();
-    if (period === running) cell.insertAdjacentHTML("beforeend", progressBar(state.progress, "sp-cell-bar", "Laufende Stunde"));
+    if (isRunning) cell.insertAdjacentHTML("beforeend", progressBar(state.progress, "sp-cell-bar", "Laufende Stunde"));
   }
   for (const num of body.querySelectorAll("[data-row-period]")) {
     num.classList.toggle("sp-period--now", Number(num.dataset.rowPeriod) === running);

@@ -8,7 +8,7 @@ function toMinutes(hm) {
 
 /**
  * What to show for `now` on a school day's lessons ({ period, status, from, to }):
- * - `{ kind: "off" }` before the first or from the end of the last held lesson;
+ * - `{ kind: "off", past }` before the first or from the end of the last held lesson;
  * - `{ kind: "lesson", period, from, to, progress, restMin, past }` during one;
  * - `{ kind: "gap", period, from, inMin, free, past }` before the next one,
  *   `free` when a cancelled lesson lies in between.
@@ -21,9 +21,9 @@ export function jetztState(now, lessons) {
     .filter((l) => l.start !== null && l.end !== null)
     .sort((a, b) => a.start - b.start);
   const held = timed.filter((l) => l.status !== "cancelled");
-  if (!held.length || nowMin < held[0].start || nowMin >= held.at(-1).end) return { kind: "off" };
-
   const past = timed.filter((l) => l.end <= nowMin).map((l) => l.period);
+  if (!held.length || nowMin < held[0].start || nowMin >= held.at(-1).end) return { kind: "off", past };
+
   const current = held.find((l) => nowMin >= l.start && nowMin < l.end);
   if (current) {
     return {
@@ -40,4 +40,14 @@ export function jetztState(now, lessons) {
   const next = held.find((l) => l.start > nowMin);
   const free = timed.some((l) => l.status === "cancelled" && l.end > nowMin && l.start < next.start);
   return { kind: "gap", period: next.period, from: next.from, inMin: next.start - nowMin, free, past };
+}
+
+/** The periods of `day` ({ date, lessons }) that have ended by `now`: all of an earlier day, none of a later one. */
+export function pastPeriods(now, day) {
+  const start = new Date(day.date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  if (now >= end) return day.lessons.map((l) => l.period);
+  return now < start ? [] : jetztState(now, day.lessons).past;
 }

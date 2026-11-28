@@ -1,7 +1,7 @@
 // What the "Jetzt" display shows on Heute and the Stundenplan's today column.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { jetztState } from "../../public/js/domain/jetzt.js";
+import { jetztState, pastPeriods } from "../../public/js/domain/jetzt.js";
 
 const BELL = {
   1: ["07:45", "08:30"],
@@ -19,16 +19,17 @@ const DAY = [lesson(2), lesson(3, "room_change"), lesson(4, "cancelled"), lesson
 
 describe("jetztState", () => {
   test("is off before the first lesson starts", () => {
-    assert.deepEqual(jetztState(at(8, 39), DAY), { kind: "off" });
+    assert.deepEqual(jetztState(at(8, 39), DAY), { kind: "off", past: [] });
   });
 
-  test("is off from the end of the last held lesson", () => {
-    assert.deepEqual(jetztState(at(13, 15), DAY), { kind: "off" });
+  test("is off from the end of the last held lesson, with every lesson past", () => {
+    assert.deepEqual(jetztState(at(13, 15), DAY), { kind: "off", past: [2, 3, 4, 5, 6] });
   });
 
   test("is off on a day without held lessons", () => {
-    assert.deepEqual(jetztState(at(10, 0), [lesson(3, "cancelled")]), { kind: "off" });
-    assert.deepEqual(jetztState(at(10, 0), []), { kind: "off" });
+    assert.deepEqual(jetztState(at(10, 0), [lesson(3, "cancelled")]), { kind: "off", past: [] });
+    assert.deepEqual(jetztState(at(11, 0), [lesson(3, "cancelled")]), { kind: "off", past: [3] });
+    assert.deepEqual(jetztState(at(10, 0), []), { kind: "off", past: [] });
   });
 
   test("shows the running lesson with progress and minutes left", () => {
@@ -80,5 +81,22 @@ describe("jetztState", () => {
   test("reads unpadded times", () => {
     const state = jetztState(at(8, 0), [{ period: 1, status: "regular", from: "7:45", to: "8:30" }]);
     assert.equal(state.restMin, 30);
+  });
+});
+
+describe("pastPeriods", () => {
+  const day = (d) => ({ date: new Date(2025, 8, d), lessons: DAY });
+
+  test("lists every lesson of an earlier day", () => {
+    assert.deepEqual(pastPeriods(at(10, 2), day(16)), [2, 3, 4, 5, 6]);
+  });
+
+  test("lists the ended lessons of today", () => {
+    assert.deepEqual(pastPeriods(at(10, 50), day(18)), [2, 3]);
+    assert.deepEqual(pastPeriods(at(15, 0), day(18)), [2, 3, 4, 5, 6]);
+  });
+
+  test("lists nothing for a later day", () => {
+    assert.deepEqual(pastPeriods(at(15, 0), day(19)), []);
   });
 });
