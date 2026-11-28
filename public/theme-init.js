@@ -2,10 +2,13 @@
 // light, and decides whether the intro plays: only when signed in, since a
 // login screen follows otherwise. Must stay a render-blocking classic script
 // (modules defer) and can't be inline (CSP). Keep THEME_KEY and the colors in
-// sync with js/state/theme.js, TOKEN_KEY with js/state/auth-store.js.
+// sync with js/state/theme.js, ACCENT_* with js/state/settings.js, TOKEN_KEY
+// with js/state/auth-store.js.
 (() => {
   var THEME_KEY = "schulblick.theme";
   var THEME_COLOR = { light: "#F6F3EE", dark: "#14120F" };
+  var ACCENT_KEY = "schulblick.accent";
+  var ACCENT_OPTIONS = ["pflaume", "gruen", "petrol"]; // rost is the default, no attribute
 
   var stored;
   try {
@@ -27,6 +30,14 @@
 
   var meta = document.getElementById("theme-color-meta");
   if (meta) meta.setAttribute("content", THEME_COLOR[resolved]);
+
+  var accent;
+  try {
+    accent = window.localStorage.getItem(ACCENT_KEY);
+  } catch {
+    accent = null;
+  }
+  if (ACCENT_OPTIONS.indexOf(accent) !== -1) document.documentElement.dataset.accent = accent;
 
   var TOKEN_KEY = "schulblick.token";
   var signedIn;
